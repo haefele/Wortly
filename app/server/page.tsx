@@ -1,11 +1,13 @@
 import Home from "./inner";
 import { preloadQuery, preloadedQueryResult } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
+import { getAuthToken } from "@/app/auth";
 
 export default async function ServerPage() {
-  const preloaded = await preloadQuery(api.myFunctions.listNumbers, {
-    count: 3,
-  });
+  const preloaded = await preloadQuery(api.myFunctions.listNumbers, 
+    { count: 3 },
+    { token: await getAuthToken() }
+  );
 
   const data = preloadedQueryResult(preloaded);
 
