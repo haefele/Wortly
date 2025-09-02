@@ -1,12 +1,22 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
-// The schema is entirely optional.
-// You can delete this file (schema.ts) and the
-// app will continue to work.
-// The schema provides more precise TypeScript types.
 export default defineSchema({
-  numbers: defineTable({
-    value: v.number(),
-  }),
+  words: defineTable({
+    word: v.string(),
+    translations: v.object({
+      en: v.optional(v.string()),
+      ru: v.optional(v.string()),
+    }),
+    wordType: v.string(),
+    exampleSentences: v.array(v.string()),
+  }).index("by_word", ["word"])
+    .searchIndex("search_word", {
+      searchField: "word",
+    }),
+
+  wordLibrary: defineTable({
+    userId: v.string(),
+    wordId: v.id("words")
+  }).index("by_userId", ["userId"]),
 });
