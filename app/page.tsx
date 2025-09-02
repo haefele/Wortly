@@ -1,13 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useState } from "react";
 
 export default function Home() {
-  var [searchText, setSearchText] = useState<string>("");
+  const [searchText, setSearchText] = useState<string>("");
   const word = useQuery(api.words.findWord, { word: searchText });
 
   return (
