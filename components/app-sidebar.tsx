@@ -6,12 +6,12 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
+  SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { 
   BookOpen, 
@@ -57,13 +57,14 @@ const navigationItems = [
 export function AppSidebar() {
   const { user, isLoaded } = useUser()
   const pathname = usePathname()
+  const { state, isMobile, setOpenMobile } = useSidebar()
 
   const streakDays = 5 // This would come from your database/state
 
   return (
-    <Sidebar>
-      <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center gap-3 px-2 py-3">
+    <Sidebar variant="inset">
+      <SidebarHeader className="">
+        <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
             <BookOpen className="h-5 w-5 text-primary" />
           </div>
@@ -74,12 +75,14 @@ export function AppSidebar() {
               <span>{streakDays} day streak</span>
             </div>
           </div>
+          {state === "expanded" && !isMobile && (
+            <SidebarTrigger className="ml-auto" />
+          )}
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Learning</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => {
@@ -87,7 +90,15 @@ export function AppSidebar() {
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={isActive}>
-                      <Link href={item.url}>
+                      <Link 
+                        href={item.url}
+                        onClick={() => {
+                          // Close mobile sidebar after navigation
+                          if (isMobile) {
+                            setOpenMobile(false)
+                          }
+                        }}
+                      >
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </Link>
@@ -117,8 +128,9 @@ export function AppSidebar() {
               if ((e.target as HTMLElement).closest('.cl-userButtonTrigger')) return;
               
               const userButton = document.querySelector('.cl-userButtonTrigger') as HTMLElement;
-              if (userButton)
+              if (userButton) {
                 userButton.click();
+              }
             }}
           >
             <UserButton appearance={{ 
@@ -139,8 +151,6 @@ export function AppSidebar() {
           </button>
         )}
       </SidebarFooter>
-      
-      <SidebarRail />
     </Sidebar>
   )
 }

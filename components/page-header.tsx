@@ -1,32 +1,35 @@
 "use client"
 
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { ReactNode } from "react"
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
+import { LucideIcon } from "lucide-react"
 
 interface PageHeaderProps {
   title: string
   description?: string
-  actions?: ReactNode
+  icon?: LucideIcon
 }
 
-export function PageHeader({ title, description, actions }: PageHeaderProps) {
+export function PageHeader({ title, description, icon: Icon }: PageHeaderProps) {
+  const { state, isMobile } = useSidebar()
+  
   return (
-    <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b bg-background px-4">
-      <SidebarTrigger />
+    <header className="flex h-16 items-center gap-4 border-b px-4">
+      {(state === "collapsed" || isMobile) && (
+        <SidebarTrigger />
+      )}
       
-      <div className="flex flex-1 items-center justify-between gap-2">
+      <div className="flex flex-1 items-center gap-3">
+        {Icon && (
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+            <Icon className="h-5 w-5 text-primary" />
+          </div>
+        )}
         <div className="flex flex-col">
           <h1 className="text-lg font-semibold">{title}</h1>
           {description && (
             <p className="text-xs text-muted-foreground">{description}</p>
           )}
         </div>
-        
-        {actions && (
-          <div className="flex items-center gap-2">
-            {actions}
-          </div>
-        )}
       </div>
     </header>
   )

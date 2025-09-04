@@ -1,7 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Plus, Download } from "lucide-react";
+import { Library } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 
 export default function LibraryPage() {
@@ -10,18 +9,7 @@ export default function LibraryPage() {
             <PageHeader 
                 title="Word Library"
                 description="Your personal collection of saved words"
-                actions={
-                    <>
-                        <Button variant="outline" size="sm">
-                            <Download className="h-4 w-4 mr-2" />
-                            Export
-                        </Button>
-                        <Button size="sm">
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Word
-                        </Button>
-                    </>
-                }
+                icon={Library}
             />
             <main className="flex-1 p-4 md:p-6">
                 <div className="text-muted-foreground">

@@ -5,6 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useState } from "react";
 import { PageHeader } from "@/components/page-header";
+import { Home } from "lucide-react";
 
 export default function DashboardPage() {
   const [searchText, setSearchText] = useState<string>("");
@@ -15,6 +16,7 @@ export default function DashboardPage() {
       <PageHeader 
         title="Dashboard"
         description="Search and explore German words"
+        icon={Home}
       />
       <main className="flex-1 p-4 md:p-6">
         <div className="flex flex-col max-w-lg mx-auto">
