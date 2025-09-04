@@ -19,22 +19,12 @@ import {
   GraduationCap, 
   Library, 
   TrendingUp,
-  Settings,
-  LogOut,
-  Flame,
-  User
+  Flame
 } from "lucide-react"
 import Link from "next/link"
-import { useUser, useAuth } from "@clerk/nextjs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { useUser, UserButton } from "@clerk/nextjs"
 import { usePathname } from "next/navigation"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const navigationItems = [
   {
@@ -64,19 +54,8 @@ const navigationItems = [
   }
 ];
 
-const getUserInitials = (name: string | null | undefined) => {
-  if (!name) return "U"
-  return name
-    .split(" ")
-    .map(part => part[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2)
-};
-
 export function AppSidebar() {
   const { user, isLoaded } = useUser()
-  const { signOut } = useAuth()
   const pathname = usePathname()
 
   const streakDays = 5 // This would come from your database/state
@@ -121,53 +100,39 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      {isLoaded && user && (
-        <SidebarFooter className="border-t border-sidebar-border">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex w-full items-center gap-3 rounded-lg px-2 py-3 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.imageUrl} alt={user.fullName || ""} />
-                  <AvatarFallback>
-                    {getUserInitials(user.fullName)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col items-start text-left">
-                  <span className="font-medium truncate max-w-[150px]">
-                    {user.fullName || user.username || "User"}
-                  </span>
-                  <span className="text-xs text-muted-foreground truncate max-w-[150px]">
-                    {user.emailAddresses[0]?.emailAddress}
-                  </span>
-                </div>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="w-56">
-              <DropdownMenuItem asChild>
-                <Link href="/profile" className="flex items-center">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/settings" className="flex items-center">
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={async () => {
-                  await signOut();
-                }}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Sign Out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </SidebarFooter>
-      )}
+      <SidebarFooter className="border-t border-sidebar-border">
+        {!isLoaded || !user ? (
+          <div className="flex items-center gap-3 px-2 py-3">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+          </div>
+        ) : (
+          <button 
+            className="flex items-center gap-3 px-2 py-3 w-full text-left hover:bg-sidebar-accent rounded-lg transition-colors"
+            onClick={(e) => {
+              // Don't trigger if clicking on the UserButton itself
+              if ((e.target as HTMLElement).closest('.cl-userButtonTrigger')) return;
+              
+              const userButton = document.querySelector('.cl-userButtonTrigger') as HTMLElement;
+              if (userButton)
+                userButton.click();
+            }}
+          >
+            <UserButton />
+            <div className="flex flex-col items-start">
+              <span className="text-sm font-medium truncate max-w-[150px]">
+                {user.fullName || user.username || "User"}
+              </span>
+              <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+                {user.emailAddresses[0]?.emailAddress}
+              </span>
+            </div>
+          </button>
+        )}
+      </SidebarFooter>
       
       <SidebarRail />
     </Sidebar>
