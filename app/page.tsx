@@ -5,7 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useState } from "react";
 
-export default function Home() {
+export default function DashboardPage() {
   const [searchText, setSearchText] = useState<string>("");
   const word = useQuery(api.words.findWord, { word: searchText });
 
