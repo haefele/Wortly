@@ -35,12 +35,12 @@ export default function RootLayout({
         <ClerkProvider dynamic>
           <ConvexClientProvider>
             <SidebarProvider>
-            <AppSidebar />
-            <main>
-              <SidebarTrigger />
-              {children}
-            </main>
-          </SidebarProvider>
+              <AppSidebar />
+              <main>
+                <SidebarTrigger />
+                {children}
+              </main>
+            </SidebarProvider>
           </ConvexClientProvider>
         </ClerkProvider>
       </body>
