@@ -121,7 +121,13 @@ export function AppSidebar() {
                 userButton.click();
             }}
           >
-            <UserButton />
+            <UserButton appearance={{ 
+              elements: { 
+                userButtonPopoverCard: { 
+                  pointerEvents: "initial" 
+                },
+              }
+            }} />
             <div className="flex flex-col items-start">
               <span className="text-sm font-medium truncate max-w-[150px]">
                 {user.fullName || user.username || "User"}
