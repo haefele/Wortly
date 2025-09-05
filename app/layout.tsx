@@ -5,6 +5,8 @@ import ConvexClientProvider from "@/components/convex-client-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,10 +37,15 @@ export default function RootLayout({
         <ClerkProvider dynamic>
           <ConvexClientProvider>
             <SidebarProvider>
+
               <AppSidebar />
               <SidebarInset>
                 {children}
               </SidebarInset>
+
+              <Analytics />
+              <SpeedInsights />
+
             </SidebarProvider>
           </ConvexClientProvider>
         </ClerkProvider>
