@@ -22,9 +22,10 @@ import {
   Flame
 } from "lucide-react"
 import Link from "next/link"
-import { useUser, UserButton } from "@clerk/nextjs"
+import { UserButton } from "@clerk/nextjs"
 import { usePathname } from "next/navigation"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useWortlyUser } from "@/hooks/use-wortly-user"
 
 const navigationItems = [
   {
@@ -55,7 +56,7 @@ const navigationItems = [
 ];
 
 export function AppSidebar() {
-  const { user, isLoaded } = useUser()
+  const { user, isLoading } = useWortlyUser();
   const pathname = usePathname()
   const { state, isMobile, setOpenMobile } = useSidebar()
 
@@ -112,7 +113,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">
-        {!isLoaded || !user ? (
+        {isLoading || !user ? (
           <div className="flex items-center gap-3 px-2 py-3">
             <Skeleton className="h-8 w-8 rounded-full" />
             <div className="flex flex-col gap-2">
@@ -142,10 +143,10 @@ export function AppSidebar() {
             }} />
             <div className="flex flex-col items-start">
               <span className="text-sm font-medium truncate max-w-[150px]">
-                {user.fullName || user.username || "User"}
+                {user.name}
               </span>
               <span className="text-xs text-muted-foreground truncate max-w-[150px]">
-                {user.emailAddresses[0]?.emailAddress}
+                {user.email}
               </span>
             </div>
           </button>
