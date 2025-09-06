@@ -10,8 +10,9 @@ import z from "zod";
 export const fetchWordData = internalAction({
   args: {
     word: v.string(),
+    userId: v.string(),
   },
-  handler: async (ctx, { word }) => {
+  handler: async (ctx, { word, userId }) => {
     const openai = createOpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
@@ -57,7 +58,8 @@ export const fetchWordData = internalAction({
         article: object.article || undefined,
         wordType: object.wordType,
         exampleSentences: object.exampleSentences
-      }
+      },
+      userId: userId
     });
   },
 });
