@@ -22,8 +22,18 @@ export default defineSchema({
       searchField: "word",
     }),
 
-  wordLibrary: defineTable({
+  wordBoxes: defineTable({
+    name: v.string(),
     userId: v.string(),
-    wordId: v.id("words")
-  }).index("by_userId", ["userId"]),
+    wordCount: v.number(),
+  }).index("by_userId", ["userId"])
+    .index("by_userId_and_name", ["userId", "name"]),
+
+  wordBoxAssignments: defineTable({
+    wordId: v.id("words"),
+    boxId: v.id("wordBoxes"),
+    addedAt: v.number(),
+  }).index("by_boxId", ["boxId"])
+    .index("by_wordId", ["wordId"])
+    .index("by_boxId_and_wordId", ["boxId", "wordId"]),
 });
