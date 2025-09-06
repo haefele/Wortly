@@ -139,6 +139,9 @@ export function AppSidebar() {
                 userButtonPopoverCard: { 
                   pointerEvents: "initial" 
                 },
+                userButtonPopoverFooter: {
+                  display: "none"
+                }
               }
             }} />
             <div className="flex flex-col items-start">
