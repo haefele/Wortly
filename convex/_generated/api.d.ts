@@ -13,9 +13,11 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
-import type * as users from "../users.js";
-import type * as wordActions from "../wordActions.js";
-import type * as words from "../words.js";
+import type * as functions_users from "../functions/users.js";
+import type * as functions_wordBoxes from "../functions/wordBoxes.js";
+import type * as functions_words from "../functions/words.js";
+import type * as lib_authHelpers from "../lib/authHelpers.js";
+import type * as lib_wordboxHelpers from "../lib/wordboxHelpers.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -26,9 +28,11 @@ import type * as words from "../words.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  users: typeof users;
-  wordActions: typeof wordActions;
-  words: typeof words;
+  "functions/users": typeof functions_users;
+  "functions/wordBoxes": typeof functions_wordBoxes;
+  "functions/words": typeof functions_words;
+  "lib/authHelpers": typeof lib_authHelpers;
+  "lib/wordboxHelpers": typeof lib_wordboxHelpers;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
