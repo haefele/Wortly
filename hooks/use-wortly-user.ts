@@ -12,8 +12,8 @@ export function useWortlyUser() {
     
     // When this state is set we know the server has stored the user.
     const [userId, setUserId] = useState<Id<"users"> | null>(null);
-    const storeUser = useMutation(api.users.store);
-    const me = useQuery(api.users.getMe);
+    const storeUser = useMutation(api.functions.users.store);
+    const me = useQuery(api.functions.users.getMe);
 
     useEffect(() => {
 
