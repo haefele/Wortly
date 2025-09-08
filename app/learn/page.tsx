@@ -1,5 +1,6 @@
 "use client";
 
+import FeatureComingSoon from "@/components/feature-coming-soon";
 import { PageHeader } from "@/components/page-header";
 import { GraduationCap } from "lucide-react";
 
@@ -12,7 +13,7 @@ export default function LearnPage() {
                 icon={GraduationCap}
             />
             <main className="flex-1 p-4 md:p-6">
-                <div>Learn Page - Protected Content</div>
+                <FeatureComingSoon />
             </main>
         </>
     );
