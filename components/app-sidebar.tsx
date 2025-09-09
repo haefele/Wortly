@@ -34,19 +34,14 @@ const navigationItems = [
     icon: Home,
   },
   {
-    title: "Learn",
-    url: "/learn",
-    icon: GraduationCap,
-  },
-  {
-    title: "Practice",
-    url: "/practice",
-    icon: BookOpen,
-  },
-  {
     title: "Word Library",
     url: "/library",
     icon: Library,
+  },
+  {
+    title: "Learn",
+    url: "/learn",
+    icon: GraduationCap,
   },
   {
     title: "Progress",
