@@ -1,51 +1,69 @@
-# Welcome to your Convex + Next.js + Clerk app
+# Wortly 🇩🇪
 
-This is a [Convex](https://convex.dev/) project created with [`npm create convex`](https://www.npmjs.com/package/create-convex).
+A modern German vocabulary learning platform that helps users build their German vocabulary through interactive learning and spaced repetition.
 
-After the initial setup (<2 minutes) you'll have a working full-stack app using:
+## ✨ Features
 
-- Convex as your backend (database, server logic)
-- [React](https://react.dev/) as your frontend (web page interactivity)
-- [Next.js](https://nextjs.org/) for optimized web hosting and page routing
-- [Tailwind](https://tailwindcss.com/) for building great looking accessible UI
-- [Clerk](https://clerk.com/) for authentication
+- **Word Discovery**: Search and explore German words with AI-powered definitions
+- **Personal Collections**: Organize words into custom WordBoxes for targeted learning
+- **Interactive Learning**: Multiple study modes including flashcards, quizzes, and exercises
+- **Progress Tracking**: Monitor learning streaks, vocabulary growth, and mastery levels
+- **Smart Learning**: Spaced repetition algorithm optimizes retention
+- **Multilingual Support**: Translations in English and Russian
 
-## Get started
+## 🛠️ Tech Stack
 
-If you just cloned this codebase and didn't use `npm create convex`, run:
+- **Frontend**: Next.js 15 with App Router
+- **Backend**: Convex (real-time database and server functions)
+- **Authentication**: Clerk
+- **Styling**: Tailwind CSS + shadcn/ui components
+- **AI Integration**: OpenAI API for word analysis
+- **Language**: TypeScript
+- **Deployment**: Vercel
+
+## 📁 Project Structure
 
 ```
-npm install
-npm run dev
+wortly/
+├── app/                # Next.js App Router pages
+│   ├── layout.tsx          # Root layout with providers
+│   ├── page.tsx            # Dashboard (word search & discovery)
+│   ├── library/            # Word collections management
+│   ├── learn/              # Study sessions and exercises
+│   └── progress/           # Learning analytics
+├── components/         # React components
+│   ├── ui/                 # shadcn/ui components
+│   └── ...                 # Custom components
+├── convex/             # Backend (Convex)
+│   ├── functions/          # API functions
+│   ├── lib/                # Helper functions
+│   ├── schema.ts           # Database schema
+│   └── auth.config.ts      # Authentication config
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions
+└── .claude/            # AI assistant plans and docs
 ```
 
-If you're reading this README on GitHub and want to use this template, run:
+## 🎯 Core Functionality
 
-```
-npm create convex@latest -- -t nextjs-clerk
-```
+### Word Management
+- **Search**: Find German words with fuzzy search
+- **Add New Words**: AI automatically fetches definitions, examples, and translations
+- **Collections**: Organize words into custom WordBoxes
 
-Then:
+### Learning System
+- **Flashcards**: Traditional spaced repetition
+- **Interactive Exercises**: Multiple choice, fill-in-the-blank, word matching
+- **Adaptive Difficulty**: Performance-based difficulty adjustment
+- **Progress Tracking**: Detailed analytics and streak tracking
 
-1. Open your app. There should be a "Claim your application" button from Clerk in the bottom right of your app.
-2. Follow the steps to claim your application and link it to this app.
-3. Follow step 3 in the [Convex Clerk onboarding guide](https://docs.convex.dev/auth/clerk#get-started) to create a Convex JWT template.
-4. Uncomment the Clerk provider in `convex/auth.config.ts`
-5. Paste the Issuer URL as `CLERK_JWT_ISSUER_DOMAIN` to your dev deployment environment variable settings on the Convex dashboard (see [docs](https://docs.convex.dev/auth/clerk#configuring-dev-and-prod-instances))
+### Development Guidelines
 
-If you want to sync Clerk user data via webhooks, check out this [example repo](https://github.com/thomasballinger/convex-clerk-users-table/).
+- Follow existing code patterns and naming conventions
+- Use TypeScript for type safety
+- Follow kebab-case for file names
+- Test your changes thoroughly
 
-## Learn more
+---
 
-To learn more about developing your project with Convex, check out:
-
-- The [Tour of Convex](https://docs.convex.dev/get-started) for a thorough introduction to Convex principles.
-- The rest of [Convex docs](https://docs.convex.dev/) to learn about all Convex features.
-- [Stack](https://stack.convex.dev/) for in-depth articles on advanced topics.
-
-## Join the community
-
-Join thousands of developers building full-stack apps with Convex:
-
-- Join the [Convex Discord community](https://convex.dev/community) to get help in real-time.
-- Follow [Convex on GitHub](https://github.com/get-convex/), star and contribute to the open-source implementation of Convex.
+**Wortly** - Making German vocabulary learning engaging and effective! 🚀
