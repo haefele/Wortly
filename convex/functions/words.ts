@@ -1,8 +1,8 @@
 import { v } from "convex/values";
-import { mutation, query, internalMutation, MutationCtx, internalAction } from "@/_generated/server";
+import { mutation, query, internalMutation, internalAction } from "@/_generated/server";
 import { internal } from "@/_generated/api";
 import schema from "@/schema";
-import { throwIfUnauthenticated, getCurrentUser } from "@/lib/authHelpers";
+import { throwIfUnauthenticated } from "@/lib/authHelpers";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import z from "zod";
@@ -23,6 +23,18 @@ export const searchWord = query({
             .query("words")
             .withSearchIndex("search_word", q => q.search("word", term))
             .take(10);
+    }
+});
+
+export const getRecentWords = query({
+    args: {},
+    handler: async (ctx) => {
+        await throwIfUnauthenticated(ctx);
+
+        return await ctx.db
+            .query("words")
+            .order("desc")
+            .take(12);
     }
 });
 

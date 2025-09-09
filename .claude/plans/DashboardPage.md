@@ -3,13 +3,13 @@
 **Purpose**: Word Search & Discovery Hub
 
 ## Todo List
-- [ ] Create Badge UI component (`components/ui/badge.tsx`) - check shadcn/ui if they have one like that
-- [ ] Create word card component (`components/dashboard/word-card.tsx`)
-- [ ] Create search component (`components/dashboard/word-search.tsx`)
-- [ ] Add `getRecentWords` Convex query
-- [ ] Create recent words component (`components/dashboard/recent-words.tsx`)
-- [ ] Update main dashboard page (`app/page.tsx`)
-- [ ] Ensure mobile responsiveness
+- [x] Create Badge UI component (`components/ui/badge.tsx`) - check shadcn/ui if they have one like that
+- [x] Create word card component (`components/dashboard/word-card.tsx`)
+- [x] Create search component (`components/dashboard/word-search.tsx`)
+- [x] Add `getRecentWords` Convex query
+- [x] Create recent words component (`components/dashboard/recent-words.tsx`)
+- [x] Update main dashboard page (`app/page.tsx`)
+- [x] Ensure mobile responsiveness
 
 ### Features
 - **Search Interface**: Large, prominent search bar for discovering German words
