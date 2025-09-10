@@ -64,6 +64,25 @@ wortly/
 - Follow kebab-case for file names
 - Test your changes thoroughly
 
+## 🎨 UI Design Philosophy
+
+Wortly embodies a **cutting-edge, modern design language** that prioritizes elegance and functionality. Our sleek interface creates an immersive learning environment that feels more like using a premium consumer app than traditional educational software.
+
+### Visual Design Principles
+
+- **Ultra-Modern Aesthetics**: Contemporary design system featuring subtle gradients and refined shadows that create depth without overwhelming content
+- **Sleek Component Architecture**: Every UI element follows consistent design tokens with carefully crafted border radius, spacing scales, and color palettes that feel cohesive and sophisticated
+- **Component-Driven Architecture**: Leveraging shadcn/ui's design system with custom extensions for consistent, maintainable styling across all interfaces
+
+### Design Inspiration
+
+Drawing inspiration from industry-leading interfaces that exemplify modern design excellence:
+
+- **Linear**: Exceptional dark mode implementation and micro-interactions that create a premium feel
+- **Notion**: Clean, minimalist layouts with perfect typography hierarchy and intuitive navigation
+- **Stripe**: Industry-standard design system with flawless spacing, colors, and professional aesthetics  
+- **Vercel**: Ultra-modern interface design with smooth animations and cutting-edge visual language
+
 ---
 
 **Wortly** - Making German vocabulary learning engaging and effective! 🚀
