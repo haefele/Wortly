@@ -1,3 +1,9 @@
+---
+description: General project development rules and guidelines
+globs: ["**/*"]
+alwaysApply: true
+---
+
 # Readme
 @README.md
 
