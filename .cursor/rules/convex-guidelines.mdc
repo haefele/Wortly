@@ -1,3 +1,9 @@
+---
+description: Convex development guidelines, function syntax, and best practices
+globs: ["convex/**/*", "**/*convex*"]
+alwaysApply: false
+---
+
 # Convex guidelines
 ## Function guidelines
 ### New function syntax
