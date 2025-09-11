@@ -19,9 +19,9 @@ export default function DashboardPage() {
         description="Search and explore German words"
         icon={Home}
       />
-      <main className="flex-1 p-4 md:p-6 space-y-8">
+      <main className="flex-1 px-4 md:px-6 pb-12 space-y-12">
         {/* Search Interface */}
-        <section>
+        <section className="pt-8">
           <WordSearch onAddToLibrary={handleAddToLibrary} />
         </section>
         
