@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WordCard } from "./word-card";
-import { Search, Plus } from "lucide-react";
+import { AddWordSuggestion } from "./add-word-suggestion";
+import { Search } from "lucide-react";
 import type { Doc } from "@/convex/_generated/dataModel";
 
 interface WordSearchProps {
@@ -17,25 +17,12 @@ interface WordSearchProps {
 export function WordSearch({ onAddToLibrary }: WordSearchProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isAddingWord, setIsAddingWord] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   
   const searchResults = useQuery(api.functions.words.searchWord,
     searchTerm.trim().length > 0 ? { term: searchTerm } : "skip"
-  );  
-  const addNewWord = useMutation(api.functions.words.addNewWord);
+  );
 
-  const handleAddNewWord = async () => {
-    if (!searchTerm.trim() || isAddingWord) return;
-    
-    setIsAddingWord(true);
-    const result = await addNewWord({ word: searchTerm.trim() });
-    if (result) {
-      setTimeout(() => {
-        setIsAddingWord(false);
-      }, 10_000);
-    }
-  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -87,33 +74,9 @@ export function WordSearch({ onAddToLibrary }: WordSearchProps) {
                 </div>
               </div>
             ) : searchResults.length === 0 ? (
-              <div className="text-center py-8 space-y-8">
-                <div className="text-muted-foreground">
-                  <p className="text-lg">No words found for "{searchTerm}"</p>
-                  <p className="text-sm mt-1 opacity-75">This word might not be in our database yet.</p>
-                </div>
-                <Button 
-                  onClick={handleAddNewWord}
-                  disabled={isAddingWord}
-                >
-                  {isAddingWord ? (
-                    <>
-                      <Skeleton className="w-4 h-4 rounded-full" />
-                      Adding word...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="w-4 h-4" />
-                      Add "{searchTerm}" to database
-                    </>
-                  )}
-                </Button>
-                {isAddingWord && (
-                  <p className="text-xs text-muted-foreground">
-                    This may take up to 10 seconds while we analyze the word with AI
-                  </p>
-                )}
-              </div>
+              <AddWordSuggestion 
+                searchTerm={searchTerm}
+              />
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-border/50 pb-2">
