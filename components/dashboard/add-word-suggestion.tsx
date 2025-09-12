@@ -62,7 +62,8 @@ export function AddWordSuggestion({ searchTerm }: AddWordSuggestionProps) {
       ) : (
         <Button
           onClick={handleAddNewWord}
-          className="bg-gradient-to-r from-primary to-primary/80 transition-all duration-300 hover:scale-105"
+          variant="gradient"
+          className="transition-all duration-300 hover:scale-105"
           size="lg"
         >
           <Sparkles className="w-5 h-5" />
