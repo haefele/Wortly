@@ -76,6 +76,8 @@ export function WordSearch({ onAddToLibrary }: WordSearchProps) {
             ) : searchResults.length === 0 ? (
               <AddWordSuggestion 
                 searchTerm={searchTerm}
+                onWordAddedToLibrary={(w) => setSearchTerm(w.word)}
+                onSuggestionSelected={(s) => setSearchTerm(s)}
               />
             ) : (
               <div className="space-y-4">

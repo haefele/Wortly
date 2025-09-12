@@ -4,80 +4,134 @@ import { useState } from "react";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, AlertCircle } from "lucide-react";
+import type { Doc } from "@/convex/_generated/dataModel";
 
 interface AddWordSuggestionProps {
   searchTerm: string;
+  onSuggestionSelected?: (suggestion: string) => void;
+  onWordAddedToLibrary?: (word: Doc<"words">) => void;
 }
 
-export function AddWordSuggestion({ searchTerm }: AddWordSuggestionProps) {
-  const [addingWord, setAddingWord] = useState<boolean>(false);
+type ComponentState = 
+  | { type: 'notFound' }
+  | { type: 'loading' }
+  | { type: 'suggestions'; suggestions: string[] };
+
+export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggestionSelected }: AddWordSuggestionProps) {
+  const [state, setState] = useState<ComponentState>({ type: 'notFound' });
   const addNewWord = useAction(api.functions.words.addNewWord);
 
   const handleAddNewWord = async () => {
-    if (!searchTerm.trim() || addingWord === true) return;
+    if (!searchTerm.trim() || state.type === 'loading') return;
 
-    setAddingWord(true);
+    setState({ type: 'loading' });
 
-    await addNewWord({ word: searchTerm.trim() });
-    setAddingWord(false);
+    const result = await addNewWord({ word: searchTerm.trim() });
+    
+    if (result.success) {
+      onWordAddedToLibrary?.(result.word);
+      setState({ type: 'notFound' });
+    } else {
+      setState({ type: 'suggestions', suggestions: result.suggestions });
+    }
   };
 
-  return (
-    <div className="text-center py-8 space-y-6">
-      {/* Icon */}
-      <div className="w-16 h-16 mx-auto bg-muted/50 rounded-full flex items-center justify-center">
-        {addingWord ? (
-          <Loader2 className="w-8 h-8 text-muted-foreground animate-spin" />
-        ) : (
-          <Sparkles className="w-8 h-8 text-muted-foreground" />
-        )}
-      </div>
-
-      {/* Main content */}
-      <div className="space-y-2">
-        <h3 className="text-lg font-semibold text-foreground">
-          {addingWord ? `Adding "${searchTerm}"...` : `No words found for "${searchTerm}"`}
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          {addingWord 
-            ? "Our AI is analyzing this word to provide comprehensive data."
-            : "This word might not be in our database yet."
-          }
-        </p>
-      </div>
-
-      {/* Action/Progress section */}
-      {addingWord ? (
-        <div className="space-y-3 max-w-sm mx-auto">
-          <div className="flex items-center justify-center space-x-3 text-sm text-muted-foreground">
-            <div className="flex space-x-1">
-              <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></div>
-              <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+  switch (state.type) {
+    case 'loading':
+      return (
+        <div className="text-center py-8 space-y-6">
+          <div className="w-16 h-16 mx-auto bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-foreground">
+              Adding "{searchTerm}"...
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Our AI is analyzing this word to provide comprehensive data.
+            </p>
+          </div>
+          <div className="space-y-3 max-w-sm mx-auto">
+            <div className="flex items-center justify-center space-x-3 text-sm text-muted-foreground">
+              <div className="flex space-x-1">
+                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></div>
+                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              </div>
+              <span>Processing with AI...</span>
             </div>
-            <span>Processing with AI...</span>
+          </div>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            This usually takes 10-20 seconds.
+          </p>
+        </div>
+      );
+
+    case 'suggestions':
+      return (
+        <div className="text-center py-8 space-y-6">
+          <div className="w-16 h-16 mx-auto bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center">
+            <AlertCircle className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-foreground">
+              "{searchTerm}" is not a valid German word
+            </h3>
+            {state.suggestions.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Did you mean one of these words?
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {state.suggestions.map((suggestion, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        onSuggestionSelected?.(suggestion);
+                      }}
+                      className="text-xs"
+                    >
+                      {suggestion}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      ) : (
-        <Button
-          onClick={handleAddNewWord}
-          variant="gradient"
-          className="transition-all duration-300 hover:scale-105"
-          size="lg"
-        >
-          <Sparkles className="w-5 h-5" />
-          Add "{searchTerm}" to database
-        </Button>
-      )}
+      );
 
-      {/* Footer text */}
-      <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-        {addingWord 
-          ? "This usually takes 10-20 seconds."
-          : "We'll analyze this word with AI to provide translations, grammar info, and example sentences."
-        }
-      </p>
-    </div>
-  );
+    case 'notFound':
+    default:
+      return (
+        <div className="text-center py-8 space-y-6">
+          <div className="w-16 h-16 mx-auto bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
+            <Sparkles className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-foreground">
+              No words found for "{searchTerm}"
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              This word might not be in our database yet.
+            </p>
+          </div>
+          <Button
+            onClick={handleAddNewWord}
+            variant="gradient"
+            className="transition-all duration-300 hover:scale-105"
+            size="lg"
+          >
+            <Sparkles className="w-5 h-5" />
+            Add "{searchTerm}" to database
+          </Button>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            We'll analyze this word with AI to provide translations, grammar info, and example sentences.
+          </p>
+        </div>
+      );
+  }
 }
