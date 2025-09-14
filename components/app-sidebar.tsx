@@ -19,36 +19,50 @@ import {
   GraduationCap, 
   Library, 
   TrendingUp,
-  Flame
+  Flame,
+  Shield
 } from "lucide-react"
 import Link from "next/link"
 import { UserButton } from "@clerk/nextjs"
 import { usePathname } from "next/navigation"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useWortlyUser } from "@/hooks/use-wortly-user"
+import { Doc } from "@/convex/_generated/dataModel"
 
-const navigationItems = [
-  {
-    title: "Dashboard",
-    url: "/",
-    icon: Home,
-  },
-  {
-    title: "Word Library",
-    url: "/library",
-    icon: Library,
-  },
-  {
-    title: "Learn",
-    url: "/learn",
-    icon: GraduationCap,
-  },
-  {
-    title: "Progress",
-    url: "/progress",
-    icon: TrendingUp,
+const getNavigationItems = (user?: Doc<"users">) => {
+  const baseItems = [
+    {
+      title: "Dashboard",
+      url: "/",
+      icon: Home,
+    },
+    {
+      title: "Word Library",
+      url: "/library",
+      icon: Library,
+    },
+    {
+      title: "Learn",
+      url: "/learn",
+      icon: GraduationCap,
+    },
+    {
+      title: "Progress",
+      url: "/progress",
+      icon: TrendingUp,
+    }
+  ];
+
+  if (user?.role === "Admin") {
+    baseItems.push({
+      title: "Admin Dashboard",
+      url: "/admin",
+      icon: Shield,
+    });
   }
-];
+
+  return baseItems;
+};
 
 export function AppSidebar() {
   const { user, isLoading } = useWortlyUser();
@@ -56,6 +70,7 @@ export function AppSidebar() {
   const { state, isMobile, setOpenMobile } = useSidebar()
 
   const streakDays = 5 // This would come from your database/state
+  const navigationItems = getNavigationItems(user)
 
   return (
     <Sidebar variant="inset">
