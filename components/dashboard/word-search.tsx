@@ -5,16 +5,14 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { WordCard } from "./word-card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ArticleBadge } from "@/components/ui/article-badge";
+import { WordTypeBadge } from "@/components/ui/word-type-badge";
 import { AddWordSuggestion } from "./add-word-suggestion";
 import { Search } from "lucide-react";
 import type { Doc } from "@/convex/_generated/dataModel";
 
-interface WordSearchProps {
-  onAddToLibrary?: (word: Doc<"words">) => void;
-}
-
-export function WordSearch({ onAddToLibrary }: WordSearchProps) {
+export function WordSearch() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -22,7 +20,6 @@ export function WordSearch({ onAddToLibrary }: WordSearchProps) {
   const searchResults = useQuery(api.functions.words.searchWord,
     searchTerm.trim().length > 0 ? { term: searchTerm } : "skip"
   );
-
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -57,6 +54,7 @@ export function WordSearch({ onAddToLibrary }: WordSearchProps) {
             placeholder="Search German words..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onFocus={() => setIsDropdownOpen(searchTerm.trim().length > 0)}
             className="pl-12 h-14 text-lg rounded-xl"
           />
         </div>
@@ -65,38 +63,57 @@ export function WordSearch({ onAddToLibrary }: WordSearchProps) {
       {/* Search Results Dropdown */}
       {isDropdownOpen && (
         <div className="absolute left-0 right-0 z-50 border rounded-xl bg-background shadow-2xl mt-4 max-h-[70vh] overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="p-4">
-            {searchResults === undefined ? (
-              <div className="text-center text-muted-foreground py-8">
-                <div className="flex items-center justify-center space-x-2">
-                  <Skeleton className="w-4 h-4 rounded-full" />
-                  <span>Searching...</span>
-                </div>
+          {searchResults === undefined ? (
+            <div className="text-center text-muted-foreground py-12">
+              <div className="flex items-center justify-center space-x-2">
+                <Skeleton className="w-4 h-4 rounded-full" />
+                <span>Searching...</span>
               </div>
-            ) : searchResults.length === 0 ? (
+            </div>
+          ) : searchResults.length === 0 ? (
+            <div className="p-4">
               <AddWordSuggestion 
                 searchTerm={searchTerm}
                 onWordAddedToLibrary={(w) => setSearchTerm(w.word)}
                 onSuggestionSelected={(s) => setSearchTerm(s)}
               />
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-border/50 pb-2">
-                  <h3 className="text-lg font-semibold">Search Results</h3>
-                  <span className="text-sm text-muted-foreground">{searchResults.length} word{searchResults.length !== 1 ? 's' : ''} found</span>
-                </div>
-                <div className="grid gap-3">
-                  {searchResults.map((word: Doc<"words">) => (
-                    <WordCard
-                      key={word._id}
-                      word={word}
-                      onAddToLibrary={onAddToLibrary}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="pl-4">
+                    <div className="flex items-center justify-between">
+                      <span>German Word</span>
+                      <span className="text-xs font-normal text-muted-foreground ml-2">
+                        {searchResults.length} result{searchResults.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                  </TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Translation</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {searchResults.map((word: Doc<"words">) => (
+                  <TableRow key={word._id} className="hover:bg-muted/50">
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <ArticleBadge article={word.article} size="sm" />
+                        <span className="font-semibold">{word.word}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <WordTypeBadge wordType={word.wordType} size="sm" />
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {word.translations.en || "-"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </div>
       )}
     </div>

@@ -1,8 +1,9 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ArticleBadge } from "@/components/ui/article-badge";
+import { WordTypeBadge } from "@/components/ui/word-type-badge";
 import { Plus } from "lucide-react";
 import type { Doc } from "@/convex/_generated/dataModel";
 
@@ -12,18 +13,6 @@ interface WordCardProps {
   showAddButton?: boolean;
 }
 
-const getArticleColor = (article?: string) => {
-  switch (article) {
-    case "der":
-      return "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-blue-200";
-    case "die":
-      return "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-red-200";
-    case "das":
-      return "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-green-200";
-    default:
-      return "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-gray-200";
-  }
-};
 
 export function WordCard({ word, onAddToLibrary, showAddButton = true }: WordCardProps) {
   return (
@@ -32,14 +21,7 @@ export function WordCard({ word, onAddToLibrary, showAddButton = true }: WordCar
         <div className="space-y-4">
           {/* German word with article */}
           <div className="flex items-start gap-3">
-            {word.article && (
-              <Badge 
-                variant="secondary" 
-                className={`${getArticleColor(word.article)} font-semibold px-3 py-1 border shadow-sm`}
-              >
-                {word.article}
-              </Badge>
-            )}
+            <ArticleBadge article={word.article} size="sm" />
             <div className="flex-1">
               <h3 className="font-bold text-xl text-foreground group-hover:text-primary transition-colors">
                 {word.word}
@@ -48,12 +30,7 @@ export function WordCard({ word, onAddToLibrary, showAddButton = true }: WordCar
           </div>
           
           {/* Word type */}
-          <Badge 
-            variant="outline" 
-            className="w-fit bg-muted/50 border-muted-foreground/20 text-muted-foreground font-medium px-3 py-1"
-          >
-            {word.wordType}
-          </Badge>
+          <WordTypeBadge wordType={word.wordType} size="sm" />
           
           {/* Translations */}
           <div className="space-y-2">
