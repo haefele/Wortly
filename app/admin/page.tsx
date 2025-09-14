@@ -3,7 +3,7 @@
 import { useAdminAccess } from "@/hooks/use-admin-access";
 import { PageHeader } from "@/components/page-header";
 import { Shield } from "lucide-react";
-import { BulkWordAdder } from "@/components/bulk-word-adder";
+import { BulkWordAdder } from "@/components/admin/bulk-word-adder";
 
 export default function AdminPage() {
   const { isLoading, isAdmin } = useAdminAccess();
