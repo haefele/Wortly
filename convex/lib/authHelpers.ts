@@ -1,5 +1,5 @@
 import { Auth } from "convex/server";
-import { DatabaseReader } from "@/_generated/server";
+import { DatabaseReader } from "../_generated/server";
 
 export async function throwIfUnauthenticated(ctx: { auth: Auth }) {
     const identity = await ctx.auth.getUserIdentity();

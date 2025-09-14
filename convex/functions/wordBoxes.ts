@@ -1,5 +1,5 @@
-import { query } from "@/_generated/server";
-import { getCurrentUser } from "@/lib/authHelpers";
+import { query } from "../_generated/server";
+import { getCurrentUser } from "../lib/authHelpers";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 

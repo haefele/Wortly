@@ -1,4 +1,4 @@
-import { throwIfUnauthenticated } from "@/lib/authHelpers";
+import { throwIfUnauthenticated } from "../lib/authHelpers";
 import { mutation, query } from "../_generated/server";
 
 export const store = mutation({
