@@ -5,7 +5,7 @@ import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "./ui/progress";
+import { Progress } from "@/components/ui/progress";
 
 // Import the words from A1.txt
 const A1_WORDS = [
