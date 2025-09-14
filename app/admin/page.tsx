@@ -2,8 +2,7 @@
 
 import { useAdminAccess } from "@/hooks/use-admin-access";
 import { PageHeader } from "@/components/page-header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Users, Database, Settings } from "lucide-react";
+import { Shield } from "lucide-react";
 import { BulkWordAdder } from "@/components/bulk-word-adder";
 
 export default function AdminPage() {
