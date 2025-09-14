@@ -4,7 +4,7 @@ import { useAdminAccess } from "@/hooks/use-admin-access";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Users, Database, Settings } from "lucide-react";
-import FeatureComingSoon from "@/components/feature-coming-soon";
+import { BulkWordAdder } from "@/components/bulk-word-adder";
 
 export default function AdminPage() {
   const { isLoading, isAdmin } = useAdminAccess();
@@ -20,7 +20,9 @@ export default function AdminPage() {
             icon={Shield}
         />
         <main className="flex-1 p-4 md:p-6">
-            <FeatureComingSoon />
+            <div className="flex justify-center">
+                <BulkWordAdder />
+            </div>
         </main>
     </>
   );
