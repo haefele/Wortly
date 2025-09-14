@@ -16,7 +16,6 @@ export function useWortlyUser() {
     const me = useQuery(api.functions.users.getMe);
 
     useEffect(() => {
-
         if (!isAuthenticated)
             return;
 
@@ -32,6 +31,6 @@ export function useWortlyUser() {
     return {
         isLoading: isLoading || (isAuthenticated && userId === null) || (isAuthenticated && me === undefined),
         isAuthenticated: isAuthenticated,
-        user: me,
+        user: me || undefined,
     }
 }

@@ -6,6 +6,7 @@ export default defineSchema({
     tokenIdentifier: v.string(),
     email: v.optional(v.string()),
     name: v.optional(v.string()),
+    role: v.optional(v.union(v.literal("Admin"), v.literal("User"))),
   }).index("by_token", ["tokenIdentifier"]),
 
   words: defineTable({
