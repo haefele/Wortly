@@ -1,5 +1,5 @@
-import { Doc, Id } from "@/_generated/dataModel";
-import { MutationCtx } from "@/_generated/server";
+import { Doc, Id } from "../_generated/dataModel";
+import { MutationCtx } from "../_generated/server";
 
 export async function getOrCreateDefaultBox(ctx: MutationCtx, userId: string) {
     const defaultBox = await ctx.db

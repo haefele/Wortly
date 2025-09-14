@@ -1,9 +1,9 @@
 import { v } from "convex/values";
-import { query, internalMutation, action, internalQuery } from "@/_generated/server";
-import { internal } from "@/_generated/api";
-import { Doc } from "@/_generated/dataModel";
-import schema from "@/schema";
-import { throwIfUnauthenticated } from "@/lib/authHelpers";
+import { query, internalMutation, action, internalQuery } from "../_generated/server";
+import { internal } from "../_generated/api";
+import { Doc } from "../_generated/dataModel";
+import schema from "../schema";
+import { throwIfUnauthenticated } from "../lib/authHelpers";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import z from "zod";
