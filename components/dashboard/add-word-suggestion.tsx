@@ -46,7 +46,7 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
           </div>
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-foreground">
-              Adding "{searchTerm}"...
+              Adding &ldquo;{searchTerm}&rdquo;...
             </h3>
             <p className="text-sm text-muted-foreground">
               Our AI is analyzing this word to provide comprehensive data.
@@ -76,7 +76,7 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
           </div>
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-foreground">
-              "{searchTerm}" is not a valid German word
+              &ldquo;{searchTerm}&rdquo; is not a valid German word
             </h3>
             {state.suggestions.length > 0 && (
               <div className="space-y-2">
@@ -113,7 +113,7 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
           </div>
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-foreground">
-              No words found for "{searchTerm}"
+              No words found for &ldquo;{searchTerm}&rdquo;
             </h3>
             <p className="text-sm text-muted-foreground">
               This word might not be in our database yet.
@@ -126,10 +126,10 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
             size="lg"
           >
             <Sparkles className="w-5 h-5" />
-            Add "{searchTerm}" to database
+            Add &ldquo;{searchTerm}&rdquo; to database
           </Button>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            We'll analyze this word with AI to provide translations, grammar info, and example sentences.
+            We&apos;ll analyze this word with AI to provide translations, grammar info, and example sentences.
           </p>
         </div>
       );
