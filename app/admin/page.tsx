@@ -6,8 +6,8 @@ import { Shield } from "lucide-react";
 import { BulkWordAdder } from "@/components/admin/bulk-word-adder";
 
 export default function AdminPage() {
-  const { isLoading, isAdmin } = useAdminAccess();
-  if (isLoading || !isAdmin) {
+  const { hasAccess } = useAdminAccess();
+  if (!hasAccess) {
     return null;
   }
 

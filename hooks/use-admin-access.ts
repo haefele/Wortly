@@ -6,10 +6,12 @@ import { useEffect } from "react";
 
 export function useAdminAccess() {
   const { user, isLoading } = useWortlyUser();
-  const router = useRouter();
+  const router = useRouter();  
+
+  const isAdmin = user && user?.role === "Admin";
 
   useEffect(() => {
-    if (!isLoading && user && user.role !== "Admin") {
+    if (!isLoading && user && !isAdmin) {
       router.push("/");
     }
   }, [user, isLoading, router]);
@@ -17,6 +19,7 @@ export function useAdminAccess() {
   return {
     user,
     isLoading,
-    isAdmin: user?.role === "Admin",
+    isAdmin: isAdmin,
+    hasAccess: !isLoading && isAdmin
   };
 }
