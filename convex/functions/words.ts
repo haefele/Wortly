@@ -17,13 +17,25 @@ export const searchWord = query({
 
         const term = args.term.trim();
         if (term.length === 0) {
-            return [];
+            return { results: [], hasExactMatch: false };
         }
 
-        return await ctx.db
+        // Get search results
+        const results = await ctx.db
             .query("words")
             .withSearchIndex("search_word", q => q.search("word", term))
             .take(10);
+
+        // Check for exact match
+        const exactMatch = await ctx.db
+            .query("words")
+            .withIndex("by_word", (q) => q.eq("word", term))
+            .unique();
+
+        return { 
+            results, 
+            hasExactMatch: !!exactMatch 
+        };
     }
 });
 

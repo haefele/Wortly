@@ -17,7 +17,7 @@ export function WordSearch() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   
-  const searchResults = useQuery(api.functions.words.searchWord,
+  const searchData = useQuery(api.functions.words.searchWord,
     searchTerm.trim().length > 0 ? { term: searchTerm } : "skip"
   );
 
@@ -63,14 +63,14 @@ export function WordSearch() {
       {/* Search Results Dropdown */}
       {isDropdownOpen && (
         <div className="absolute left-0 right-0 z-50 border rounded-xl bg-background shadow-2xl mt-4 max-h-[70vh] overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-300">
-          {searchResults === undefined ? (
+          {searchData === undefined ? (
             <div className="text-center text-muted-foreground py-12">
               <div className="flex items-center justify-center space-x-2">
                 <Skeleton className="w-4 h-4 rounded-full" />
                 <span>Searching...</span>
               </div>
             </div>
-          ) : searchResults.length === 0 ? (
+          ) : searchData.results.length === 0 ? (
             <div className="p-4">
               <AddWordSuggestion 
                 searchTerm={searchTerm}
@@ -79,40 +79,53 @@ export function WordSearch() {
               />
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="pl-4">
-                    <div className="flex items-center justify-between">
-                      <span>German Word</span>
-                      <span className="text-xs font-normal text-muted-foreground ml-2">
-                        {searchResults.length} result{searchResults.length !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                  </TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Translation</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {searchResults.map((word: Doc<"words">) => (
-                  <TableRow key={word._id} className="hover:bg-muted/50">
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <ArticleBadge article={word.article} size="sm" />
-                        <span className="font-semibold">{word.word}</span>
+            <div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-4">
+                      <div className="flex items-center justify-between">
+                        <span>German Word</span>
+                        <span className="text-xs font-normal text-muted-foreground ml-2">
+                          {searchData.results.length} result{searchData.results.length !== 1 ? 's' : ''}
+                        </span>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <WordTypeBadge wordType={word.wordType} size="sm" />
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {word.translations.en || "-"}
-                    </TableCell>
+                    </TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Translation</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {searchData.results.map((word: Doc<"words">) => (
+                    <TableRow key={word._id} className="hover:bg-muted/50">
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <ArticleBadge article={word.article} size="sm" />
+                          <span className="font-semibold">{word.word}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <WordTypeBadge wordType={word.wordType} size="sm" />
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {word.translations.en || "-"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              
+              {/* Show AddWordSuggestion if there are results but no exact match */}
+              {!searchData.hasExactMatch && (
+                <div className="border-t p-4">
+                  <AddWordSuggestion 
+                    searchTerm={searchTerm}
+                    onWordAddedToLibrary={(w) => setSearchTerm(w.word)}
+                    onSuggestionSelected={(s) => setSearchTerm(s)}
+                  />
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
