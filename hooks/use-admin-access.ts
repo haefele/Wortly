@@ -1,6 +1,6 @@
 "use client";
 
-import { useWortlyUser } from "@/hooks/use-wortly-user";
+import { useWortlyUser } from "@/contexts/user-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 

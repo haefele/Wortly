@@ -7,6 +7,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { UserProvider } from "@/contexts/user-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,17 +37,19 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}>
         <ClerkProvider dynamic>
           <ConvexClientProvider>
-            <SidebarProvider>
+            <UserProvider>
+              <SidebarProvider>
 
-              <AppSidebar />
-              <SidebarInset>
-                {children}
-              </SidebarInset>
+                <AppSidebar />
+                <SidebarInset>
+                  {children}
+                </SidebarInset>
 
-              <Analytics />
-              <SpeedInsights />
+                <Analytics />
+                <SpeedInsights />
 
-            </SidebarProvider>
+              </SidebarProvider>
+            </UserProvider>
           </ConvexClientProvider>
         </ClerkProvider>
       </body>
