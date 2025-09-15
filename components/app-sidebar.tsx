@@ -26,7 +26,7 @@ import Link from "next/link"
 import { UserButton } from "@clerk/nextjs"
 import { usePathname } from "next/navigation"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useWortlyUser } from "@/hooks/use-wortly-user"
+import { useWortlyUser } from "@/contexts/user-context"
 import { Doc } from "@/convex/_generated/dataModel"
 
 const getNavigationItems = (user?: Doc<"users">) => {
