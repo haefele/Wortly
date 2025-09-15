@@ -113,10 +113,10 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
           </div>
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-foreground">
-              No words found for &ldquo;{searchTerm}&rdquo;
+              &ldquo;{searchTerm}&rdquo; not found
             </h3>
             <p className="text-sm text-muted-foreground">
-              This word might not be in our database yet.
+              This exact word might not be in our database yet.
             </p>
           </div>
           <Button
