@@ -25,8 +25,9 @@ export default defineSchema({
 
   wordBoxes: defineTable({
     name: v.string(),
-    userId: v.string(),
+    userId: v.id("users"),
     wordCount: v.number(),
+    description: v.optional(v.string()),
   }).index("by_userId", ["userId"])
     .index("by_userId_and_name", ["userId", "name"]),
 
