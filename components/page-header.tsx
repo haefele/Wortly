@@ -2,14 +2,16 @@
 
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
 import { LucideIcon } from "lucide-react"
+import { ReactNode } from "react"
 
 interface PageHeaderProps {
   title: string
   description?: string
   icon?: LucideIcon
+  children?: ReactNode
 }
 
-export function PageHeader({ title, description, icon: Icon }: PageHeaderProps) {
+export function PageHeader({ title, description, icon: Icon, children }: PageHeaderProps) {
   const { state, isMobile } = useSidebar()
   
   return (
@@ -31,6 +33,11 @@ export function PageHeader({ title, description, icon: Icon }: PageHeaderProps) 
           )}
         </div>
       </div>
+      {children && (
+        <div className="flex items-center gap-2">
+          {children}
+        </div>
+      )}
     </header>
   )
 }
