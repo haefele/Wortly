@@ -40,7 +40,7 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
   switch (state.type) {
     case 'loading':
       return (
-        <div className="text-center py-8 space-y-6">
+        <div className="text-center md:py-8 space-y-6">
           <div className="w-16 h-16 mx-auto bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
             <Loader2 className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
           </div>
@@ -70,7 +70,7 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
 
     case 'suggestions':
       return (
-        <div className="text-center py-8 space-y-6">
+        <div className="text-center md:py-8 space-y-6">
           <div className="w-16 h-16 mx-auto bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center">
             <AlertCircle className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
           </div>
@@ -107,7 +107,7 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
     case 'notFound':
     default:
       return (
-        <div className="text-center py-8 space-y-6">
+        <div className="text-center md:py-8 space-y-6">
           <div className="w-16 h-16 mx-auto bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
             <Sparkles className="w-8 h-8 text-purple-600 dark:text-purple-400" />
           </div>
