@@ -62,7 +62,7 @@ export function WordSearch() {
 
       {/* Search Results Dropdown */}
       {isDropdownOpen && (
-        <div className="absolute left-0 right-0 z-50 border rounded-xl bg-background shadow-2xl mt-4 max-h-[70vh] overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="absolute left-0 right-0 z-50 border rounded-xl bg-background shadow-2xl mt-4 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
           {searchData === undefined ? (
             <div className="text-center text-muted-foreground py-12">
               <div className="flex items-center justify-center space-x-2">
@@ -80,9 +80,9 @@ export function WordSearch() {
             </div>
           ) : (
             <div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
+              <Table containerClassName="max-h-[30vh] overflow-y-auto">
+                <TableHeader className="[&_tr]:border-b-0 [&_th]:shadow-[inset_0_-1px_0_0_theme(colors.border)]">
+                  <TableRow className="sticky top-0 z-10 bg-background hover:bg-background">
                     <TableHead className="pl-4">
                       <div className="flex items-center justify-between">
                         <span>German Word</span>
@@ -98,7 +98,7 @@ export function WordSearch() {
                 <TableBody>
                   {searchData.results.map((word: Doc<"words">) => (
                     <TableRow key={word._id} className="hover:bg-muted/50">
-                      <TableCell>
+                      <TableCell className="pl-4">
                         <div className="flex items-center gap-2">
                           <ArticleBadge article={word.article} size="sm" />
                           <span className="font-semibold">{word.word}</span>
