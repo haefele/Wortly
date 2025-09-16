@@ -1,4 +1,4 @@
-import { query } from "../_generated/server";
+import { query, mutation } from "../_generated/server";
 import { getCurrentUser } from "../lib/authHelpers";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
@@ -13,7 +13,7 @@ export const getMyWordBoxes = query({
             .withIndex("by_userId", (q) => q.eq("userId", currentUser._id))
             .collect();
 
-        return boxes;
+        return boxes.sort((a, b) => a.name.localeCompare(b.name));
     },
 });
 
@@ -68,5 +68,34 @@ export const getWordBox = query({
         }
 
         return box;
+    },
+});
+
+export const createWordBox = mutation({
+    args: {
+        name: v.string(),
+        description: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const user = await getCurrentUser(ctx);
+
+        const name = args.name.trim();
+        if (name.length === 0) {
+            throw new Error("Name is required");
+        }
+
+        const id = await ctx.db.insert("wordBoxes", {
+            name,
+            userId: user._id,
+            wordCount: 0,
+            description: args.description,
+        });
+
+        const created = await ctx.db.get(id);
+        if (!created) {
+            throw new Error("Failed to create word box");
+        }
+
+        return created;
     },
 });

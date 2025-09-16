@@ -1,7 +1,7 @@
 import { Doc, Id } from "../_generated/dataModel";
 import { MutationCtx } from "../_generated/server";
 
-export async function getOrCreateDefaultBox(ctx: MutationCtx, userId: string) {
+export async function getOrCreateDefaultBox(ctx: MutationCtx, userId: Id<"users">) {
     const defaultBox = await ctx.db
         .query("wordBoxes")
         .withIndex("by_userId_and_name", (q) => q.eq("userId", userId).eq("name", "Alle"))
