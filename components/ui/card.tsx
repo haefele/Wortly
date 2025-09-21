@@ -11,6 +11,8 @@ const cardVariants = cva(
         default: "",
         clickable:
           "group relative overflow-hidden transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md",
+        spotlight:
+          "relative overflow-hidden bg-background/90 supports-[backdrop-filter]:backdrop-blur-xl before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-gradient-to-br before:from-primary/12 before:via-transparent before:to-transparent before:content-['']",
       },
     },
     defaultVariants: {

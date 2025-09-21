@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
+import { IconOrb } from "@/components/ui/icon-orb";
 import { Loader2, Sparkles, AlertCircle } from "lucide-react";
 import type { Doc } from "@/convex/_generated/dataModel";
 
@@ -41,9 +42,7 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
     case 'loading':
       return (
         <div className="text-center md:py-8 space-y-6">
-          <div className="w-16 h-16 mx-auto bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-            <Loader2 className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-          </div>
+          <IconOrb tone="blue" size="lg" className="mx-auto" icon={Loader2} iconClassName="animate-spin" />
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-foreground">
               Adding &ldquo;{searchTerm}&rdquo;...
@@ -71,9 +70,7 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
     case 'suggestions':
       return (
         <div className="text-center md:py-8 space-y-6">
-          <div className="w-16 h-16 mx-auto bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center">
-            <AlertCircle className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
-          </div>
+          <IconOrb tone="yellow" size="lg" className="mx-auto" icon={AlertCircle} />
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-foreground">
               &ldquo;{searchTerm}&rdquo; is not a valid German word
@@ -108,9 +105,7 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
     default:
       return (
         <div className="text-center md:py-8 space-y-6">
-          <div className="w-16 h-16 mx-auto bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
-            <Sparkles className="w-8 h-8 text-purple-600 dark:text-purple-400" />
-          </div>
+          <IconOrb tone="purple" size="lg" className="mx-auto" icon={Sparkles} />
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-foreground">
               &ldquo;{searchTerm}&rdquo; not found
@@ -125,7 +120,7 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
             className="transition-all duration-300 hover:scale-105"
             size="lg"
           >
-            <Sparkles className="w-5 h-5" />
+            <Sparkles />
             Add &ldquo;{searchTerm}&rdquo; to database
           </Button>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
