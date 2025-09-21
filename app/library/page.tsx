@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { NewWordBoxDialog } from "@/components/library/new-wordbox-dialog";
+import { IconOrb } from "@/components/ui/icon-orb";
 
 export default function LibraryPage() {
     const [newWordBoxDialogIsOpen, setNewWordBoxDialogIsOpen] = useState(false);
@@ -23,22 +24,34 @@ export default function LibraryPage() {
                 icon={Library}
             >
                 <Button onClick={() => setNewWordBoxDialogIsOpen(true)}>
-                    <Plus className="w-4 h-4" />
+                    <Plus />
                     New Collection
                 </Button>
             </PageHeader>
 
             <main className="flex-1 p-4 md:p-6 ">
                 {wordBoxes && wordBoxes.length === 0 && (
-                    <Card className="border-dashed">
-                        <CardContent className="p-8 text-center text-muted-foreground">
-                            <div className="flex items-center justify-center mb-2">
-                                <FolderOpen className="w-5 h-5 mr-2" />
-                                <span>No collections yet</span>
+                    <Card variant="spotlight">
+                        <CardContent className="p-12 text-center flex flex-col items-center gap-6">
+                            <IconOrb size="lg" icon={FolderOpen} />
+                            <div className="space-y-2">
+                                <h3 className="text-2xl font-semibold text-foreground">Create your first Collection!</h3>
+                                <p className="max-w-md text-sm text-muted-foreground">
+                                    Group related vocabulary, track progress with clarity, and bring structure to your learning journey.
+                                </p>
                             </div>
-                            <Button onClick={() => setNewWordBoxDialogIsOpen(true)}>
-                                <Plus className="w-4 h-4" /> Create your first collection
-                            </Button>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
+                                <Button size="lg" variant="gradient" onClick={() => setNewWordBoxDialogIsOpen(true)}>
+                                    <Plus />
+                                    New Collection
+                                </Button>
+                                <Button variant="ghost" size="lg" asChild>
+                                    <Link href="/">
+                                        Discover words
+                                        <ArrowRight />
+                                    </Link>
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
                 )}
