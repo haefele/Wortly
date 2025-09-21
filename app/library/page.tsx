@@ -50,10 +50,7 @@ export default function LibraryPage() {
                                 key={box._id}
                                 href={`/library/${box._id}`}
                             >
-                                <Card className="group overflow-hidden transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md">
-                                    <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100" aria-hidden>
-                                        <div className="absolute -top-10 -left-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
-                                    </div>
+                                <Card variant="clickable">
                                     <CardHeader className="flex items-center gap-2">
                                         <Library className="h-5 w-5 text-primary" />
                                         <CardTitle>{box.name}</CardTitle>
@@ -65,7 +62,7 @@ export default function LibraryPage() {
                                                     ? box.description
                                                     : "Organize and review your saved words."
                                             }
-                                            </div>
+                                        </div>
                                     </CardContent>
                                     <CardFooter className="justify-between">
                                         <Badge variant="secondary">{box.wordCount} word{box.wordCount === 1 ? "" : "s"}</Badge>

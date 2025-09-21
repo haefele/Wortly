@@ -1,17 +1,45 @@
 import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
+const cardVariants = cva(
+  "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
+  {
+    variants: {
+      variant: {
+        default: "",
+        clickable:
+          "group relative overflow-hidden transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
+
+type CardProps = React.ComponentProps<"div"> & VariantProps<typeof cardVariants>
+
+function Card({ className, children, variant, ...props }: CardProps) {
+  const isClickable = variant === "clickable"
+
   return (
     <div
       data-slot="card"
-      className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
-        className
-      )}
+      className={cn(cardVariants({ variant, className }))}
       {...props}
-    />
+    >
+      {isClickable && (
+        <div
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+          aria-hidden
+        >
+          <div className="absolute -top-10 -left-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+        </div>
+      )}
+      {children}
+    </div>
   )
 }
 
@@ -89,4 +117,5 @@ export {
   CardAction,
   CardDescription,
   CardContent,
+  cardVariants,
 }
