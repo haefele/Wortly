@@ -10,7 +10,7 @@ const cardVariants = cva(
       variant: {
         default: "",
         clickable:
-          "group relative overflow-hidden transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md",
+          "group/card relative overflow-hidden transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md",
         spotlight:
           "relative overflow-hidden bg-background/90 supports-[backdrop-filter]:backdrop-blur-xl before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-gradient-to-br before:from-primary/12 before:via-transparent before:to-transparent before:content-['']",
       },
@@ -34,7 +34,7 @@ function Card({ className, children, variant, ...props }: CardProps) {
     >
       {isClickable && (
         <div
-          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover/card:opacity-100"
           aria-hidden
         >
           <div className="absolute -top-10 -left-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
