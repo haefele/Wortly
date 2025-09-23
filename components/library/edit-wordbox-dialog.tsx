@@ -1,15 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import type { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
 import { toast } from "sonner";
+
+const formSchema = z.object({
+    name: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+    description: z.string().max(500, "Description must be less than 500 characters").optional(),
+});
+
+type FormSchemaType = z.infer<typeof formSchema>;
 
 interface EditWordBoxDialogProps {
     boxId: Id<"wordBoxes">;
@@ -26,39 +37,35 @@ export function EditWordBoxDialog({
     const updateBox = useMutation(api.functions.wordBoxes.updateWordBox);
     const box = useQuery(api.functions.wordBoxes.getWordBox, { boxId });
 
-    const [name, setName] = useState(box?.name ?? "");
-    const [description, setDescription] = useState(box?.description ?? "");
-    const [isSaving, setIsSaving] = useState(false);
+    const form = useForm<FormSchemaType>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            name: "",
+            description: "",
+        },
+    });
 
     useEffect(() => {
-        if (!open || !box)
-            return;
-
-        setName(box.name ?? "");
-        setDescription(box.description ?? "");
-    }, [open, box]);
-    
-   
-    const handleSave = async () => {
-        const trimmedName = name.trim();
-        const trimmedDescription = description.trim();
-
-        if (trimmedName.length === 0) {
-            toast.error("Name is required.");
-            return;
+        if (open && box) {
+            form.reset({
+                name: box.name ?? "",
+                description: box.description ?? "",
+            });
         }
+    }, [open, box, form]);
 
-        setIsSaving(true);
-
+    const onSubmit = async (data: FormSchemaType) => {
         try {
-            await updateBox({ boxId, name: trimmedName, description: trimmedDescription });
+            await updateBox({ 
+                boxId, 
+                name: data.name.trim(), 
+                description: data.description?.trim()
+            });
             onOpenChange(false);
+            toast.success("Collection updated successfully.");
         }
         catch (err) {
             toast.error(err instanceof Error ? err.message : "Failed to save changes.");
-        }
-        finally {
-            setIsSaving(false);
         }
     };
 
@@ -69,36 +76,58 @@ export function EditWordBoxDialog({
                     <DialogTitle>Edit collection</DialogTitle>
                     <DialogDescription>Update the name and description to keep things organized.</DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4">
-                    <fieldset className="space-y-2">
-                        <label className="block font-medium text-foreground">Name</label>
-                        <Input
-                            value={name}
-                            onChange={(event) => setName(event.target.value)}
-                            disabled={isSaving}
-                            placeholder="Collection name"
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Name</FormLabel>
+                                    <FormControl>
+                                        <Input 
+                                            placeholder="Collection name" 
+                                            disabled={form.formState.isSubmitting}
+                                            {...field} 
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
                         />
-                    </fieldset>
-                    <fieldset className="space-y-2">
-                        <label className="block font-medium text-foreground">Description</label>
-                        <Textarea
-                            value={description}
-                            onChange={(event) => setDescription(event.target.value)}
-                            disabled={isSaving}
-                            placeholder="Describe this collection"
-                            className="min-h-36"
+                        <FormField
+                            control={form.control}
+                            name="description"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Description</FormLabel>
+                                    <FormControl>
+                                        <Textarea 
+                                            placeholder="Describe this collection" 
+                                            className="min-h-12"
+                                            disabled={form.formState.isSubmitting}
+                                            {...field} 
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
                         />
-                    </fieldset>
-                </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleSave} disabled={isSaving}>
-                        <Save className="h-4 w-4" />
-                        {isSaving ? "Saving..." : "Save changes"}
-                    </Button>
-                </DialogFooter>
+                        <DialogFooter>
+                            <Button 
+                                type="button"
+                                variant="outline"
+                                onClick={() => onOpenChange(false)} 
+                                disabled={form.formState.isSubmitting}
+                            >
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={form.formState.isSubmitting}>
+                                <Save />{form.formState.isSubmitting ? "Saving..." : "Save changes"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
             </DialogContent>
         </Dialog>
     );
