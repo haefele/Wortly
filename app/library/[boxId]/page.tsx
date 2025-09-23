@@ -157,13 +157,13 @@ export default function LibraryBoxDetailPage() {
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                                className="text-destructive"
+                                variant="destructive"
                                 disabled={!wordBox}
                                 onSelect={() => {
                                     setDeleteDialogOpen(true);
                                 }}
                             >
-                                <Trash2 className="text-destructive" /> Delete collection
+                                <Trash2 />Delete collection
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
