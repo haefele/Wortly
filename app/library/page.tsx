@@ -79,7 +79,7 @@ export default function LibraryPage() {
                                     </CardContent>
                                     <CardFooter className="justify-between">
                                         <Badge variant="secondary">{box.wordCount} word{box.wordCount === 1 ? "" : "s"}</Badge>
-                                        <span className="text-muted-foreground flex items-center text-xs transition-transform duration-200 group-hover:translate-x-1">
+                                        <span className="text-muted-foreground flex items-center text-xs transition-transform duration-200 group-hover/card:translate-x-1">
                                             Open
                                             <ArrowRight className="h-3.5 w-3.5 ml-1" />
                                         </span>
