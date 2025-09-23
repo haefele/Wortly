@@ -17,7 +17,7 @@ import type * as functions_users from "../functions/users.js";
 import type * as functions_wordBoxes from "../functions/wordBoxes.js";
 import type * as functions_words from "../functions/words.js";
 import type * as lib_authHelpers from "../lib/authHelpers.js";
-import type * as lib_wordBoxHelpers from "../lib/wordBoxHelpers.js";
+import type * as lib_wordboxHelpers from "../lib/wordboxHelpers.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -32,7 +32,7 @@ declare const fullApi: ApiFromModules<{
   "functions/wordBoxes": typeof functions_wordBoxes;
   "functions/words": typeof functions_words;
   "lib/authHelpers": typeof lib_authHelpers;
-  "lib/wordBoxHelpers": typeof lib_wordBoxHelpers;
+  "lib/wordboxHelpers": typeof lib_wordboxHelpers;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

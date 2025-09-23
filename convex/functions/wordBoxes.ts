@@ -2,6 +2,7 @@ import { query, mutation } from "../_generated/server";
 import { getCurrentUser } from "../lib/authHelpers";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
+import { addWordToBox } from "../lib/wordboxHelpers";
 
 export const getMyWordBoxes = query({
     args: {},
@@ -97,5 +98,121 @@ export const createWordBox = mutation({
         }
 
         return created;
+    },
+});
+
+export const updateWordBox = mutation({
+    args: {
+        boxId: v.id("wordBoxes"),
+        name: v.string(),
+        description: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const user = await getCurrentUser(ctx);
+
+        const box = await ctx.db.get(args.boxId);
+        if (!box || box.userId !== user._id) {
+            throw new Error("Word box not found");
+        }
+
+        const name = args.name.trim();
+        if (name.length === 0) {
+            throw new Error("Name is required");
+        }
+
+        await ctx.db.patch(box._id, {
+            name,
+            description: args.description?.trim() || undefined,
+        });
+
+        return null;
+    },
+});
+
+export const deleteWordBox = mutation({
+    args: {
+        boxId: v.id("wordBoxes"),
+    },
+    handler: async (ctx, args) => {
+        const user = await getCurrentUser(ctx);
+
+        const box = await ctx.db.get(args.boxId);
+        if (!box || box.userId !== user._id) {
+            throw new Error("Word box not found");
+        }
+
+        const assignments = await ctx.db
+            .query("wordBoxAssignments")
+            .withIndex("by_boxId", (q) => q.eq("boxId", box._id))
+            .collect();
+
+        for (const assignment of assignments) {
+            await ctx.db.delete(assignment._id);
+        }
+
+        await ctx.db.delete(box._id);
+
+        return null;
+    },
+});
+
+export const addWord = mutation({
+    args: {
+        boxId: v.id("wordBoxes"),
+        wordId: v.id("words"),
+    },
+    handler: async (ctx, args) => {
+        const user = await getCurrentUser(ctx);
+
+        const box = await ctx.db.get(args.boxId);
+        if (!box || box.userId !== user._id) {
+            throw new Error("Word box not found");
+        }
+
+        const word = await ctx.db.get(args.wordId);
+        if (!word) {
+            throw new Error("Word not found");
+        }
+
+        await addWordToBox(ctx, box, word._id);
+
+        return null;
+    },
+});
+
+export const removeWord = mutation({
+    args: {
+        boxId: v.id("wordBoxes"),
+        wordId: v.id("words"),
+    },
+    handler: async (ctx, args) => {
+        const user = await getCurrentUser(ctx);
+
+        const box = await ctx.db.get(args.boxId);
+        if (!box || box.userId !== user._id) {
+            throw new Error("Word box not found");
+        }
+
+        const assignment = await ctx.db
+            .query("wordBoxAssignments")
+            .withIndex("by_boxId_and_wordId", (q) => q.eq("boxId", box._id).eq("wordId", args.wordId))
+            .unique();
+
+        if (!assignment) {
+            return null;
+        }
+
+        await ctx.db.delete(assignment._id);
+
+        const remainingAssignments = await ctx.db
+            .query("wordBoxAssignments")
+            .withIndex("by_boxId", (q) => q.eq("boxId", box._id))
+            .collect();
+
+        await ctx.db.patch(box._id, {
+            wordCount: remainingAssignments.length,
+        });
+
+        return null;
     },
 });
