@@ -69,7 +69,7 @@ export default function LibraryPage() {
                                         <CardTitle>{box.name}</CardTitle>
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="text-muted-foreground text-sm line-clamp-2">
+                                        <div className="text-muted-foreground text-sm line-clamp-1">
                                             {
                                                 box.description && box.description.trim().length > 0
                                                     ? box.description
