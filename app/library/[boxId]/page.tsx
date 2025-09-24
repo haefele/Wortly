@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Library, Plus, Trash2, ArrowLeft, MoreHorizontal, Edit } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
+import { useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,13 +28,10 @@ import {
 import { EditWordBoxDialog } from "@/components/library/edit-wordbox-dialog";
 
 export default function LibraryBoxDetailPage() {
-  const params = useParams();
+  const params = useParams<{ boxId: Id<"wordBoxes"> }>();
   const router = useRouter();
-  const paramId = typeof params?.boxId === "string" ? params.boxId : undefined;
-  const boxId = paramId as Id<"wordBoxes"> | undefined;
 
-  const wordBox = useQuery(api.functions.wordBoxes.getWordBox, boxId ? { boxId } : "skip");
-
+  const wordBoxResult = useQuery(api.functions.wordBoxes.getWordBox, { boxId: params.boxId });
   const deleteWordBox = useMutation(api.functions.wordBoxes.deleteWordBox);
 
   const [globalError, setGlobalError] = useState<string | null>(null);
@@ -42,12 +40,11 @@ export default function LibraryBoxDetailPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleDelete = async () => {
-    if (!boxId) return;
     setIsDeleting(true);
     setGlobalError(null);
 
     try {
-      await deleteWordBox({ boxId });
+      await deleteWordBox({ boxId: params.boxId });
       router.push("/library");
     } catch (error) {
       setGlobalError(error instanceof Error ? error.message : "Failed to delete collection");
@@ -55,7 +52,11 @@ export default function LibraryBoxDetailPage() {
     }
   };
 
-  if (wordBox === null) {
+  if (wordBoxResult.isPending) {
+    return <PageHeader icon={Library} isLoading={true} />;
+  }
+
+  if (!wordBoxResult.data) {
     return (
       <>
         <PageHeader
@@ -86,16 +87,16 @@ export default function LibraryBoxDetailPage() {
   return (
     <>
       <PageHeader
-        title={wordBox ? wordBox.name : "Word Collection"}
+        title={wordBoxResult.data.name}
         description={
-          wordBox && wordBox.description?.trim().length
-            ? wordBox.description
+          wordBoxResult.data.description?.trim().length
+            ? wordBoxResult.data.description
             : "View and manage words in this collection"
         }
         icon={Library}
       >
         <div className="flex items-center gap-2">
-          <Button disabled={!wordBox} variant="default">
+          <Button variant="default">
             <Plus />
             Add words
           </Button>
@@ -108,7 +109,6 @@ export default function LibraryBoxDetailPage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem
-                disabled={!wordBox}
                 onSelect={() => {
                   setEditDialogOpen(true);
                 }}
@@ -118,7 +118,6 @@ export default function LibraryBoxDetailPage() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"
-                disabled={!wordBox}
                 onSelect={() => {
                   setDeleteDialogOpen(true);
                 }}
@@ -139,31 +138,31 @@ export default function LibraryBoxDetailPage() {
         )}
       </main>
 
-      {boxId && (
-        <>
-          <EditWordBoxDialog boxId={boxId} open={editDialogOpen} onOpenChange={setEditDialogOpen} />
+      <EditWordBoxDialog
+        boxId={params.boxId}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+      />
 
-          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Delete this collection?</DialogTitle>
-                <DialogDescription>
-                  This will remove the collection and all of its assignments. The words themselves
-                  remain available in your library.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
-                  {isDeleting ? "Deleting" : "Delete now"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </>
-      )}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete this collection?</DialogTitle>
+            <DialogDescription>
+              This will remove the collection and all of its assignments. The words themselves
+              remain available in your library.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? "Deleting" : "Delete now"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
