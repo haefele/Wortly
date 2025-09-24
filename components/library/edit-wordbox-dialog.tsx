@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
+import { useQuery } from "convex-helpers/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -35,7 +36,7 @@ export function EditWordBoxDialog({
 }: EditWordBoxDialogProps) {
     
     const updateBox = useMutation(api.functions.wordBoxes.updateWordBox);
-    const box = useQuery(api.functions.wordBoxes.getWordBox, { boxId });
+    const boxResult = useQuery(api.functions.wordBoxes.getWordBox, { boxId });
 
     const form = useForm<FormSchemaType>({
         resolver: zodResolver(formSchema),
@@ -46,13 +47,13 @@ export function EditWordBoxDialog({
     });
 
     useEffect(() => {
-        if (open && box) {
+        if (open && boxResult.isSuccess && boxResult.data) {
             form.reset({
-                name: box.name ?? "",
-                description: box.description ?? "",
+                name: boxResult.data.name ?? "",
+                description: boxResult.data.description ?? "",
             });
         }
-    }, [open, box, form]);
+    }, [open, boxResult.isSuccess, boxResult.data, form]);
 
     const onSubmit = async (data: FormSchemaType) => {
         try {

@@ -7,14 +7,14 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "convex/react";
+import { useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
 import { NewWordBoxDialog } from "@/components/library/new-wordbox-dialog";
 import { IconOrb } from "@/components/ui/icon-orb";
 
 export default function LibraryPage() {
     const [newWordBoxDialogIsOpen, setNewWordBoxDialogIsOpen] = useState(false);
-    const wordBoxes = useQuery(api.functions.wordBoxes.getMyWordBoxes, {});
+    const wordBoxesResult = useQuery(api.functions.wordBoxes.getMyWordBoxes, {});
 
     return (
         <>
@@ -30,7 +30,7 @@ export default function LibraryPage() {
             </PageHeader>
 
             <main className="flex-1 p-4 md:p-6 ">
-                {wordBoxes && wordBoxes.length === 0 && (
+                {wordBoxesResult.isSuccess && wordBoxesResult.data.length === 0 && (
                     <Card variant="spotlight">
                         <CardContent className="p-12 text-center flex flex-col items-center gap-6">
                             <IconOrb size="lg" icon={FolderOpen} />
@@ -56,9 +56,9 @@ export default function LibraryPage() {
                     </Card>
                 )}
 
-                {wordBoxes && wordBoxes.length > 0 && (
+                {wordBoxesResult.isSuccess && wordBoxesResult.data.length > 0 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {wordBoxes.map((box) => (
+                        {wordBoxesResult.data.map((box) => (
                             <Link
                                 key={box._id}
                                 href={`/library/${box._id}`}
