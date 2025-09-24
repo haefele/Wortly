@@ -12,3 +12,5 @@ alwaysApply: true
 2. We don't need to debounce convex queries, as they all return small amounts of data and are generally quick
 3. Never add loading spinners for convex queries or mutations!
 4. In convex queries/mutations/actions, never specify the return type - typescript will figure it out without help!
+5. Use toast.error to show errors to the user
+6. When putting Icons into a Button, NEVER specify className="w-4 h-4" for the icon -> the button will already take care of everything
