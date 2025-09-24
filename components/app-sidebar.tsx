@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Sidebar,
@@ -12,22 +12,14 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { 
-  BookOpen, 
-  Home, 
-  GraduationCap, 
-  Library, 
-  TrendingUp,
-  Flame,
-  Shield
-} from "lucide-react"
-import Link from "next/link"
-import { UserButton } from "@clerk/nextjs"
-import { usePathname } from "next/navigation"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useWortlyUser } from "@/contexts/user-context"
-import { Doc } from "@/convex/_generated/dataModel"
+} from "@/components/ui/sidebar";
+import { BookOpen, Home, GraduationCap, Library, TrendingUp, Flame, Shield } from "lucide-react";
+import Link from "next/link";
+import { UserButton } from "@clerk/nextjs";
+import { usePathname } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useWortlyUser } from "@/contexts/user-context";
+import { Doc } from "@/convex/_generated/dataModel";
 
 const getNavigationItems = (user?: Doc<"users">) => {
   const baseItems = [
@@ -50,7 +42,7 @@ const getNavigationItems = (user?: Doc<"users">) => {
       title: "Progress",
       url: "/progress",
       icon: TrendingUp,
-    }
+    },
   ];
 
   if (user?.role === "Admin") {
@@ -66,11 +58,11 @@ const getNavigationItems = (user?: Doc<"users">) => {
 
 export function AppSidebar() {
   const { user, isLoading } = useWortlyUser();
-  const pathname = usePathname()
-  const { state, isMobile, setOpenMobile } = useSidebar()
+  const pathname = usePathname();
+  const { state, isMobile, setOpenMobile } = useSidebar();
 
-  const streakDays = 5 // This would come from your database/state
-  const navigationItems = getNavigationItems(user)
+  const streakDays = 5; // This would come from your database/state
+  const navigationItems = getNavigationItems(user);
 
   return (
     <Sidebar variant="inset">
@@ -86,9 +78,7 @@ export function AppSidebar() {
               <span>{streakDays} day streak</span>
             </div>
           </div>
-          {state === "expanded" && !isMobile && (
-            <SidebarTrigger className="ml-auto" />
-          )}
+          {state === "expanded" && !isMobile && <SidebarTrigger className="ml-auto" />}
         </div>
       </SidebarHeader>
 
@@ -96,17 +86,17 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigationItems.map((item) => {
-                const isActive = pathname === item.url
+              {navigationItems.map(item => {
+                const isActive = pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={isActive}>
-                      <Link 
+                      <Link
                         href={item.url}
                         onClick={() => {
                           // Close mobile sidebar after navigation
                           if (isMobile) {
-                            setOpenMobile(false)
+                            setOpenMobile(false);
                           }
                         }}
                       >
@@ -115,7 +105,7 @@ export function AppSidebar() {
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                )
+                );
               })}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -132,32 +122,32 @@ export function AppSidebar() {
             </div>
           </div>
         ) : (
-          <button 
+          <button
             className="flex items-center gap-3 px-2 py-3 w-full text-left hover:bg-sidebar-accent rounded-lg transition-colors"
-            onClick={(e) => {
+            onClick={e => {
               // Don't trigger if clicking on the UserButton itself
-              if ((e.target as HTMLElement).closest('.cl-userButtonTrigger')) return;
-              
-              const userButton = document.querySelector('.cl-userButtonTrigger') as HTMLElement;
+              if ((e.target as HTMLElement).closest(".cl-userButtonTrigger")) return;
+
+              const userButton = document.querySelector(".cl-userButtonTrigger") as HTMLElement;
               if (userButton) {
                 userButton.click();
               }
             }}
           >
-            <UserButton appearance={{ 
-              elements: { 
-                userButtonPopoverCard: { 
-                  pointerEvents: "initial" 
+            <UserButton
+              appearance={{
+                elements: {
+                  userButtonPopoverCard: {
+                    pointerEvents: "initial",
+                  },
+                  userButtonPopoverFooter: {
+                    display: "none",
+                  },
                 },
-                userButtonPopoverFooter: {
-                  display: "none"
-                }
-              }
-            }} />
+              }}
+            />
             <div className="flex flex-col items-start">
-              <span className="text-sm font-medium truncate max-w-[150px]">
-                {user.name}
-              </span>
+              <span className="text-sm font-medium truncate max-w-[150px]">{user.name}</span>
               <span className="text-xs text-muted-foreground truncate max-w-[150px]">
                 {user.email}
               </span>
@@ -166,5 +156,5 @@ export function AppSidebar() {
         )}
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

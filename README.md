@@ -47,11 +47,13 @@ wortly/
 ## 🎯 Core Functionality
 
 ### Word Management
+
 - **Search**: Find German words with fuzzy search
 - **Add New Words**: AI automatically fetches definitions, examples, and translations
 - **Collections**: Organize words into custom WordBoxes
 
 ### Learning System
+
 - **Flashcards**: Traditional spaced repetition
 - **Interactive Exercises**: Multiple choice, fill-in-the-blank, word matching
 - **Adaptive Difficulty**: Performance-based difficulty adjustment
@@ -80,7 +82,7 @@ Drawing inspiration from industry-leading interfaces that exemplify modern desig
 
 - **Linear**: Exceptional dark mode implementation and micro-interactions that create a premium feel
 - **Notion**: Clean, minimalist layouts with perfect typography hierarchy and intuitive navigation
-- **Stripe**: Industry-standard design system with flawless spacing, colors, and professional aesthetics  
+- **Stripe**: Industry-standard design system with flawless spacing, colors, and professional aesthetics
 - **Vercel**: Ultra-modern interface design with smooth animations and cutting-edge visual language
 
 ---

@@ -65,16 +65,12 @@ export function RecentWords({ onAddToLibrary }: RecentWordsProps) {
             <div className="h-px bg-gradient-to-r from-border to-transparent flex-1"></div>
           </div>
           <span className="text-sm text-muted-foreground bg-muted/30 px-3 py-1 rounded-full">
-            {recentWordsResult.data.length} word{recentWordsResult.data.length !== 1 ? 's' : ''}
+            {recentWordsResult.data.length} word{recentWordsResult.data.length !== 1 ? "s" : ""}
           </span>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {recentWordsResult.data.map((word: Doc<"words">) => (
-            <WordCard
-              key={word._id}
-              word={word}
-              onAddToLibrary={onAddToLibrary}
-            />
+            <WordCard key={word._id} word={word} onAddToLibrary={onAddToLibrary} />
           ))}
         </div>
       </div>

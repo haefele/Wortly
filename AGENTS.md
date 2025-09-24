@@ -1,1 +1,1 @@
-See @README.md and the other rules in @.cursor/rules/*
+See @README.md and the other rules in @.cursor/rules/\*

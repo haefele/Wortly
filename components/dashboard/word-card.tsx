@@ -13,7 +13,6 @@ interface WordCardProps {
   showAddButton?: boolean;
 }
 
-
 export function WordCard({ word, onAddToLibrary, showAddButton = true }: WordCardProps) {
   return (
     <Card className="group relative hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-background to-muted/10 border-border/50">
@@ -28,30 +27,30 @@ export function WordCard({ word, onAddToLibrary, showAddButton = true }: WordCar
               </h3>
             </div>
           </div>
-          
+
           {/* Word type */}
           <WordTypeBadge wordType={word.wordType} size="sm" />
-          
+
           {/* Translations */}
           <div className="space-y-2">
             {word.translations.en && (
               <div className="flex gap-2">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider min-w-[20px]">EN</span>
-                <p className="text-sm text-foreground font-medium">
-                  {word.translations.en}
-                </p>
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider min-w-[20px]">
+                  EN
+                </span>
+                <p className="text-sm text-foreground font-medium">{word.translations.en}</p>
               </div>
             )}
             {word.translations.ru && (
               <div className="flex gap-2">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider min-w-[20px]">RU</span>
-                <p className="text-sm text-foreground font-medium">
-                  {word.translations.ru}
-                </p>
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider min-w-[20px]">
+                  RU
+                </span>
+                <p className="text-sm text-foreground font-medium">{word.translations.ru}</p>
               </div>
             )}
           </div>
-          
+
           {/* Add to Library button */}
           {showAddButton && (
             <Button

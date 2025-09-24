@@ -40,16 +40,12 @@ export default function RootLayout({
           <ConvexClientProvider>
             <UserProvider>
               <SidebarProvider>
-
                 <AppSidebar />
-                <SidebarInset>
-                  {children}
-                </SidebarInset>
+                <SidebarInset>{children}</SidebarInset>
 
                 <Toaster />
                 <Analytics />
                 <SpeedInsights />
-
               </SidebarProvider>
             </UserProvider>
           </ConvexClientProvider>

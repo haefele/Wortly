@@ -18,7 +18,8 @@ export default defineSchema({
     article: v.optional(v.string()),
     wordType: v.string(),
     exampleSentences: v.array(v.string()),
-  }).index("by_word", ["word"])
+  })
+    .index("by_word", ["word"])
     .searchIndex("search_word", {
       searchField: "word",
     }),
@@ -28,14 +29,16 @@ export default defineSchema({
     userId: v.id("users"),
     wordCount: v.number(),
     description: v.optional(v.string()),
-  }).index("by_userId", ["userId"])
+  })
+    .index("by_userId", ["userId"])
     .index("by_userId_and_name", ["userId", "name"]),
 
   wordBoxAssignments: defineTable({
     wordId: v.id("words"),
     boxId: v.id("wordBoxes"),
     addedAt: v.number(),
-  }).index("by_boxId", ["boxId"])
+  })
+    .index("by_boxId", ["boxId"])
     .index("by_wordId", ["wordId"])
     .index("by_boxId_and_wordId", ["boxId", "wordId"]),
 });

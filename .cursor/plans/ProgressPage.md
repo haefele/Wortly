@@ -3,6 +3,7 @@
 **Purpose**: Learning Analytics & Motivation
 
 ### Features
+
 - **Learning Statistics**:
   - Words learned per day/week/month (charts)
   - Current streak and longest streak

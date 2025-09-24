@@ -702,7 +702,7 @@ const A1_WORDS = [
   "der Zug",
   "zurück",
   "zusammen",
-  "zwischen"
+  "zwischen",
 ];
 
 export function BulkWordAdder() {
@@ -756,7 +756,8 @@ export function BulkWordAdder() {
       <CardHeader>
         <CardTitle>Bulk Word Adder (A1 Words)</CardTitle>
         <CardDescription>
-          Add all {A1_WORDS.length} A1 German words to the database. This will process each word through AI to get translations and metadata.
+          Add all {A1_WORDS.length} A1 German words to the database. This will process each word
+          through AI to get translations and metadata.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

@@ -1,7 +1,7 @@
 onlyBuiltDependencies:
-  - '@clerk/shared'
-  - '@tailwindcss/oxide'
-  - '@vercel/speed-insights'
+  - "@clerk/shared"
+  - "@tailwindcss/oxide"
+  - "@vercel/speed-insights"
   - esbuild
   - sharp
   - unrs-resolver

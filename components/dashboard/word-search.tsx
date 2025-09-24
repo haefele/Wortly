@@ -5,7 +5,14 @@ import { useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ArticleBadge } from "@/components/ui/article-badge";
 import { WordTypeBadge } from "@/components/ui/word-type-badge";
 import { AddWordSuggestion } from "./add-word-suggestion";
@@ -16,21 +23,25 @@ export function WordSearch() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
-  
-  const searchResult = useQuery(api.functions.words.searchWord,
+
+  const searchResult = useQuery(
+    api.functions.words.searchWord,
     searchTerm.trim().length > 0 ? { term: searchTerm } : "skip"
   );
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Show/hide dropdown based on search term
@@ -46,14 +57,14 @@ export function WordSearch() {
           <h1 className="text-3xl font-bold mb-2">Discover German Words</h1>
           <p className="text-muted-foreground">Search and explore the German language</p>
         </div>
-        
+
         <div className="relative">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
           <Input
             type="text"
             placeholder="Search German words..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             onFocus={() => setIsDropdownOpen(searchTerm.trim().length > 0)}
             className="pl-12 h-14 text-lg rounded-xl"
           />
@@ -72,60 +83,61 @@ export function WordSearch() {
             </div>
           ) : searchResult.isSuccess && searchResult.data.results.length === 0 ? (
             <div className="p-4">
-              <AddWordSuggestion 
+              <AddWordSuggestion
                 searchTerm={searchTerm}
-                onWordAddedToLibrary={(w) => setSearchTerm(w.word)}
-                onSuggestionSelected={(s) => setSearchTerm(s)}
+                onWordAddedToLibrary={w => setSearchTerm(w.word)}
+                onSuggestionSelected={s => setSearchTerm(s)}
               />
             </div>
-          ) : searchResult.isSuccess && (
-            <div>
-              <Table containerClassName="max-h-[30vh] overflow-y-auto">
-                <TableHeader className="[&_tr]:border-b-0 [&_th]:shadow-[inset_0_-1px_0_0_theme(colors.border)]">
-                  <TableRow className="sticky top-0 z-10 bg-background hover:bg-background">
-                    <TableHead className="pl-4">
-                      <div className="flex items-center justify-between">
-                        <span>German Word</span>
-                        <span className="text-xs font-normal text-muted-foreground ml-2">
-                          {searchResult.data.results.length} result{searchResult.data.results.length !== 1 ? 's' : ''}
-                        </span>
-                      </div>
-                    </TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Translation</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {searchResult.data.results.map((word: Doc<"words">) => (
-                    <TableRow key={word._id} className="hover:bg-muted/50">
-                      <TableCell className="pl-4">
-                        <div className="flex items-center gap-2">
-                          <ArticleBadge article={word.article} size="sm" />
-                          <span className="font-semibold">{word.word}</span>
+          ) : (
+            searchResult.isSuccess && (
+              <div>
+                <Table containerClassName="max-h-[30vh] overflow-y-auto">
+                  <TableHeader className="[&_tr]:border-b-0 [&_th]:shadow-[inset_0_-1px_0_0_theme(colors.border)]">
+                    <TableRow className="sticky top-0 z-10 bg-background hover:bg-background">
+                      <TableHead className="pl-4">
+                        <div className="flex items-center justify-between">
+                          <span>German Word</span>
+                          <span className="text-xs font-normal text-muted-foreground ml-2">
+                            {searchResult.data.results.length} result
+                            {searchResult.data.results.length !== 1 ? "s" : ""}
+                          </span>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <WordTypeBadge wordType={word.wordType} size="sm" />
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {word.translations.en || "-"}
-                      </TableCell>
+                      </TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Translation</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              
-              {/* Show AddWordSuggestion if there are results but no exact match */}
-              {!searchResult.data.hasExactMatch && (
-                <div className="border-t p-4">
-                  <AddWordSuggestion 
-                    searchTerm={searchTerm}
-                    onWordAddedToLibrary={(w) => setSearchTerm(w.word)}
-                    onSuggestionSelected={(s) => setSearchTerm(s)}
-                  />
-                </div>
-              )}
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {searchResult.data.results.map((word: Doc<"words">) => (
+                      <TableRow key={word._id} className="hover:bg-muted/50">
+                        <TableCell className="pl-4">
+                          <div className="flex items-center gap-2">
+                            <ArticleBadge article={word.article} size="sm" />
+                            <span className="font-semibold">{word.word}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <WordTypeBadge wordType={word.wordType} size="sm" />
+                        </TableCell>
+                        <TableCell className="text-sm">{word.translations.en || "-"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+                {/* Show AddWordSuggestion if there are results but no exact match */}
+                {!searchResult.data.hasExactMatch && (
+                  <div className="border-t p-4">
+                    <AddWordSuggestion
+                      searchTerm={searchTerm}
+                      onWordAddedToLibrary={w => setSearchTerm(w.word)}
+                      onSuggestionSelected={s => setSearchTerm(s)}
+                    />
+                  </div>
+                )}
+              </div>
+            )
           )}
         </div>
       )}

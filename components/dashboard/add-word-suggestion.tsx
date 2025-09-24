@@ -14,35 +14,45 @@ interface AddWordSuggestionProps {
   onWordAddedToLibrary?: (word: Doc<"words">) => void;
 }
 
-type ComponentState = 
-  | { type: 'notFound' }
-  | { type: 'loading' }
-  | { type: 'suggestions'; suggestions: string[] };
+type ComponentState =
+  | { type: "notFound" }
+  | { type: "loading" }
+  | { type: "suggestions"; suggestions: string[] };
 
-export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggestionSelected }: AddWordSuggestionProps) {
-  const [state, setState] = useState<ComponentState>({ type: 'notFound' });
+export function AddWordSuggestion({
+  searchTerm,
+  onWordAddedToLibrary,
+  onSuggestionSelected,
+}: AddWordSuggestionProps) {
+  const [state, setState] = useState<ComponentState>({ type: "notFound" });
   const addNewWord = useAction(api.functions.words.addNewWord);
 
   const handleAddNewWord = async () => {
-    if (!searchTerm.trim() || state.type === 'loading') return;
+    if (!searchTerm.trim() || state.type === "loading") return;
 
-    setState({ type: 'loading' });
+    setState({ type: "loading" });
 
     const result = await addNewWord({ word: searchTerm.trim() });
-    
+
     if (result.success) {
       onWordAddedToLibrary?.(result.word);
-      setState({ type: 'notFound' });
+      setState({ type: "notFound" });
     } else {
-      setState({ type: 'suggestions', suggestions: result.suggestions });
+      setState({ type: "suggestions", suggestions: result.suggestions });
     }
   };
 
   switch (state.type) {
-    case 'loading':
+    case "loading":
       return (
         <div className="text-center md:py-8 space-y-6">
-          <IconOrb tone="blue" size="lg" className="mx-auto" icon={Loader2} iconClassName="animate-spin" />
+          <IconOrb
+            tone="blue"
+            size="lg"
+            className="mx-auto"
+            icon={Loader2}
+            iconClassName="animate-spin"
+          />
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-foreground">
               Adding &ldquo;{searchTerm}&rdquo;...
@@ -55,8 +65,14 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
             <div className="flex items-center justify-center space-x-3 text-sm text-muted-foreground">
               <div className="flex space-x-1">
                 <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></div>
-                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                <div
+                  className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"
+                  style={{ animationDelay: "0.2s" }}
+                ></div>
+                <div
+                  className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"
+                  style={{ animationDelay: "0.4s" }}
+                ></div>
               </div>
               <span>Processing with AI...</span>
             </div>
@@ -67,7 +83,7 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
         </div>
       );
 
-    case 'suggestions':
+    case "suggestions":
       return (
         <div className="text-center md:py-8 space-y-6">
           <IconOrb tone="yellow" size="lg" className="mx-auto" icon={AlertCircle} />
@@ -77,9 +93,7 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
             </h3>
             {state.suggestions.length > 0 && (
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  Did you mean one of these words?
-                </p>
+                <p className="text-sm text-muted-foreground">Did you mean one of these words?</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {state.suggestions.map((suggestion, index) => (
                     <Button
@@ -101,7 +115,7 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
         </div>
       );
 
-    case 'notFound':
+    case "notFound":
     default:
       return (
         <div className="text-center md:py-8 space-y-6">
@@ -124,7 +138,8 @@ export function AddWordSuggestion({ searchTerm, onWordAddedToLibrary, onSuggesti
             Add &ldquo;{searchTerm}&rdquo; to database
           </Button>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            We&apos;ll analyze this word with AI to provide translations, grammar info, and example sentences.
+            We&apos;ll analyze this word with AI to provide translations, grammar info, and example
+            sentences.
           </p>
         </div>
       );
