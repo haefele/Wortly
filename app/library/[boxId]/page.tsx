@@ -11,14 +11,6 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -26,31 +18,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EditWordBoxDialog } from "@/components/library/edit-wordbox-dialog";
+import { DeleteWordBoxDialog } from "@/components/library/delete-wordbox-dialog";
 
 export default function LibraryBoxDetailPage() {
   const params = useParams<{ boxId: Id<"wordBoxes"> }>();
   const router = useRouter();
 
   const wordBoxResult = useQuery(api.functions.wordBoxes.getWordBox, { boxId: params.boxId });
-  const deleteWordBox = useMutation(api.functions.wordBoxes.deleteWordBox);
-
-  const [globalError, setGlobalError] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    setGlobalError(null);
-
-    try {
-      await deleteWordBox({ boxId: params.boxId });
-      router.push("/library");
-    } catch (error) {
-      setGlobalError(error instanceof Error ? error.message : "Failed to delete collection");
-      setIsDeleting(false);
-    }
-  };
 
   if (wordBoxResult.isPending) {
     return <PageHeader icon={Library} isLoading={true} />;
@@ -74,7 +50,7 @@ export default function LibraryBoxDetailPage() {
             </CardHeader>
             <CardFooter>
               <Button variant="ghost" onClick={() => router.push("/library")}>
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft />
                 Back to Library
               </Button>
             </CardFooter>
@@ -130,13 +106,7 @@ export default function LibraryBoxDetailPage() {
         </div>
       </PageHeader>
 
-      <main className="flex-1 p-4 md:p-6 space-y-6">
-        {globalError && (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {globalError}
-          </div>
-        )}
-      </main>
+      <main className="flex-1 p-4 md:p-6 space-y-6" />
 
       <EditWordBoxDialog
         boxId={params.boxId}
@@ -144,25 +114,12 @@ export default function LibraryBoxDetailPage() {
         onOpenChange={setEditDialogOpen}
       />
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete this collection?</DialogTitle>
-            <DialogDescription>
-              This will remove the collection and all of its assignments. The words themselves
-              remain available in your library.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
-              {isDeleting ? "Deleting" : "Delete now"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteWordBoxDialog
+        boxId={params.boxId}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onDeleted={() => router.push("/library")}
+      />
     </>
   );
 }
