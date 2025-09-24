@@ -3,6 +3,7 @@
 **Purpose**: Personal Word Collection Management
 
 ### Features
+
 - **WordBox Overview**: Grid of user's word collections (WordBoxes)
   - Collection name, word count, last modified
   - Create new collection button
@@ -14,7 +15,7 @@
   - All translations and examples
   - Learning progress indicator
   - Practice history
-- **Organization Tools**: 
+- **Organization Tools**:
   - Create/rename/delete WordBoxes
   - Move words between collections
   - Search within collections

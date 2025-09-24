@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 export function useAdminAccess() {
   const { user, isLoading } = useWortlyUser();
-  const router = useRouter();  
+  const router = useRouter();
 
   const isAdmin = user && user?.role === "Admin";
 
@@ -20,6 +20,6 @@ export function useAdminAccess() {
     user,
     isLoading,
     isAdmin: isAdmin,
-    hasAccess: !isLoading && isAdmin
+    hasAccess: !isLoading && isAdmin,
   };
 }

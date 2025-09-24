@@ -14,17 +14,13 @@ export default function DashboardPage() {
 
   return (
     <>
-      <PageHeader 
-        title="Dashboard"
-        description="Search and explore German words"
-        icon={Home}
-      />
+      <PageHeader title="Dashboard" description="Search and explore German words" icon={Home} />
       <main className="flex-1 px-4 md:px-6 pb-12 space-y-12">
         {/* Search Interface */}
         <section className="pt-8">
           <WordSearch />
         </section>
-        
+
         {/* Recent Words Section */}
         <section>
           <RecentWords onAddToLibrary={handleAddToLibrary} />

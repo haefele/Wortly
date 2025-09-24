@@ -11,8 +11,8 @@ interface WordTypeBadgeProps {
 
 export function WordTypeBadge({ wordType, size = "md", className }: WordTypeBadgeProps) {
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn(
         // Size classes
         {

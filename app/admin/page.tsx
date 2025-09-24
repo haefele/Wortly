@@ -13,16 +13,16 @@ export default function AdminPage() {
 
   return (
     <>
-        <PageHeader 
-            title="Admin Dashboard"
-            description="Admin panel for managing the application and admin actions"
-            icon={Shield}
-        />
-        <main className="flex-1 p-4 md:p-6">
-            <div className="flex justify-center">
-                <BulkWordAdder />
-            </div>
-        </main>
+      <PageHeader
+        title="Admin Dashboard"
+        description="Admin panel for managing the application and admin actions"
+        icon={Shield}
+      />
+      <main className="flex-1 p-4 md:p-6">
+        <div className="flex justify-center">
+          <BulkWordAdder />
+        </div>
+      </main>
     </>
   );
 }

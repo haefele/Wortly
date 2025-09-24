@@ -3,6 +3,7 @@
 **Purpose**: Comprehensive Study & Practice Hub
 
 ### Features
+
 - **Study Mode Selection**:
   - **Flashcards**: Traditional spaced repetition learning
   - **Multiple Choice**: Interactive article, translation, and word type questions
