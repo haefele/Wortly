@@ -25,20 +25,30 @@ export async function getOrCreateDefaultBox(ctx: MutationCtx, userId: Id<"users"
   return createdBox;
 }
 
-export async function addWordToBox(ctx: MutationCtx, box: Doc<"wordBoxes">, wordId: Id<"words">) {
+export async function addWordToBox(ctx: MutationCtx, box: Doc<"wordBoxes">, word: Doc<"words">) {
   const existingAssignment = await ctx.db
     .query("wordBoxAssignments")
-    .withIndex("by_boxId_and_wordId", q => q.eq("boxId", box._id).eq("wordId", wordId))
+    .withIndex("by_boxId_and_wordId", q => q.eq("boxId", box._id).eq("wordId", word._id))
     .unique();
 
   if (existingAssignment) {
     return;
   }
 
+  const searchText = [
+    word.article,
+    word.word,
+    word.translations.en,
+    word.translations.ru,
+  ]
+    .flatMap(value => (value ? [value.toLowerCase()] : []))
+    .join(" ");
+
   await ctx.db.insert("wordBoxAssignments", {
-    wordId: wordId,
+    wordId: word._id,
     boxId: box._id,
     addedAt: Date.now(),
+    searchText: searchText.length ? searchText : undefined,
   });
 
   await ctx.db.patch(box._id, {

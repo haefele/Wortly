@@ -37,8 +37,13 @@ export default defineSchema({
     wordId: v.id("words"),
     boxId: v.id("wordBoxes"),
     addedAt: v.number(),
+    searchText: v.optional(v.string()),
   })
     .index("by_boxId", ["boxId"])
     .index("by_wordId", ["wordId"])
-    .index("by_boxId_and_wordId", ["boxId", "wordId"]),
+    .index("by_boxId_and_wordId", ["boxId", "wordId"])
+    .searchIndex("search_by_box", {
+      searchField: "searchText",
+      filterFields: ["boxId"],
+    }),
 });
