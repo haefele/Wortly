@@ -30,14 +30,12 @@ interface AddWordToBoxDialogProps {
   boxId: Id<"wordBoxes">;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  existingWordIds: Set<Id<"words">>;
 }
 
 export function AddWordToBoxDialog({
   boxId,
   open,
   onOpenChange,
-  existingWordIds,
 }: AddWordToBoxDialogProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [mutationError, setMutationError] = useState<string | null>(null);
@@ -119,8 +117,7 @@ export function AddWordToBoxDialog({
                 </TableHeader>
                 <TableBody>
                   {searchResults.results.map((word: Doc<"words">) => {
-                    const alreadyInBox =
-                      existingWordIds.has(word._id) || recentlyAddedIds.has(word._id);
+                    const recentlyAdded = recentlyAddedIds.has(word._id);
                     return (
                       <TableRow key={word._id}>
                         <TableCell>
@@ -132,16 +129,16 @@ export function AddWordToBoxDialog({
                         <TableCell>
                           <WordTypeBadge wordType={word.wordType} size="sm" />
                         </TableCell>
-                        <TableCell>{word.translations.en ?? "—"}</TableCell>
+                        <TableCell>{word.translations.en ?? "-"}</TableCell>
                         <TableCell className="text-right">
                           <Button
-                            variant={alreadyInBox ? "outline" : "gradient"}
+                            variant={recentlyAdded ? "outline" : "gradient"}
                             size="sm"
-                            disabled={alreadyInBox || pendingWordId === word._id}
+                            disabled={recentlyAdded || pendingWordId === word._id}
                             onClick={() => handleAdd(word._id)}
                           >
-                            {alreadyInBox
-                              ? "In collection"
+                            {recentlyAdded
+                              ? "Added"
                               : pendingWordId === word._id
                                 ? "Adding"
                                 : "Add"}

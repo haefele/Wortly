@@ -22,6 +22,7 @@ export const getWords = query({
   args: {
     boxId: v.id("wordBoxes"),
     paginationOpts: paginationOptsValidator,
+    searchTerm: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
@@ -31,11 +32,20 @@ export const getWords = query({
       throw new Error("Word box not found");
     }
 
-    const assignmentResults = await ctx.db
-      .query("wordBoxAssignments")
-      .withIndex("by_boxId", q => q.eq("boxId", args.boxId))
-      .order("desc")
-      .paginate(args.paginationOpts);
+    const trimmedSearchTerm = args.searchTerm?.trim();
+
+    const assignmentResults = trimmedSearchTerm?.length
+      ? await ctx.db
+          .query("wordBoxAssignments")
+          .withSearchIndex("search_by_box", q =>
+            q.search("searchText", trimmedSearchTerm.toLowerCase()).eq("boxId", args.boxId)
+          )
+          .paginate(args.paginationOpts)
+      : await ctx.db
+          .query("wordBoxAssignments")
+          .withIndex("by_boxId", q => q.eq("boxId", args.boxId))
+          .order("desc")
+          .paginate(args.paginationOpts);
 
     const wordsWithDetails = [];
     for (const assignment of assignmentResults.page) {
@@ -174,7 +184,7 @@ export const addWord = mutation({
       throw new Error("Word not found");
     }
 
-    await addWordToBox(ctx, box, word._id);
+    await addWordToBox(ctx, box, word);
 
     return null;
   },

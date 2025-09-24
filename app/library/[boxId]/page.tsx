@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Library, Plus, Trash2, ArrowLeft, MoreHorizontal, Edit } from "lucide-react";
+import { Library, Plus, Trash2, ArrowLeft, MoreHorizontal, Edit, Search } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
-import { useMutation } from "convex/react";
+import { useMutation, usePaginatedQuery } from "convex/react";
 import { useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
 import { PageHeader } from "@/components/page-header";
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,6 +19,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EditWordBoxDialog } from "@/components/library/edit-wordbox-dialog";
 import { DeleteWordBoxDialog } from "@/components/library/delete-wordbox-dialog";
+import { AddWordToBoxDialog } from "@/components/library/add-word-to-box-dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ArticleBadge } from "@/components/ui/article-badge";
+import { WordTypeBadge } from "@/components/ui/word-type-badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 export default function LibraryBoxDetailPage() {
   const params = useParams<{ boxId: Id<"wordBoxes"> }>();
@@ -27,6 +41,41 @@ export default function LibraryBoxDetailPage() {
   const wordBoxResult = useQuery(api.functions.wordBoxes.getWordBox, { boxId: params.boxId });
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const normalizedSearchTerm = searchTerm.trim();
+  const hasActiveSearch = normalizedSearchTerm.length > 0;
+
+  const queryArgs = wordBoxResult.data
+    ? {
+        boxId: params.boxId,
+        searchTerm: hasActiveSearch ? normalizedSearchTerm : undefined,
+      }
+    : "skip";
+
+  const { results, status, isLoading, loadMore } = usePaginatedQuery(
+    api.functions.wordBoxes.getWords,
+    queryArgs,
+    {
+      initialNumItems: 25,
+    }
+  );
+
+  const addedAtFormatter = useMemo(
+    () => new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }),
+    []
+  );
+
+  const removeWord = useMutation(api.functions.wordBoxes.removeWord);
+
+  const handleRemove = async (wordId: Id<"words">) => {
+    try {
+      await removeWord({ boxId: params.boxId, wordId });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to remove word.");
+    }
+  };
 
   if (wordBoxResult.isPending) {
     return <PageHeader icon={Library} isLoading={true} />;
@@ -72,7 +121,7 @@ export default function LibraryBoxDetailPage() {
         icon={Library}
       >
         <div className="flex items-center gap-2">
-          <Button variant="default">
+          <Button variant="default" onClick={() => setAddDialogOpen(true)}>
             <Plus />
             Add words
           </Button>
@@ -106,7 +155,113 @@ export default function LibraryBoxDetailPage() {
         </div>
       </PageHeader>
 
-      <main className="flex-1 p-4 md:p-6 space-y-6" />
+      <main className="flex-1 p-4 md:p-6 space-y-6">
+        <Card>
+          <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1">
+              <CardTitle>Words in this collection</CardTitle>
+              <CardDescription>
+                {hasActiveSearch
+                  ? `Showing matches for "${normalizedSearchTerm}".`
+                  : wordBoxResult.data.wordCount === 0
+                    ? "This collection has no words yet. Add your first word to get started."
+                    : `Manage ${wordBoxResult.data.wordCount} word${wordBoxResult.data.wordCount === 1 ? "" : "s"} in this collection.`}
+              </CardDescription>
+            </div>
+            <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
+              <div className="relative md:w-64">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={searchTerm}
+                  onChange={event => setSearchTerm(event.target.value)}
+                  placeholder="Search by word or translation"
+                  className="pl-9"
+                />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {isLoading && results.length === 0 ? (
+              <div className="space-y-2">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <Skeleton key={index} className="h-12 w-full" />
+                ))}
+              </div>
+            ) : results.length === 0 ? (
+              <div className="rounded-lg border border-dashed bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
+                {hasActiveSearch ? `No matches found for "${normalizedSearchTerm}".` : "This collection does not have any words yet."}
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-lg border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Word</TableHead>
+                      <TableHead>Translations</TableHead>
+                      <TableHead className="hidden text-right text-sm text-muted-foreground sm:table-cell">
+                        Added
+                      </TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {results.map(word => (
+                      <TableRow key={word._id}>
+                        <TableCell>
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-2">
+                              <ArticleBadge article={word.article} size="sm" />
+                              <span className="font-medium">{word.word}</span>
+                            </div>
+                            <WordTypeBadge wordType={word.wordType} size="sm" />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col text-sm">
+                            <span>{word.translations.en ?? "-"}</span>
+                            {word.translations.ru && (
+                              <span className="text-muted-foreground">{word.translations.ru}</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden text-right text-sm text-muted-foreground sm:table-cell">
+                          {addedAtFormatter.format(new Date(word.addedAt))}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-2"
+                            onClick={() => handleRemove(word._id)}
+                          >
+                            <Trash2 />
+                            Remove
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {isLoading && results.length > 0 && (
+                  <div className="border-t px-4 py-3">
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                )}
+              </div>
+            )}
+            {status === "CanLoadMore" && (
+              <div className="flex justify-center">
+                <Button variant="outline" onClick={() => loadMore(25)} disabled={isLoading}>
+                  Load more
+                </Button>
+              </div>
+            )}
+            {status === "LoadingMore" && (
+              <div className="flex justify-center text-sm text-muted-foreground">Loading more words...</div>
+            )}
+          </CardContent>
+        </Card>
+      </main>
 
       <EditWordBoxDialog
         boxId={params.boxId}
@@ -119,6 +274,12 @@ export default function LibraryBoxDetailPage() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onDeleted={() => router.push("/library")}
+      />
+
+      <AddWordToBoxDialog
+        boxId={params.boxId}
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
       />
     </>
   );
