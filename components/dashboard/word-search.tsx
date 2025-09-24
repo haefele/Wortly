@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useQuery } from "convex/react";
+import { useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,7 +17,7 @@ export function WordSearch() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   
-  const searchData = useQuery(api.functions.words.searchWord,
+  const searchResult = useQuery(api.functions.words.searchWord,
     searchTerm.trim().length > 0 ? { term: searchTerm } : "skip"
   );
 
@@ -63,14 +63,14 @@ export function WordSearch() {
       {/* Search Results Dropdown */}
       {isDropdownOpen && (
         <div className="absolute left-0 right-0 z-50 border rounded-xl bg-background shadow-2xl mt-4 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
-          {searchData === undefined ? (
+          {searchResult.isPending ? (
             <div className="text-center text-muted-foreground py-12">
               <div className="flex items-center justify-center space-x-2">
                 <Skeleton className="w-4 h-4 rounded-full" />
                 <span>Searching...</span>
               </div>
             </div>
-          ) : searchData.results.length === 0 ? (
+          ) : searchResult.isSuccess && searchResult.data.results.length === 0 ? (
             <div className="p-4">
               <AddWordSuggestion 
                 searchTerm={searchTerm}
@@ -78,7 +78,7 @@ export function WordSearch() {
                 onSuggestionSelected={(s) => setSearchTerm(s)}
               />
             </div>
-          ) : (
+          ) : searchResult.isSuccess && (
             <div>
               <Table containerClassName="max-h-[30vh] overflow-y-auto">
                 <TableHeader className="[&_tr]:border-b-0 [&_th]:shadow-[inset_0_-1px_0_0_theme(colors.border)]">
@@ -87,7 +87,7 @@ export function WordSearch() {
                       <div className="flex items-center justify-between">
                         <span>German Word</span>
                         <span className="text-xs font-normal text-muted-foreground ml-2">
-                          {searchData.results.length} result{searchData.results.length !== 1 ? 's' : ''}
+                          {searchResult.data.results.length} result{searchResult.data.results.length !== 1 ? 's' : ''}
                         </span>
                       </div>
                     </TableHead>
@@ -96,7 +96,7 @@ export function WordSearch() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {searchData.results.map((word: Doc<"words">) => (
+                  {searchResult.data.results.map((word: Doc<"words">) => (
                     <TableRow key={word._id} className="hover:bg-muted/50">
                       <TableCell className="pl-4">
                         <div className="flex items-center gap-2">
@@ -116,7 +116,7 @@ export function WordSearch() {
               </Table>
               
               {/* Show AddWordSuggestion if there are results but no exact match */}
-              {!searchData.hasExactMatch && (
+              {!searchResult.data.hasExactMatch && (
                 <div className="border-t p-4">
                   <AddWordSuggestion 
                     searchTerm={searchTerm}

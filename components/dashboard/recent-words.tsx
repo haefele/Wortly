@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
 import { WordCard } from "./word-card";
 import { Plus } from "lucide-react";
@@ -11,9 +11,9 @@ interface RecentWordsProps {
 }
 
 export function RecentWords({ onAddToLibrary }: RecentWordsProps) {
-  const recentWords = useQuery(api.functions.words.getRecentWords);
+  const recentWordsResult = useQuery(api.functions.words.getRecentWords);
 
-  if (recentWords === undefined) {
+  if (recentWordsResult.isPending) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3">
@@ -32,7 +32,7 @@ export function RecentWords({ onAddToLibrary }: RecentWordsProps) {
     );
   }
 
-  if (recentWords.length === 0) {
+  if (recentWordsResult.isSuccess && recentWordsResult.data.length === 0) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3">
@@ -56,26 +56,28 @@ export function RecentWords({ onAddToLibrary }: RecentWordsProps) {
     );
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h2 className="text-3xl font-bold">Recent Words</h2>
-          <div className="h-px bg-gradient-to-r from-border to-transparent flex-1"></div>
+  if (recentWordsResult.isSuccess) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h2 className="text-3xl font-bold">Recent Words</h2>
+            <div className="h-px bg-gradient-to-r from-border to-transparent flex-1"></div>
+          </div>
+          <span className="text-sm text-muted-foreground bg-muted/30 px-3 py-1 rounded-full">
+            {recentWordsResult.data.length} word{recentWordsResult.data.length !== 1 ? 's' : ''}
+          </span>
         </div>
-        <span className="text-sm text-muted-foreground bg-muted/30 px-3 py-1 rounded-full">
-          {recentWords.length} word{recentWords.length !== 1 ? 's' : ''}
-        </span>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {recentWordsResult.data.map((word: Doc<"words">) => (
+            <WordCard
+              key={word._id}
+              word={word}
+              onAddToLibrary={onAddToLibrary}
+            />
+          ))}
+        </div>
       </div>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {recentWords.map((word: Doc<"words">) => (
-          <WordCard
-            key={word._id}
-            word={word}
-            onAddToLibrary={onAddToLibrary}
-          />
-        ))}
-      </div>
-    </div>
-  );
+    );
+  }
 }

@@ -3,7 +3,8 @@
 import { api } from "@/convex/_generated/api";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { useUser } from "@clerk/nextjs";
-import { useConvexAuth, useMutation, useQuery } from "convex/react";
+import { useConvexAuth, useMutation } from "convex/react";
+import { useQuery } from "convex-helpers/react";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
 interface UserContextType {
@@ -25,7 +26,7 @@ export function UserProvider({ children }: UserProviderProps) {
   // When this state is set we know the server has stored the user.
   const [userId, setUserId] = useState<Id<"users"> | null>(null);
   const storeUser = useMutation(api.functions.users.store);
-  const me = useQuery(api.functions.users.getMe);
+  const meResult = useQuery(api.functions.users.getMe);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -41,9 +42,9 @@ export function UserProvider({ children }: UserProviderProps) {
   }, [isAuthenticated, storeUser, clerkUser?.id]);
 
   const contextValue: UserContextType = {
-    isLoading: convexLoading || (isAuthenticated && userId === null) || (isAuthenticated && me === undefined),
+    isLoading: convexLoading || (isAuthenticated && userId === null) || (isAuthenticated && meResult.data === undefined),
     isAuthenticated: isAuthenticated,
-    user: me || undefined,
+    user: meResult.data || undefined,
   };
 
   return (
