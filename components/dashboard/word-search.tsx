@@ -17,10 +17,11 @@ import {
 import { ArticleBadge } from "@/components/ui/article-badge";
 import { WordTypeBadge } from "@/components/ui/word-type-badge";
 import { AddWordSuggestion } from "./add-word-suggestion";
-import { Search } from "lucide-react";
-import type { Doc, Id } from "@/convex/_generated/dataModel";
+import { Check, Loader2, Plus, Search } from "lucide-react";
+import type { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { ConvexError } from "convex/values";
 
@@ -33,7 +34,12 @@ export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
   const [searchTerm, setSearchTerm] = useState("");
   const searchResult = useQuery(
     api.functions.words.searchWord,
-    searchTerm.trim().length > 0 ? { term: searchTerm } : "skip"
+    searchTerm.trim().length > 0
+      ? {
+          term: searchTerm,
+          wordBoxId: wordBoxId,
+        }
+      : "skip"
   );
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -56,17 +62,25 @@ export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const [addingWordIds, setAddingWordIds] = useState<string[]>([]);
   const addWordToBox = useMutation(api.functions.wordBoxes.addWord);
   const handleAddWord = async (wordId: Id<"words">) => {
     if (!wordBoxId) {
       return;
     }
 
+    setAddingWordIds(prev => [...prev, wordId]);
     try {
       await addWordToBox({ boxId: wordBoxId, wordId });
       toast.success("Word added to collection.");
     } catch (error) {
       toast.error(error instanceof ConvexError ? error.data : "Failed to add word.");
+    } finally {
+      setAddingWordIds(prev => {
+        const updated = [...prev];
+        updated.splice(updated.indexOf(wordId), 1);
+        return updated;
+      });
     }
   };
 
@@ -136,7 +150,7 @@ export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {searchResult.data.results.map((word: Doc<"words">) => (
+                    {searchResult.data.results.map(word => (
                       <TableRow key={word._id} className="hover:bg-muted/50">
                         <TableCell className="pl-4">
                           <div className="flex items-center gap-2">
@@ -147,16 +161,38 @@ export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
                         <TableCell>
                           <WordTypeBadge wordType={word.wordType} size="sm" />
                         </TableCell>
-                        <TableCell className="text-sm">{word.translations.en || "-"}</TableCell>
+                        <TableCell className="text-sm">
+                          <div className="max-w-[16rem] truncate">
+                            {word.translations.en || "-"}
+                          </div>
+                        </TableCell>
                         {wordBoxId && (
-                          <TableCell className="pr-4 text-right">
-                            <Button
-                              size="sm"
-                              variant="default"
-                              onClick={() => handleAddWord(word._id)}
-                            >
-                              Add
-                            </Button>
+                          <TableCell className="p-0 px-2">
+                            <div className="flex justify-center">
+                              {word.isInBox ? (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Check className="text-emerald-500" />
+                                  </TooltipTrigger>
+                                  <TooltipContent sideOffset={6}>
+                                    Word is already in this collection.
+                                  </TooltipContent>
+                                </Tooltip>
+                              ) : (
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  disabled={addingWordIds.includes(word._id)}
+                                  onClick={() => handleAddWord(word._id)}
+                                >
+                                  {addingWordIds.includes(word._id) ? (
+                                    <Loader2 className="animate-spin" />
+                                  ) : (
+                                    <Plus />
+                                  )}
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         )}
                       </TableRow>
