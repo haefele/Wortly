@@ -3,7 +3,7 @@ import { query, internalMutation, action, internalQuery } from "../_generated/se
 import { internal } from "../_generated/api";
 import { Doc } from "../_generated/dataModel";
 import schema from "../schema";
-import { throwIfUnauthenticated } from "../lib/authHelpers";
+import { getCurrentUser, throwIfUnauthenticated } from "../lib/authHelpers";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import z from "zod";
@@ -11,9 +11,10 @@ import z from "zod";
 export const searchWord = query({
   args: {
     term: v.string(),
+    wordBoxId: v.optional(v.id("wordBoxes")),
   },
   handler: async (ctx, args) => {
-    await throwIfUnauthenticated(ctx);
+    const user = await getCurrentUser(ctx);
 
     const term = args.term.trim();
     if (term.length === 0) {
@@ -32,8 +33,39 @@ export const searchWord = query({
       .withIndex("by_word", q => q.eq("word", term))
       .unique();
 
+    // No word box id, so we don't need to check if the words are in the box
+    if (!args.wordBoxId) {
+      return {
+        results: results.map(word => ({
+          ...word,
+          isInBox: false,
+        })),
+        hasExactMatch: !!exactMatch,
+      };
+    }
+
+    // Check if the words are in the box
+    const wordBox = await ctx.db.get(args.wordBoxId);
+    if (!wordBox || wordBox.userId !== user._id) {
+      throw new Error("Word box not found");
+    }
+
+    const assignmentResults = await Promise.all(
+      results.map(word =>
+        ctx.db
+          .query("wordBoxAssignments")
+          .withIndex("by_boxId_and_wordId", q =>
+            q.eq("boxId", args.wordBoxId!).eq("wordId", word._id)
+          )
+          .unique()
+      )
+    );
+
     return {
-      results,
+      results: results.map((word, index) => ({
+        ...word,
+        isInBox: assignmentResults[index] !== null,
+      })),
       hasExactMatch: !!exactMatch,
     };
   },
