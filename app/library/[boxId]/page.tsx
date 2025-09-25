@@ -2,13 +2,20 @@
 
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Library, Plus, Trash2, ArrowLeft, MoreHorizontal, Edit, Search } from "lucide-react";
+import { Library, Trash2, ArrowLeft, MoreHorizontal, Edit, Search } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useMutation, usePaginatedQuery } from "convex/react";
 import { useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
 import { PageHeader } from "@/components/page-header";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,7 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EditWordBoxDialog } from "@/components/library/edit-wordbox-dialog";
 import { DeleteWordBoxDialog } from "@/components/library/delete-wordbox-dialog";
-import { AddWordToBoxDialog } from "@/components/library/add-word-to-box-dialog";
+import { WordSearch } from "@/components/dashboard/word-search";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -41,7 +48,6 @@ export default function LibraryBoxDetailPage() {
   const wordBoxResult = useQuery(api.functions.wordBoxes.getWordBox, { boxId: params.boxId });
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   const normalizedSearchTerm = searchTerm.trim();
@@ -121,10 +127,6 @@ export default function LibraryBoxDetailPage() {
         icon={Library}
       >
         <div className="flex items-center gap-2">
-          <Button variant="default" onClick={() => setAddDialogOpen(true)}>
-            <Plus />
-            Add words
-          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon">
@@ -156,6 +158,8 @@ export default function LibraryBoxDetailPage() {
       </PageHeader>
 
       <main className="flex-1 p-4 md:p-6 space-y-6">
+        <WordSearch wordBoxId={params.boxId} />
+
         <Card>
           <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-1">
@@ -189,7 +193,9 @@ export default function LibraryBoxDetailPage() {
               </div>
             ) : results.length === 0 ? (
               <div className="rounded-lg border border-dashed bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
-                {hasActiveSearch ? `No matches found for "${normalizedSearchTerm}".` : "This collection does not have any words yet."}
+                {hasActiveSearch
+                  ? `No matches found for "${normalizedSearchTerm}".`
+                  : "This collection does not have any words yet."}
               </div>
             ) : (
               <div className="overflow-hidden rounded-lg border">
@@ -257,7 +263,9 @@ export default function LibraryBoxDetailPage() {
               </div>
             )}
             {status === "LoadingMore" && (
-              <div className="flex justify-center text-sm text-muted-foreground">Loading more words...</div>
+              <div className="flex justify-center text-sm text-muted-foreground">
+                Loading more words...
+              </div>
             )}
           </CardContent>
         </Card>
@@ -274,12 +282,6 @@ export default function LibraryBoxDetailPage() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onDeleted={() => router.push("/library")}
-      />
-
-      <AddWordToBoxDialog
-        boxId={params.boxId}
-        open={addDialogOpen}
-        onOpenChange={setAddDialogOpen}
       />
     </>
   );

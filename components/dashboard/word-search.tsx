@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "convex-helpers/react";
+import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,19 +18,30 @@ import { ArticleBadge } from "@/components/ui/article-badge";
 import { WordTypeBadge } from "@/components/ui/word-type-badge";
 import { AddWordSuggestion } from "./add-word-suggestion";
 import { Search } from "lucide-react";
-import type { Doc } from "@/convex/_generated/dataModel";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { ConvexError } from "convex/values";
 
-export function WordSearch() {
+interface WordSearchProps {
+  className?: string;
+  wordBoxId?: Id<"wordBoxes">;
+}
+
+export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
-
   const searchResult = useQuery(
     api.functions.words.searchWord,
     searchTerm.trim().length > 0 ? { term: searchTerm } : "skip"
   );
 
-  // Close dropdown when clicking outside
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  useEffect(() => {
+    setIsDropdownOpen(searchTerm.trim().length > 0);
+  }, [searchTerm]);
+
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -44,25 +56,39 @@ export function WordSearch() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Show/hide dropdown based on search term
-  useEffect(() => {
-    setIsDropdownOpen(searchTerm.trim().length > 0);
-  }, [searchTerm]);
+  const addWordToBox = useMutation(api.functions.wordBoxes.addWord);
+  const handleAddWord = async (wordId: Id<"words">) => {
+    if (!wordBoxId) {
+      return;
+    }
+
+    try {
+      await addWordToBox({ boxId: wordBoxId, wordId });
+      toast.success("Word added to collection.");
+    } catch (error) {
+      toast.error(error instanceof ConvexError ? error.data : "Failed to add word.");
+    }
+  };
 
   return (
-    <div className="relative max-w-2xl mx-auto" ref={searchContainerRef}>
-      {/* Hero Search Section */}
+    <div className={cn("relative", className ?? "max-w-2xl mx-auto")} ref={searchContainerRef}>
       <div>
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold mb-2">Discover German Words</h1>
-          <p className="text-muted-foreground">Search and explore the German language</p>
+          <h1 className="text-3xl font-bold mb-2">
+            {wordBoxId ? "Add words to this collection" : "Discover German Words"}
+          </h1>
+          <p className="text-muted-foreground">
+            {wordBoxId
+              ? "Search your vocabulary database and add words instantly."
+              : "Search and explore the German language"}
+          </p>
         </div>
 
         <div className="relative">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
           <Input
             type="text"
-            placeholder="Search German words..."
+            placeholder={wordBoxId ? "Search words to add..." : "Search German words..."}
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             onFocus={() => setIsDropdownOpen(searchTerm.trim().length > 0)}
@@ -106,6 +132,7 @@ export function WordSearch() {
                       </TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Translation</TableHead>
+                      {wordBoxId && <TableHead></TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -121,6 +148,17 @@ export function WordSearch() {
                           <WordTypeBadge wordType={word.wordType} size="sm" />
                         </TableCell>
                         <TableCell className="text-sm">{word.translations.en || "-"}</TableCell>
+                        {wordBoxId && (
+                          <TableCell className="pr-4 text-right">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => handleAddWord(word._id)}
+                            >
+                              Add
+                            </Button>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>
