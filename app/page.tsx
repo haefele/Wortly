@@ -15,16 +15,12 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader title="Dashboard" description="Search and explore German words" icon={Home} />
-      <main className="flex-1 px-4 md:px-6 pb-12 space-y-12">
+      <main className="flex-1 p-4 md:p-6 space-y-6">
         {/* Search Interface */}
-        <section className="pt-8">
-          <WordSearch />
-        </section>
+        <WordSearch />
 
         {/* Recent Words Section */}
-        <section>
-          <RecentWords onAddToLibrary={handleAddToLibrary} />
-        </section>
+        <RecentWords onAddToLibrary={handleAddToLibrary} />
       </main>
     </>
   );

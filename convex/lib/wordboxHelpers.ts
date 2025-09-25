@@ -1,3 +1,4 @@
+import { ConvexError } from "convex/values";
 import { Doc, Id } from "../_generated/dataModel";
 import { MutationCtx } from "../_generated/server";
 
@@ -32,15 +33,10 @@ export async function addWordToBox(ctx: MutationCtx, box: Doc<"wordBoxes">, word
     .unique();
 
   if (existingAssignment) {
-    return;
+    throw new ConvexError(`The word "${word.word}" is already in your collection "${box.name}".`);
   }
 
-  const searchText = [
-    word.article,
-    word.word,
-    word.translations.en,
-    word.translations.ru,
-  ]
+  const searchText = [word.article, word.word, word.translations.en, word.translations.ru]
     .flatMap(value => (value ? [value.toLowerCase()] : []))
     .join(" ");
 
