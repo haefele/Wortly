@@ -4,8 +4,8 @@ import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Library, Trash2, ArrowLeft, MoreHorizontal, Edit, Search } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
-import { useMutation, usePaginatedQuery } from "convex/react";
-import { useQuery } from "convex-helpers/react";
+import { useMutation } from "convex/react";
+import { usePaginatedQuery, useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
 import { PageHeader } from "@/components/page-header";
 import {
@@ -38,31 +38,24 @@ import {
 } from "@/components/ui/table";
 import { ArticleBadge } from "@/components/ui/article-badge";
 import { WordTypeBadge } from "@/components/ui/word-type-badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { SearchingIndicator } from "@/components/dashboard/searching-indicator";
 
 export default function LibraryBoxDetailPage() {
-  const params = useParams<{ boxId: Id<"wordBoxes"> }>();
-  const router = useRouter();
-
-  const wordBoxResult = useQuery(api.functions.wordBoxes.getWordBox, { boxId: params.boxId });
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const router = useRouter();
+
+  const params = useParams<{ boxId: Id<"wordBoxes"> }>();
+  const wordBoxResult = useQuery(api.functions.wordBoxes.getWordBox, { boxId: params.boxId });
+
   const [searchTerm, setSearchTerm] = useState("");
-
-  const normalizedSearchTerm = searchTerm.trim();
-  const hasActiveSearch = normalizedSearchTerm.length > 0;
-
-  const queryArgs = wordBoxResult.data
-    ? {
-        boxId: params.boxId,
-        searchTerm: hasActiveSearch ? normalizedSearchTerm : undefined,
-      }
-    : "skip";
-
-  const { results, status, isLoading, loadMore } = usePaginatedQuery(
+  const getWordsResult = usePaginatedQuery(
     api.functions.wordBoxes.getWords,
-    queryArgs,
+    {
+      boxId: params.boxId,
+      searchTerm: searchTerm,
+    },
     {
       initialNumItems: 25,
     }
@@ -74,7 +67,6 @@ export default function LibraryBoxDetailPage() {
   );
 
   const removeWord = useMutation(api.functions.wordBoxes.removeWord);
-
   const handleRemove = async (wordId: Id<"words">) => {
     try {
       await removeWord({ boxId: params.boxId, wordId });
@@ -95,7 +87,7 @@ export default function LibraryBoxDetailPage() {
           description="This collection could not be located"
           icon={Library}
         />
-        <main className="flex-1 p-4 md:p-6">
+        <main className="flex-1 p-4 md:p-6 space-y-6">
           <Card className="max-w-xl mx-auto">
             <CardHeader>
               <CardTitle>Collection not found</CardTitle>
@@ -165,8 +157,8 @@ export default function LibraryBoxDetailPage() {
             <div className="space-y-1">
               <CardTitle>Words in this collection</CardTitle>
               <CardDescription>
-                {hasActiveSearch
-                  ? `Showing matches for "${normalizedSearchTerm}".`
+                {searchTerm.trim().length > 0
+                  ? `Showing matches for "${searchTerm}".`
                   : wordBoxResult.data.wordCount === 0
                     ? "This collection has no words yet. Add your first word to get started."
                     : `Manage ${wordBoxResult.data.wordCount} word${wordBoxResult.data.wordCount === 1 ? "" : "s"} in this collection.`}
@@ -184,17 +176,14 @@ export default function LibraryBoxDetailPage() {
               </div>
             </div>
           </CardHeader>
+
           <CardContent className="space-y-4">
-            {isLoading && results.length === 0 ? (
-              <div className="space-y-2">
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <Skeleton key={index} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : results.length === 0 ? (
+            {searchTerm.trim().length > 0 && getWordsResult.isLoading ? (
+              <SearchingIndicator label="Searching words..." className="py-6" size="sm" />
+            ) : getWordsResult.results && getWordsResult.results.length === 0 ? (
               <div className="rounded-lg border border-dashed bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
-                {hasActiveSearch
-                  ? `No matches found for "${normalizedSearchTerm}".`
+                {searchTerm.trim().length > 0
+                  ? `No matches found for "${searchTerm}".`
                   : "This collection does not have any words yet."}
               </div>
             ) : (
@@ -211,7 +200,7 @@ export default function LibraryBoxDetailPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {results.map(word => (
+                    {getWordsResult.results.map(word => (
                       <TableRow key={word._id}>
                         <TableCell>
                           <div className="flex flex-col gap-2">
@@ -248,24 +237,21 @@ export default function LibraryBoxDetailPage() {
                     ))}
                   </TableBody>
                 </Table>
-                {isLoading && results.length > 0 && (
-                  <div className="border-t px-4 py-3">
-                    <Skeleton className="h-10 w-full" />
-                  </div>
-                )}
               </div>
             )}
-            {status === "CanLoadMore" && (
+            {getWordsResult.status === "CanLoadMore" && (
               <div className="flex justify-center">
-                <Button variant="outline" onClick={() => loadMore(25)} disabled={isLoading}>
+                <Button
+                  variant="outline"
+                  onClick={() => getWordsResult.loadMore(25)}
+                  disabled={getWordsResult.isLoading}
+                >
                   Load more
                 </Button>
               </div>
             )}
-            {status === "LoadingMore" && (
-              <div className="flex justify-center text-sm text-muted-foreground">
-                Loading more words...
-              </div>
+            {getWordsResult.status === "LoadingMore" && (
+              <SearchingIndicator label="Loading more words..." />
             )}
           </CardContent>
         </Card>
