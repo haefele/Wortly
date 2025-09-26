@@ -5,6 +5,7 @@ import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { IconOrb } from "@/components/ui/icon-orb";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Sparkles, AlertCircle } from "lucide-react";
 import type { Doc } from "@/convex/_generated/dataModel";
 
@@ -64,15 +65,15 @@ export function AddWordSuggestion({
           <div className="space-y-3 max-w-sm mx-auto">
             <div className="flex items-center justify-center space-x-3 text-sm text-muted-foreground">
               <div className="flex space-x-1">
-                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></div>
-                <div
-                  className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"
+                <Skeleton className="w-1.5 h-1.5 bg-primary rounded-full" />
+                <Skeleton
+                  className="w-1.5 h-1.5 bg-primary rounded-full"
                   style={{ animationDelay: "0.2s" }}
-                ></div>
-                <div
-                  className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"
+                />
+                <Skeleton
+                  className="w-1.5 h-1.5 bg-primary rounded-full"
                   style={{ animationDelay: "0.4s" }}
-                ></div>
+                />
               </div>
               <span>Processing with AI...</span>
             </div>
