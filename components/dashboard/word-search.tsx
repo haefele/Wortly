@@ -5,7 +5,7 @@ import { useQuery } from "convex-helpers/react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SearchingIndicator } from "@/components/dashboard/searching-indicator";
 import {
   Table,
   TableBody,
@@ -115,12 +115,7 @@ export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
       {isDropdownOpen && (
         <div className="absolute left-0 right-0 z-50 border rounded-xl bg-background shadow-2xl mt-4 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
           {searchResult.isPending ? (
-            <div className="text-center text-muted-foreground py-12">
-              <div className="flex items-center justify-center space-x-2">
-                <Skeleton className="w-4 h-4 rounded-full" />
-                <span>Searching...</span>
-              </div>
-            </div>
+            <SearchingIndicator className="py-12" />
           ) : searchResult.isSuccess && searchResult.data.results.length === 0 ? (
             <div className="p-4">
               <AddWordSuggestion
@@ -167,7 +162,7 @@ export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
                           </div>
                         </TableCell>
                         {wordBoxId && (
-                          <TableCell className="p-0 px-2">
+                          <TableCell className="p-0 w-10">
                             <div className="flex justify-center">
                               {word.isInBox ? (
                                 <Tooltip>
