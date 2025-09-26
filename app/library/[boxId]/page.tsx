@@ -174,6 +174,7 @@ export default function LibraryBoxDetailPage() {
                   onChange={event => setSearchTerm(event.target.value)}
                   placeholder="Search by word or translation"
                   className="pl-9"
+                  maxLength={50}
                 />
               </div>
             </div>

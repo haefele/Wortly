@@ -107,6 +107,7 @@ export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
             onChange={e => setSearchTerm(e.target.value)}
             onFocus={() => setIsDropdownOpen(searchTerm.trim().length > 0)}
             className="pl-12 h-14 text-lg rounded-xl"
+            maxLength={50}
           />
         </div>
       </div>
@@ -176,7 +177,7 @@ export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
                               ) : (
                                 <Button
                                   size="icon"
-                                  variant="outline"
+                                  variant="ghost"
                                   disabled={addingWordIds.includes(word._id)}
                                   onClick={() => handleAddWord(word._id)}
                                 >
