@@ -15,7 +15,7 @@ const containerVariants = cva("text-center text-muted-foreground", {
   },
 });
 
-const skeletonVariants = cva("rounded-full", {
+const skeletonVariants = cva("rounded-full bg-primary", {
   variants: {
     size: {
       sm: "h-3 w-3",
