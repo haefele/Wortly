@@ -7,7 +7,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import { usePaginatedQuery, useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
-import { PageHeader } from "@/components/page-header";
+import { PageContainer } from "@/components/page-container";
 import {
   Card,
   CardContent,
@@ -52,10 +52,12 @@ export default function LibraryBoxDetailPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const getWordsResult = usePaginatedQuery(
     api.functions.wordBoxes.getWords,
-    {
-      boxId: params.boxId,
-      searchTerm: searchTerm,
-    },
+    wordBoxResult.data
+      ? {
+          boxId: params.boxId,
+          searchTerm: searchTerm,
+        }
+      : "skip",
     {
       initialNumItems: 25,
     }
@@ -76,40 +78,41 @@ export default function LibraryBoxDetailPage() {
   };
 
   if (wordBoxResult.isPending) {
-    return <PageHeader icon={Library} isLoading={true} />;
+    return (
+      <PageContainer icon={Library} isLoading={true}>
+        <div />
+      </PageContainer>
+    );
   }
 
   if (!wordBoxResult.data) {
     return (
-      <>
-        <PageHeader
-          title="Word Collection"
-          description="This collection could not be located"
-          icon={Library}
-        />
-        <main className="flex-1 p-4 md:p-6 space-y-6">
-          <Card className="max-w-xl mx-auto">
-            <CardHeader>
-              <CardTitle>Collection not found</CardTitle>
-              <CardDescription>
-                This collection may have been deleted or you may not have access to it.
-              </CardDescription>
-            </CardHeader>
-            <CardFooter>
-              <Button variant="ghost" onClick={() => router.push("/library")}>
-                <ArrowLeft />
-                Back to Library
-              </Button>
-            </CardFooter>
-          </Card>
-        </main>
-      </>
+      <PageContainer
+        title="Word Collection"
+        description="This collection could not be located"
+        icon={Library}
+      >
+        <Card className="max-w-xl mx-auto">
+          <CardHeader>
+            <CardTitle>Collection not found</CardTitle>
+            <CardDescription>
+              This collection may have been deleted or you may not have access to it.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button variant="ghost" onClick={() => router.push("/library")}>
+              <ArrowLeft />
+              Back to Library
+            </Button>
+          </CardFooter>
+        </Card>
+      </PageContainer>
     );
   }
 
   return (
     <>
-      <PageHeader
+      <PageContainer
         title={wordBoxResult.data.name}
         description={
           wordBoxResult.data.description?.trim().length
@@ -117,39 +120,38 @@ export default function LibraryBoxDetailPage() {
             : "View and manage words in this collection"
         }
         icon={Library}
+        headerActions={
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <MoreHorizontal />
+                  <span className="sr-only">Collection actions</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem
+                  onSelect={() => {
+                    setEditDialogOpen(true);
+                  }}
+                >
+                  <Edit /> Edit collection
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={() => {
+                    setDeleteDialogOpen(true);
+                  }}
+                >
+                  <Trash2 />
+                  Delete collection
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        }
       >
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
-                <MoreHorizontal />
-                <span className="sr-only">Collection actions</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                onSelect={() => {
-                  setEditDialogOpen(true);
-                }}
-              >
-                <Edit /> Edit collection
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onSelect={() => {
-                  setDeleteDialogOpen(true);
-                }}
-              >
-                <Trash2 />
-                Delete collection
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </PageHeader>
-
-      <main className="flex-1 p-4 md:p-6 space-y-6">
         <WordSearch wordBoxId={params.boxId} />
 
         <Card>
@@ -255,7 +257,7 @@ export default function LibraryBoxDetailPage() {
             )}
           </CardContent>
         </Card>
-      </main>
+      </PageContainer>
 
       <EditWordBoxDialog
         boxId={params.boxId}

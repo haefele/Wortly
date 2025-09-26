@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Library, Plus, FolderOpen, ArrowRight } from "lucide-react";
-import { PageHeader } from "@/components/page-header";
+import { PageContainer } from "@/components/page-container";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,18 +18,17 @@ export default function LibraryPage() {
 
   return (
     <>
-      <PageHeader
+      <PageContainer
         title="Word Library"
         description="Your personal collection of saved words"
         icon={Library}
+        headerActions={
+          <Button onClick={() => setNewWordBoxDialogIsOpen(true)}>
+            <Plus />
+            New Collection
+          </Button>
+        }
       >
-        <Button onClick={() => setNewWordBoxDialogIsOpen(true)}>
-          <Plus />
-          New Collection
-        </Button>
-      </PageHeader>
-
-      <main className="flex-1 p-4 md:p-6 ">
         {wordBoxesResult.isSuccess && wordBoxesResult.data.length === 0 && (
           <Card variant="spotlight">
             <CardContent className="p-12 text-center flex flex-col items-center gap-6">
@@ -93,7 +92,7 @@ export default function LibraryPage() {
             ))}
           </div>
         )}
-      </main>
+      </PageContainer>
 
       <NewWordBoxDialog open={newWordBoxDialogIsOpen} onOpenChange={setNewWordBoxDialogIsOpen} />
     </>

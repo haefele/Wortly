@@ -1,6 +1,6 @@
 "use client";
 
-import { PageHeader } from "@/components/page-header";
+import { PageContainer } from "@/components/page-container";
 import { WordSearch } from "@/components/dashboard/word-search";
 import { RecentWords } from "@/components/dashboard/recent-words";
 import { Home } from "lucide-react";
@@ -13,15 +13,12 @@ export default function DashboardPage() {
   };
 
   return (
-    <>
-      <PageHeader title="Dashboard" description="Search and explore German words" icon={Home} />
-      <main className="flex-1 p-4 md:p-6 space-y-6">
-        {/* Search Interface */}
-        <WordSearch />
+    <PageContainer title="Dashboard" description="Search and explore German words" icon={Home}>
+      {/* Search Interface */}
+      <WordSearch />
 
-        {/* Recent Words Section */}
-        <RecentWords onAddToLibrary={handleAddToLibrary} />
-      </main>
-    </>
+      {/* Recent Words Section */}
+      <RecentWords onAddToLibrary={handleAddToLibrary} />
+    </PageContainer>
   );
 }
