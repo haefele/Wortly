@@ -3,6 +3,7 @@
 import type { Id } from "@/convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 import { api } from "@/convex/_generated/api";
 import {
   Dialog,
@@ -36,7 +37,7 @@ export function DeleteWordBoxDialog({
       toast.success("Collection deleted successfully.");
       onDeleted?.();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete collection.");
+      toast.error(getErrorMessage(error, "Failed to delete collection."));
     }
   };
 

@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { IconOrb } from "@/components/ui/icon-orb";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Sparkles, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 import type { Doc } from "@/convex/_generated/dataModel";
 
 interface AddWordSuggestionProps {
@@ -33,13 +35,18 @@ export function AddWordSuggestion({
 
     setState({ type: "loading" });
 
-    const result = await addNewWord({ word: searchTerm.trim() });
+    try {
+      const result = await addNewWord({ word: searchTerm.trim() });
 
-    if (result.success) {
-      onWordAddedToLibrary?.(result.word);
+      if (result.success) {
+        onWordAddedToLibrary?.(result.word);
+        setState({ type: "notFound" });
+      } else {
+        setState({ type: "suggestions", suggestions: result.suggestions });
+      }
+    } catch (error) {
       setState({ type: "notFound" });
-    } else {
-      setState({ type: "suggestions", suggestions: result.suggestions });
+      toast.error(getErrorMessage(error, "Failed to analyze word. Please try again."));
     }
   };
 
