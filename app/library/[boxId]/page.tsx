@@ -39,6 +39,7 @@ import {
 import { ArticleBadge } from "@/components/ui/article-badge";
 import { WordTypeBadge } from "@/components/ui/word-type-badge";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 import { SearchingIndicator } from "@/components/dashboard/searching-indicator";
 
 export default function LibraryBoxDetailPage() {
@@ -73,7 +74,7 @@ export default function LibraryBoxDetailPage() {
     try {
       await removeWord({ boxId: params.boxId, wordId });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to remove word.");
+      toast.error(getErrorMessage(error, "Failed to remove word."));
     }
   };
 

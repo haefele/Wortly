@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { ConvexError } from "convex/values";
+import { getErrorMessage } from "@/lib/utils";
 
 interface WordSearchProps {
   className?: string;
@@ -74,7 +74,7 @@ export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
       await addWordToBox({ boxId: wordBoxId, wordId });
       toast.success("Word added to collection.");
     } catch (error) {
-      toast.error(error instanceof ConvexError ? error.data : "Failed to add word.");
+      toast.error(getErrorMessage(error, "Failed to add word."));
     } finally {
       setAddingWordIds(prev => {
         const updated = [...prev];
