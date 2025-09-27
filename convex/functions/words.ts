@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { query, internalMutation, action, internalQuery } from "../_generated/server";
 import { internal } from "../_generated/api";
 import { Doc } from "../_generated/dataModel";
+import { ConvexError } from "convex/values";
 import schema from "../schema";
 import { getCurrentUser, throwIfUnauthenticated } from "../lib/authHelpers";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -105,9 +106,11 @@ export const addNewWord = action({
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const { object } = await generateObject({
-      model: openai("gpt-5-mini"),
-      prompt: `You are a German language expert. Analyze the input "${args.word}" and determine if it is a valid German word.
+    let object;
+    try {
+      const result = await generateObject({
+        model: openai("gpt-5-mini"),
+        prompt: `You are a German language expert. Analyze the input "${args.word}" and determine if it is a valid German word.
 
             IMPORTANT VALIDATION RULES:
             1. First, verify if "${args.word}" is a real German word (not a typo, made-up word, or non-German text)
@@ -128,50 +131,54 @@ export const addNewWord = action({
             - 3-5 example sentences in German showing different usage contexts
             
             Return the data in the exact format specified in the schema.`,
-      schema: z.object({
-        isValidWord: z.boolean().describe("Whether the input is a valid German word"),
-        errorMessage: z.string().optional().describe("Explanation if the word is invalid"),
-        suggestions: z
-          .array(z.string())
-          .optional()
-          .describe("Suggested similar German words if the input is invalid"),
-        wordData: z
-          .object({
-            word: z.string().describe("The base form of the German word with correct casing"),
-            translations: z.object({
-              en: z.string().describe("English translation"),
-              ru: z.string().optional().describe("Russian translation"),
-            }),
-            article: z
-              .string()
-              .optional()
-              .describe("Article for nouns (der/die/das) or empty string for other word types"),
-            wordType: z
-              .union([
-                z.literal("Adjektiv"),
-                z.literal("Adverb"),
-                z.literal("Artikel"),
-                z.literal("Eigenname"),
-                z.literal("Interjektion"),
-                z.literal("Konjunktion"),
-                z.literal("Partikel"),
-                z.literal("Präposition"),
-                z.literal("Pronomen"),
-                z.literal("Verb"),
-                z.literal("Substantiv"),
-                z.literal("Zahlwort"),
-              ])
-              .describe("Word type"),
-            exampleSentences: z
-              .array(z.string())
-              .min(3)
-              .max(5)
-              .describe("3-5 example sentences in German"),
-          })
-          .optional()
-          .describe("Word data - only present if isValidWord is true"),
-      }),
-    });
+        schema: z.object({
+          isValidWord: z.boolean().describe("Whether the input is a valid German word"),
+          errorMessage: z.string().optional().describe("Explanation if the word is invalid"),
+          suggestions: z
+            .array(z.string())
+            .optional()
+            .describe("Suggested similar German words if the input is invalid"),
+          wordData: z
+            .object({
+              word: z.string().describe("The base form of the German word with correct casing"),
+              translations: z.object({
+                en: z.string().describe("English translation"),
+                ru: z.string().optional().describe("Russian translation"),
+              }),
+              article: z
+                .string()
+                .optional()
+                .describe("Article for nouns (der/die/das) or empty string for other word types"),
+              wordType: z
+                .union([
+                  z.literal("Adjektiv"),
+                  z.literal("Adverb"),
+                  z.literal("Artikel"),
+                  z.literal("Eigenname"),
+                  z.literal("Interjektion"),
+                  z.literal("Konjunktion"),
+                  z.literal("Partikel"),
+                  z.literal("Präposition"),
+                  z.literal("Pronomen"),
+                  z.literal("Verb"),
+                  z.literal("Substantiv"),
+                  z.literal("Zahlwort"),
+                ])
+                .describe("Word type"),
+              exampleSentences: z
+                .array(z.string())
+                .min(3)
+                .max(5)
+                .describe("3-5 example sentences in German"),
+            })
+            .optional()
+            .describe("Word data - only present if isValidWord is true"),
+        }),
+      });
+      object = result.object;
+    } catch (error) {
+      throw new ConvexError("Failed to analyze word. Please try again.");
+    }
 
     // Check if the word is valid
     if (!object.isValidWord) {

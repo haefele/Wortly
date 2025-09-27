@@ -6,6 +6,8 @@ import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 // Import the words from A1.txt
 const A1_WORDS = [
@@ -742,7 +744,11 @@ export function BulkWordAdder() {
         }
       } catch (error) {
         failedCount++;
-        errors.push(`${word}: ${error instanceof Error ? error.message : "Unknown error"}`);
+        const errorMessage = getErrorMessage(error, "Unknown error");
+        errors.push(`${word}: ${errorMessage}`);
+
+        // Show toast for immediate feedback
+        toast.error(`Failed to analyze "${word}": ${errorMessage}`);
       }
     }
 
