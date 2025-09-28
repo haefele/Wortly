@@ -53,7 +53,13 @@ export default defineSchema({
     words: v.array(
       v.object({
         word: v.string(),
-        status: v.union(v.literal("pending"), v.literal("added"), v.literal("failed")),
+        status: v.union(
+          v.literal("pending"),
+          v.literal("processing"),
+          v.literal("added"),
+          v.literal("failed")
+        ),
+        processingStartedAt: v.optional(v.number()),
         wordId: v.optional(v.id("words")),
         errorMessage: v.optional(v.string()),
       })

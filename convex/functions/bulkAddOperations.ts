@@ -1,6 +1,13 @@
-import { mutation } from "../_generated/server";
+import {
+  internalAction,
+  internalMutation,
+  mutation,
+} from "../_generated/server";
 import { ConvexError, v } from "convex/values";
 import { getCurrentUser } from "../lib/authHelpers";
+import { internal } from "../_generated/api";
+import { addNewWordInternal, AddNewWordResponse } from "./words";
+import { addWordToBox } from "../lib/wordboxHelpers";
 
 export const createBulkAddOperation = mutation({
   args: {
@@ -35,5 +42,114 @@ export const createBulkAddOperation = mutation({
     });
 
     return operationId;
+  },
+});
+
+const MAX_PROCESS_WORD_SCHEDULES = 20;
+const FIVE_MINUTES_IN_MS = 1000 * 60 * 5;
+
+export const processBulkAddOperations = internalMutation({
+  args: {},
+  handler: async (ctx, args) => {
+    const operations = await ctx.db
+      .query("bulkAddOperations")
+      .withIndex("by_status", q => q.eq("status", "pending"))
+      .collect();
+
+    let processedWordSchedules = 0;
+
+    for (const operation of operations) {
+      let startedProcessingWords = false;
+
+      for (const word of operation.words) {
+        if (processedWordSchedules < MAX_PROCESS_WORD_SCHEDULES) {
+          const isPending = word.status === "pending";
+          const isProcessingButExpired =
+            word.status === "processing" &&
+            word.processingStartedAt &&
+            word.processingStartedAt < Date.now() - FIVE_MINUTES_IN_MS;
+
+          if (isPending || isProcessingButExpired) {
+            ctx.scheduler.runAfter(0, internal.functions.bulkAddOperations.processWord, {
+              operationId: operation._id,
+              word: word.word,
+            });
+
+            word.status = "processing";
+            word.processingStartedAt = Date.now();
+            startedProcessingWords = true;
+
+            processedWordSchedules++;
+          }
+        }
+      }
+
+      if (startedProcessingWords) {
+        await ctx.db.patch(operation._id, {
+          words: operation.words,
+        });
+      }
+    }
+  },
+});
+
+export const processWord = internalAction({
+  args: {
+    operationId: v.id("bulkAddOperations"),
+    word: v.string(),
+  },
+  handler: async (ctx, args) => {
+    let result: AddNewWordResponse;
+    try {
+      result = await addNewWordInternal(ctx, args.word);
+    } catch (error) {
+      result = { success: false, suggestions: [] };
+    }
+
+    await ctx.runMutation(internal.functions.bulkAddOperations.processWordFinished, {
+      operationId: args.operationId,
+      word: args.word,
+      wordId: result.success ? result.word?._id : undefined,
+    });
+  },
+});
+
+export const processWordFinished = internalMutation({
+  args: {
+    operationId: v.id("bulkAddOperations"),
+    word: v.string(),
+    wordId: v.optional(v.id("words")),
+  },
+  handler: async (ctx, args) => {
+    const operation = await ctx.db.get(args.operationId);
+    if (!operation) {
+      throw new Error("Operation not found");
+    }
+    const word = operation.words.find(w => w.word === args.word);
+    if (!word) {
+      throw new Error("Word not found");
+    }
+    const wordBox = await ctx.db.get(operation.boxId);
+    if (!wordBox) {
+      throw new Error("Word box not found");
+    }
+
+    if (args.wordId) {
+      word.status = "added";
+      word.wordId = args.wordId;
+
+      const wordDoc = await ctx.db.get(args.wordId);
+      if (!wordDoc) {
+        throw new Error("Word not found");
+      }
+
+      await addWordToBox(ctx, wordBox, wordDoc);
+    } else {
+      word.status = "failed";
+    }
+
+    await ctx.db.patch(args.operationId, {
+      words: operation.words,
+    });
   },
 });

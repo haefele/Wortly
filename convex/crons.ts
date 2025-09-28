@@ -1,8 +1,13 @@
 import { cronJobs } from "convex/server";
+import { internal } from "./_generated/api";
 
 const crons = cronJobs();
 
 // Process bulk add operations every minute
-// TODO: Add a cron job to process bulk add operations
+crons.interval(
+  "processBulkAddOperations",
+  { seconds: 15 },
+  internal.functions.bulkAddOperations.processBulkAddOperations
+);
 
 export default crons;
