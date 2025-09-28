@@ -64,7 +64,7 @@ export default defineSchema({
         errorMessage: v.optional(v.string()),
       })
     ),
-    status: v.union(v.literal("pending"), v.literal("completed"), v.literal("failed")),
+    status: v.union(v.literal("pending"), v.literal("completed")),
     createdAt: v.number(),
     completedAt: v.optional(v.number()),
   })
