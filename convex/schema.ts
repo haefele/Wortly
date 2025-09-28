@@ -46,4 +46,22 @@ export default defineSchema({
       searchField: "searchText",
       filterFields: ["boxId"],
     }),
+
+  bulkAddOperations: defineTable({
+    userId: v.id("users"),
+    boxId: v.id("wordBoxes"),
+    words: v.array(
+      v.object({
+        word: v.string(),
+        status: v.union(v.literal("pending"), v.literal("added"), v.literal("failed")),
+        wordId: v.optional(v.id("words")),
+        errorMessage: v.optional(v.string()),
+      })
+    ),
+    status: v.union(v.literal("pending"), v.literal("completed"), v.literal("failed")),
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_status", ["status"]),
 });
