@@ -53,7 +53,7 @@ export function AddWordSuggestion({
   switch (state.type) {
     case "loading":
       return (
-        <div className="text-center md:py-8 space-y-6">
+        <div className="text-center py-4 md:py-8 space-y-6">
           <IconOrb
             tone="blue"
             size="lg"
@@ -93,7 +93,7 @@ export function AddWordSuggestion({
 
     case "suggestions":
       return (
-        <div className="text-center md:py-8 space-y-6">
+        <div className="text-center py-4 md:py-8 space-y-6">
           <IconOrb tone="yellow" size="lg" className="mx-auto" icon={AlertCircle} />
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-foreground">
@@ -126,7 +126,7 @@ export function AddWordSuggestion({
     case "notFound":
     default:
       return (
-        <div className="text-center md:py-8 space-y-6">
+        <div className="text-center py-4 md:py-8 space-y-6">
           <IconOrb tone="purple" size="lg" className="mx-auto" icon={Sparkles} />
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-foreground">
