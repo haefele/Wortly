@@ -11,6 +11,7 @@ import {
   Search,
   Loader2,
   ChevronDown,
+  Plus,
 } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useMutation } from "convex/react";
@@ -36,6 +37,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EditWordBoxDialog } from "@/components/library/edit-wordbox-dialog";
 import { DeleteWordBoxDialog } from "@/components/library/delete-wordbox-dialog";
+import { BulkAddWordsDialog } from "@/components/library/bulk-add-words-dialog";
 import { WordSearch } from "@/components/dashboard/word-search";
 import { Input } from "@/components/ui/input";
 import {
@@ -58,6 +60,7 @@ export default function LibraryBoxDetailPage() {
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [bulkAddDialogOpen, setBulkAddDialogOpen] = useState(false);
 
   const params = useParams<{ boxId: Id<"wordBoxes"> }>();
   const wordBoxResult = useQuery(api.functions.wordBoxes.getWordBox, { boxId: params.boxId });
@@ -151,6 +154,13 @@ export default function LibraryBoxDetailPage() {
                 }}
               >
                 <Edit /> Edit collection
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => {
+                  setBulkAddDialogOpen(true);
+                }}
+              >
+                <Plus /> Add many words
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -279,6 +289,12 @@ export default function LibraryBoxDetailPage() {
         boxId={params.boxId}
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
+      />
+
+      <BulkAddWordsDialog
+        boxId={params.boxId}
+        open={bulkAddDialogOpen}
+        onOpenChange={setBulkAddDialogOpen}
       />
 
       <DeleteWordBoxDialog
