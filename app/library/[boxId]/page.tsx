@@ -1,8 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Library, Trash2, ArrowLeft, MoreHorizontal, Edit, Search } from "lucide-react";
+import {
+  Library,
+  Trash2,
+  ArrowLeft,
+  MoreHorizontal,
+  Edit,
+  Search,
+  Loader2,
+  ChevronDown,
+} from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import { usePaginatedQuery, useQuery } from "convex-helpers/react";
@@ -10,6 +19,7 @@ import { api } from "@/convex/_generated/api";
 import { PageContainer } from "@/components/page-container";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -41,11 +51,13 @@ import { WordTypeBadge } from "@/components/ui/word-type-badge";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
 import { SearchingIndicator } from "@/components/dashboard/searching-indicator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function LibraryBoxDetailPage() {
+  const router = useRouter();
+
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const router = useRouter();
 
   const params = useParams<{ boxId: Id<"wordBoxes"> }>();
   const wordBoxResult = useQuery(api.functions.wordBoxes.getWordBox, { boxId: params.boxId });
@@ -64,17 +76,21 @@ export default function LibraryBoxDetailPage() {
     }
   );
 
-  const addedAtFormatter = useMemo(
-    () => new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }),
-    []
-  );
-
+  const [removingWordIds, setRemovingWordIds] = useState<string[]>([]);
   const removeWord = useMutation(api.functions.wordBoxes.removeWord);
   const handleRemove = async (wordId: Id<"words">) => {
     try {
+      setRemovingWordIds(prev => [...prev, wordId]);
       await removeWord({ boxId: params.boxId, wordId });
+      toast.success("Word removed from collection.");
     } catch (error) {
       toast.error(getErrorMessage(error, "Failed to remove word."));
+    } finally {
+      setRemovingWordIds(prev => {
+        const updated = [...prev];
+        updated.splice(updated.indexOf(wordId), 1);
+        return updated;
+      });
     }
   };
 
@@ -89,8 +105,8 @@ export default function LibraryBoxDetailPage() {
   if (!wordBoxResult.data) {
     return (
       <PageContainer
-        title="Word Collection"
-        description="This collection could not be located"
+        title="Collection"
+        description="This collection could not be located."
         icon={Library}
       >
         <Card className="max-w-xl mx-auto">
@@ -101,9 +117,9 @@ export default function LibraryBoxDetailPage() {
             </CardDescription>
           </CardHeader>
           <CardFooter>
-            <Button variant="ghost" onClick={() => router.push("/library")}>
+            <Button onClick={() => router.push("/library")}>
               <ArrowLeft />
-              Back to Library
+              Back to Word Library
             </Button>
           </CardFooter>
         </Card>
@@ -122,52 +138,47 @@ export default function LibraryBoxDetailPage() {
         }
         icon={Library}
         headerActions={
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <MoreHorizontal />
-                  <span className="sr-only">Collection actions</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onSelect={() => {
-                    setEditDialogOpen(true);
-                  }}
-                >
-                  <Edit /> Edit collection
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  variant="destructive"
-                  onSelect={() => {
-                    setDeleteDialogOpen(true);
-                  }}
-                >
-                  <Trash2 />
-                  Delete collection
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem
+                onSelect={() => {
+                  setEditDialogOpen(true);
+                }}
+              >
+                <Edit /> Edit collection
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={() => {
+                  setDeleteDialogOpen(true);
+                }}
+              >
+                <Trash2 />
+                Delete collection
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         }
       >
         <WordSearch wordBoxId={params.boxId} />
 
         <Card>
-          <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-1">
-              <CardTitle>Words in this collection</CardTitle>
-              <CardDescription>
-                {searchTerm.trim().length > 0
-                  ? `Showing matches for "${searchTerm}".`
-                  : wordBoxResult.data.wordCount === 0
-                    ? "This collection has no words yet. Add your first word to get started."
-                    : `Manage ${wordBoxResult.data.wordCount} word${wordBoxResult.data.wordCount === 1 ? "" : "s"} in this collection.`}
-              </CardDescription>
-            </div>
-            <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
+          <CardHeader>
+            <CardTitle>Words in this collection</CardTitle>
+            <CardDescription>
+              {searchTerm.trim().length > 0
+                ? `Showing matches for "${searchTerm}".`
+                : wordBoxResult.data.wordCount === 0
+                  ? "This collection has no words yet. Add your first word to get started."
+                  : `Manage ${wordBoxResult.data.wordCount} word${wordBoxResult.data.wordCount === 1 ? "" : "s"} in this collection.`}
+            </CardDescription>
+            <CardAction>
               <div className="relative md:w-64">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -178,12 +189,14 @@ export default function LibraryBoxDetailPage() {
                   maxLength={50}
                 />
               </div>
-            </div>
+            </CardAction>
           </CardHeader>
 
-          <CardContent className="space-y-4">
-            {searchTerm.trim().length > 0 && getWordsResult.isLoading ? (
+          <CardContent className="space-y-6">
+            {searchTerm.trim().length > 0 && getWordsResult.status === "LoadingFirstPage" ? (
               <SearchingIndicator label="Searching words..." className="py-6" size="sm" />
+            ) : getWordsResult.status === "LoadingFirstPage" ? (
+              <SearchingIndicator label="Loading words..." className="py-6" size="sm" />
             ) : getWordsResult.results && getWordsResult.results.length === 0 ? (
               <div className="rounded-lg border border-dashed bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
                 {searchTerm.trim().length > 0
@@ -195,47 +208,46 @@ export default function LibraryBoxDetailPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Word</TableHead>
-                      <TableHead>Translations</TableHead>
-                      <TableHead className="hidden text-right text-sm text-muted-foreground sm:table-cell">
-                        Added
-                      </TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>German Word</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Translation</TableHead>
+                      <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {getWordsResult.results.map(word => (
                       <TableRow key={word._id}>
                         <TableCell>
-                          <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-2">
-                              <ArticleBadge article={word.article} size="sm" />
-                              <span className="font-medium">{word.word}</span>
-                            </div>
-                            <WordTypeBadge wordType={word.wordType} size="sm" />
+                          <div className="flex items-center gap-2">
+                            <ArticleBadge article={word.article} size="sm" />
+                            <span className="font-semibold">{word.word}</span>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex flex-col text-sm">
-                            <span>{word.translations.en ?? "-"}</span>
-                            {word.translations.ru && (
-                              <span className="text-muted-foreground">{word.translations.ru}</span>
-                            )}
+                          <WordTypeBadge wordType={word.wordType} size="sm" />
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          <div className="max-w-[16rem] truncate">
+                            {word.translations.en || "-"}
                           </div>
                         </TableCell>
-                        <TableCell className="hidden text-right text-sm text-muted-foreground sm:table-cell">
-                          {addedAtFormatter.format(new Date(word.addedAt))}
-                        </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="gap-2"
-                            onClick={() => handleRemove(word._id)}
-                          >
-                            <Trash2 />
-                            Remove
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                disabled={removingWordIds.includes(word._id)}
+                                onClick={() => handleRemove(word._id)}
+                              >
+                                {removingWordIds.includes(word._id) ? (
+                                  <Loader2 className="animate-spin" />
+                                ) : (
+                                  <Trash2 />
+                                )}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Remove word from collection.</TooltipContent>
+                          </Tooltip>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -247,15 +259,17 @@ export default function LibraryBoxDetailPage() {
               <div className="flex justify-center">
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => getWordsResult.loadMore(25)}
                   disabled={getWordsResult.isLoading}
                 >
-                  Load more
+                  <ChevronDown />
+                  Load more words
                 </Button>
               </div>
             )}
             {getWordsResult.status === "LoadingMore" && (
-              <SearchingIndicator label="Loading more words..." />
+              <SearchingIndicator size="sm" className="py-2" label="Loading more words..." />
             )}
           </CardContent>
         </Card>
