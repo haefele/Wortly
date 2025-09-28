@@ -127,11 +127,11 @@ export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
             </div>
           ) : (
             searchResult.isSuccess && (
-              <div>
+              <>
                 <Table containerClassName="max-h-[30vh] overflow-y-auto">
-                  <TableHeader className="[&_tr]:border-b-0 [&_th]:shadow-[inset_0_-1px_0_0_theme(colors.border)]">
-                    <TableRow className="sticky top-0 z-10 bg-background hover:bg-background">
-                      <TableHead className="pl-4">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>
                         <div className="flex items-center justify-between">
                           <span>German Word</span>
                           <span className="text-xs font-normal text-muted-foreground ml-2">
@@ -147,8 +147,8 @@ export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
                   </TableHeader>
                   <TableBody>
                     {searchResult.data.results.map(word => (
-                      <TableRow key={word._id} className="hover:bg-muted/50">
-                        <TableCell className="pl-4">
+                      <TableRow key={word._id}>
+                        <TableCell>
                           <div className="flex items-center gap-2">
                             <ArticleBadge article={word.article} size="sm" />
                             <span className="font-semibold">{word.word}</span>
@@ -198,7 +198,7 @@ export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
 
                 {/* Show AddWordSuggestion if there are results but no exact match */}
                 {!searchResult.data.hasExactMatch && (
-                  <div className="border-t p-4">
+                  <div className="border-t">
                     <AddWordSuggestion
                       searchTerm={searchTerm}
                       onWordAddedToLibrary={w => setSearchTerm(w.word)}
@@ -206,7 +206,7 @@ export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
                     />
                   </div>
                 )}
-              </div>
+              </>
             )
           )}
         </div>
