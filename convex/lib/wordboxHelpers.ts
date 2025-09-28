@@ -2,30 +2,6 @@ import { ConvexError } from "convex/values";
 import { Doc, Id } from "../_generated/dataModel";
 import { MutationCtx } from "../_generated/server";
 
-export async function getOrCreateDefaultBox(ctx: MutationCtx, userId: Id<"users">) {
-  const defaultBox = await ctx.db
-    .query("wordBoxes")
-    .withIndex("by_userId_and_name", q => q.eq("userId", userId).eq("name", "Alle"))
-    .unique();
-
-  if (defaultBox) {
-    return defaultBox;
-  }
-
-  const id = await ctx.db.insert("wordBoxes", {
-    name: "Alle",
-    userId: userId,
-    wordCount: 0,
-  });
-
-  const createdBox = await ctx.db.get(id);
-  if (!createdBox) {
-    throw new Error("Failed to create default box");
-  }
-
-  return createdBox;
-}
-
 export async function addWordToBox(ctx: MutationCtx, box: Doc<"wordBoxes">, word: Doc<"words">) {
   const existingAssignment = await ctx.db
     .query("wordBoxAssignments")
