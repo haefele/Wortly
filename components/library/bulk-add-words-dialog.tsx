@@ -25,16 +25,15 @@ interface BulkAddWordsDialogProps {
 }
 
 export function BulkAddWordsDialog({ boxId, open, onOpenChange }: BulkAddWordsDialogProps) {
-  
   const [wordsInput, setWordsInput] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);  
+  const [isSubmitting, setIsSubmitting] = useState(false);
   useEffect(() => {
     if (!open) {
       setWordsInput("");
       setIsSubmitting(false);
     }
   }, [open]);
-  
+
   const createBulkAddOperation = useMutation(
     api.functions.bulkAddOperations.createBulkAddOperation
   );
@@ -59,7 +58,9 @@ export function BulkAddWordsDialog({ boxId, open, onOpenChange }: BulkAddWordsDi
     try {
       setIsSubmitting(true);
       await createBulkAddOperation({ boxId, words });
-      toast.success(`Started adding ${words.length} word${words.length === 1 ? "" : "s"}. This might take a few minutes.`);
+      toast.success(
+        `Started adding ${words.length} word${words.length === 1 ? "" : "s"}. This might take a few minutes.`
+      );
       onOpenChange(false);
     } catch (error) {
       toast.error(getErrorMessage(error, "Failed to add words."));
@@ -104,5 +105,3 @@ export function BulkAddWordsDialog({ boxId, open, onOpenChange }: BulkAddWordsDi
     </Dialog>
   );
 }
-
-

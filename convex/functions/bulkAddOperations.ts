@@ -1,8 +1,4 @@
-import {
-  internalAction,
-  internalMutation,
-  mutation,
-} from "../_generated/server";
+import { internalAction, internalMutation, mutation } from "../_generated/server";
 import { ConvexError, v } from "convex/values";
 import { getCurrentUser } from "../lib/authHelpers";
 import { internal } from "../_generated/api";
@@ -147,7 +143,7 @@ export const processWordFinished = internalMutation({
 
         await addWordToBox(ctx, wordBox, wordDoc);
       } else {
-          word.status = "failed";
+        word.status = "failed";
       }
     }
 
