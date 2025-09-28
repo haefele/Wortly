@@ -45,8 +45,8 @@ export const createBulkAddOperation = mutation({
   },
 });
 
-const MAX_PROCESS_WORD_SCHEDULES = 20;
-const FIVE_MINUTES_IN_MS = 1000 * 60 * 5;
+const MAX_PROCESS_WORD_SCHEDULES = 25;
+const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
 
 export const processBulkAddOperations = internalMutation({
   args: {},
@@ -125,8 +125,8 @@ export const processWordFinished = internalMutation({
     if (!operation) {
       throw new Error("Operation not found");
     }
-    const word = operation.words.find(w => w.word === args.word);
-    if (!word) {
+    const words = operation.words.filter(w => w.word === args.word);
+    if (!words) {
       throw new Error("Word not found");
     }
     const wordBox = await ctx.db.get(operation.boxId);
@@ -134,22 +134,33 @@ export const processWordFinished = internalMutation({
       throw new Error("Word box not found");
     }
 
-    if (args.wordId) {
-      word.status = "added";
-      word.wordId = args.wordId;
+    // Update the word status
+    for (const word of words) {
+      if (args.wordId) {
+        word.status = "added";
+        word.wordId = args.wordId;
 
-      const wordDoc = await ctx.db.get(args.wordId);
-      if (!wordDoc) {
-        throw new Error("Word not found");
+        const wordDoc = await ctx.db.get(args.wordId);
+        if (!wordDoc) {
+          throw new Error("Word not found");
+        }
+
+        await addWordToBox(ctx, wordBox, wordDoc);
+      } else {
+          word.status = "failed";
       }
-
-      await addWordToBox(ctx, wordBox, wordDoc);
-    } else {
-      word.status = "failed";
     }
 
     await ctx.db.patch(args.operationId, {
       words: operation.words,
     });
+
+    // Update the operation status
+    if (operation.words.every(w => w.status === "added" || w.status === "failed")) {
+      await ctx.db.patch(args.operationId, {
+        status: "completed",
+        completedAt: Date.now(),
+      });
+    }
   },
 });
