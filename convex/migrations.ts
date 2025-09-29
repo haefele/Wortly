@@ -18,4 +18,7 @@ export const updateWordTypeInAssignments = migrations.define({
     return { wordType: word.wordType };
   },
 });
-export const runUpdateWordTypeInAssignments = migrations.runner(internal.migrations.updateWordTypeInAssignments);
+
+export const runUpdateWordTypeInAssignments = migrations.runner(
+  internal.migrations.updateWordTypeInAssignments
+);
