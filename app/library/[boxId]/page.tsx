@@ -12,6 +12,7 @@ import {
   Loader2,
   ChevronDown,
   Plus,
+  ListFilter,
 } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useMutation } from "convex/react";
@@ -33,6 +34,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EditWordBoxDialog } from "@/components/library/edit-wordbox-dialog";
@@ -54,6 +57,7 @@ import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
 import { SearchingIndicator } from "@/components/dashboard/searching-indicator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { WORD_TYPES } from "@/lib/word-types";
 
 export default function LibraryBoxDetailPage() {
   const router = useRouter();
@@ -66,12 +70,14 @@ export default function LibraryBoxDetailPage() {
   const wordBoxResult = useQuery(api.functions.wordBoxes.getWordBox, { boxId: params.boxId });
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [wordTypeFilter, setWordTypeFilter] = useState<string | undefined>();
   const getWordsResult = usePaginatedQuery(
     api.functions.wordBoxes.getWords,
     wordBoxResult.data
       ? {
           boxId: params.boxId,
           searchTerm: searchTerm,
+          wordType: wordTypeFilter,
         }
       : "skip",
     {
@@ -207,21 +213,42 @@ export default function LibraryBoxDetailPage() {
               <SearchingIndicator label="Searching words..." className="py-6" size="sm" />
             ) : getWordsResult.status === "LoadingFirstPage" ? (
               <SearchingIndicator label="Loading words..." className="py-6" size="sm" />
-            ) : getWordsResult.results && getWordsResult.results.length === 0 ? (
-              <div className="rounded-lg border border-dashed bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
-                {searchTerm.trim().length > 0
-                  ? `No matches found for "${searchTerm}".`
-                  : "This collection does not have any words yet."}
-              </div>
             ) : (
               <div className="overflow-hidden rounded-lg border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>German Word</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Translation</TableHead>
-                      <TableHead></TableHead>
+                      <TableHead className="w-3/12">German Word</TableHead>
+                      <TableHead className="w-2/12">
+                        <div className="flex items-center gap-2">
+                          <span>Type</span>
+                          {wordTypeFilter ? <>({wordTypeFilter})</> : null}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" aria-label="Filter by type">
+                                <ListFilter />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" className="w-48">
+                              <DropdownMenuRadioGroup
+                                value={wordTypeFilter || "all"}
+                                onValueChange={value =>
+                                  setWordTypeFilter(value === "all" ? "" : value)
+                                }
+                              >
+                                <DropdownMenuRadioItem value="all">All types</DropdownMenuRadioItem>
+                                {WORD_TYPES.map(type => (
+                                  <DropdownMenuRadioItem key={type} value={type}>
+                                    {type}
+                                  </DropdownMenuRadioItem>
+                                ))}
+                              </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableHead>
+                      <TableHead className="w-6/12">Translation</TableHead>
+                      <TableHead className="w-1/12"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -236,11 +263,7 @@ export default function LibraryBoxDetailPage() {
                         <TableCell>
                           <WordTypeBadge wordType={word.wordType} size="sm" />
                         </TableCell>
-                        <TableCell className="text-sm">
-                          <div className="max-w-[16rem] truncate">
-                            {word.translations.en || "-"}
-                          </div>
-                        </TableCell>
+                        <TableCell className="text-sm">{word.translations.en || "-"}</TableCell>
                         <TableCell className="text-right">
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -261,10 +284,29 @@ export default function LibraryBoxDetailPage() {
                         </TableCell>
                       </TableRow>
                     ))}
+
+                    {/* Show no results message if there are no results */}
+                    {getWordsResult.results.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={4}>
+                          <div className="rounded-lg border border-dashed bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
+                            {searchTerm.trim().length > 0 && wordTypeFilter
+                              ? `No matches found for "${searchTerm}" and type "${wordTypeFilter}".`
+                              : searchTerm.trim().length > 0
+                                ? `No matches found for "${searchTerm}".`
+                                : wordTypeFilter
+                                  ? `No matches found for type "${wordTypeFilter}".`
+                                  : "This collection does not have any words yet."}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>
             )}
+
+            {/* Show load more button if there are more words to load */}
             {getWordsResult.status === "CanLoadMore" && (
               <div className="flex justify-center">
                 <Button
