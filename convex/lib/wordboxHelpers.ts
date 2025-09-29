@@ -11,19 +11,23 @@ export async function addWordToBox(ctx: MutationCtx, box: Doc<"wordBoxes">, word
     return;
   }
 
-  const searchText = [word.article, word.word, word.translations.en, word.translations.ru]
-    .flatMap(value => (value ? [value.toLowerCase()] : []))
-    .join(" ");
+  const searchText = getSearchText(word);
 
   await ctx.db.insert("wordBoxAssignments", {
     wordId: word._id,
     boxId: box._id,
     addedAt: Date.now(),
-    searchText: searchText.length ? searchText : undefined,
+    searchText: searchText,
     wordType: word.wordType,
   });
 
   await ctx.db.patch(box._id, {
     wordCount: box.wordCount + 1,
   });
+}
+
+export function getSearchText(word: Doc<"words">) {
+  return [word.article, word.word, word.translations.en, word.translations.ru, word.wordType]
+    .flatMap(value => (value ? [value.toLowerCase()] : []))
+    .join(" ");
 }
