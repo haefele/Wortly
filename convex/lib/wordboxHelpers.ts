@@ -20,6 +20,7 @@ export async function addWordToBox(ctx: MutationCtx, box: Doc<"wordBoxes">, word
     boxId: box._id,
     addedAt: Date.now(),
     searchText: searchText.length ? searchText : undefined,
+    wordType: word.wordType,
   });
 
   await ctx.db.patch(box._id, {

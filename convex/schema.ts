@@ -20,6 +20,7 @@ export default defineSchema({
     exampleSentences: v.array(v.string()),
   })
     .index("by_word", ["word"])
+    .index("by_wordType", ["wordType"])
     .searchIndex("search_word", {
       searchField: "word",
     }),
@@ -38,13 +39,15 @@ export default defineSchema({
     boxId: v.id("wordBoxes"),
     addedAt: v.number(),
     searchText: v.optional(v.string()),
+    wordType: v.optional(v.string()),
   })
     .index("by_boxId", ["boxId"])
     .index("by_wordId", ["wordId"])
     .index("by_boxId_and_wordId", ["boxId", "wordId"])
+    .index("by_boxId_and_wordType", ["boxId", "wordType"])
     .searchIndex("search_by_box", {
       searchField: "searchText",
-      filterFields: ["boxId"],
+      filterFields: ["boxId", "wordType"],
     }),
 
   bulkAddOperations: defineTable({

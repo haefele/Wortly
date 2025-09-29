@@ -23,6 +23,7 @@ export const getWords = query({
     boxId: v.id("wordBoxes"),
     paginationOpts: paginationOptsValidator,
     searchTerm: v.optional(v.string()),
+    wordType: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
@@ -33,19 +34,37 @@ export const getWords = query({
     }
 
     const trimmedSearchTerm = args.searchTerm?.trim();
+    const trimmedWordType = args.wordType?.trim();
 
-    const assignmentResults = trimmedSearchTerm?.length
-      ? await ctx.db
-          .query("wordBoxAssignments")
-          .withSearchIndex("search_by_box", q =>
-            q.search("searchText", trimmedSearchTerm.toLowerCase()).eq("boxId", args.boxId)
-          )
-          .paginate(args.paginationOpts)
-      : await ctx.db
-          .query("wordBoxAssignments")
-          .withIndex("by_boxId", q => q.eq("boxId", args.boxId))
-          .order("desc")
-          .paginate(args.paginationOpts);
+    const assignmentResults =
+      trimmedSearchTerm?.length && trimmedWordType?.length
+        ? await ctx.db
+            .query("wordBoxAssignments")
+            .withSearchIndex("search_by_box", q =>
+              q
+                .search("searchText", trimmedSearchTerm.toLowerCase())
+                .eq("boxId", args.boxId)
+                .eq("wordType", trimmedWordType)
+            )
+            .paginate(args.paginationOpts)
+        : trimmedSearchTerm?.length
+          ? await ctx.db
+              .query("wordBoxAssignments")
+              .withSearchIndex("search_by_box", q =>
+                q.search("searchText", trimmedSearchTerm.toLowerCase()).eq("boxId", args.boxId)
+              )
+              .paginate(args.paginationOpts)
+          : trimmedWordType?.length
+            ? await ctx.db
+                .query("wordBoxAssignments")
+                .withIndex("by_boxId_and_wordType", q =>
+                  q.eq("boxId", args.boxId).eq("wordType", trimmedWordType)
+                )
+                .paginate(args.paginationOpts)
+            : await ctx.db
+                .query("wordBoxAssignments")
+                .withIndex("by_boxId", q => q.eq("boxId", args.boxId))
+                .paginate(args.paginationOpts);
 
     const wordsWithDetails = [];
     for (const assignment of assignmentResults.page) {
