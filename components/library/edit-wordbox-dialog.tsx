@@ -44,8 +44,8 @@ interface EditWordBoxDialogProps {
 }
 
 export function EditWordBoxDialog({ boxId, open, onOpenChange }: EditWordBoxDialogProps) {
-  const updateBox = useMutation(api.functions.wordBoxes.updateWordBox);
-  const boxResult = useQuery(api.functions.wordBoxes.getWordBox, { boxId });
+  const updateBox = useMutation(api.wordBoxes.updateWordBox);
+  const boxResult = useQuery(api.wordBoxes.getWordBox, { boxId });
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),

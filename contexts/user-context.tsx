@@ -25,8 +25,8 @@ export function UserProvider({ children }: UserProviderProps) {
 
   // When this state is set we know the server has stored the user.
   const [userId, setUserId] = useState<Id<"users"> | null>(null);
-  const storeUser = useMutation(api.functions.users.store);
-  const meResult = useQuery(api.functions.users.getMe);
+  const storeUser = useMutation(api.users.store);
+  const meResult = useQuery(api.users.getMe);
 
   useEffect(() => {
     if (!isAuthenticated) {

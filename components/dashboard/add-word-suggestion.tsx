@@ -28,7 +28,7 @@ export function AddWordSuggestion({
   onSuggestionSelected,
 }: AddWordSuggestionProps) {
   const [state, setState] = useState<ComponentState>({ type: "notFound" });
-  const addNewWord = useAction(api.functions.words.addNewWord);
+  const addNewWord = useAction(api.words.addNewWord);
 
   const handleAddNewWord = async () => {
     if (!searchTerm.trim() || state.type === "loading") return;

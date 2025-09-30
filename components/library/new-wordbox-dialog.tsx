@@ -43,7 +43,7 @@ interface NewWordBoxDialogProps {
 }
 
 export function NewWordBoxDialog({ open, onOpenChange, onCreated }: NewWordBoxDialogProps) {
-  const createWordBox = useMutation(api.functions.wordBoxes.createWordBox);
+  const createWordBox = useMutation(api.wordBoxes.createWordBox);
   const router = useRouter();
 
   const form = useForm<FormSchemaType>({

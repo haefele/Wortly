@@ -1,7 +1,7 @@
 import { Migrations } from "@convex-dev/migrations";
 import { DataModel } from "./_generated/dataModel";
 import { components, internal } from "./_generated/api";
-import { getSearchText } from "./lib/wordboxHelpers";
+import { getSearchText } from "./wordBoxes";
 
 export const migrations = new Migrations<DataModel>(components.migrations);
 

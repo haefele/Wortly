@@ -11,7 +11,7 @@ interface RecentWordsProps {
 }
 
 export function RecentWords({ onAddToLibrary }: RecentWordsProps) {
-  const recentWordsResult = useQuery(api.functions.words.getRecentWords);
+  const recentWordsResult = useQuery(api.words.getRecentWords);
 
   if (recentWordsResult.isPending) {
     return (

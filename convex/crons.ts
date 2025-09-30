@@ -7,7 +7,7 @@ const crons = cronJobs();
 crons.interval(
   "processBulkAddOperations",
   { seconds: 15 },
-  internal.functions.bulkAddOperations.processBulkAddOperations
+  internal.bulkAddOperations.processBulkAddOperations
 );
 
 export default crons;
