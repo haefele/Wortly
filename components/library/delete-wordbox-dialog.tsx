@@ -28,7 +28,7 @@ export function DeleteWordBoxDialog({
   onOpenChange,
   onDeleted,
 }: DeleteWordBoxDialogProps) {
-  const deleteWordBox = useMutation(api.functions.wordBoxes.deleteWordBox);
+  const deleteWordBox = useMutation(api.wordBoxes.deleteWordBox);
 
   const handleDelete = async () => {
     try {

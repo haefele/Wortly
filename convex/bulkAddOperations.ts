@@ -1,9 +1,9 @@
-import { internalAction, internalMutation, mutation } from "../_generated/server";
+import { internalAction, internalMutation, mutation } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
-import { getCurrentUser } from "../lib/authHelpers";
-import { internal } from "../_generated/api";
+import { getCurrentUser } from "./users";
+import { internal } from "./_generated/api";
 import { addNewWordInternal, AddNewWordResponse } from "./words";
-import { addWordToBox } from "../lib/wordboxHelpers";
+import { addWordToBox } from "./wordBoxes";
 
 export const createBulkAddOperation = mutation({
   args: {
@@ -66,7 +66,7 @@ export const processBulkAddOperations = internalMutation({
             word.processingStartedAt < Date.now() - FIVE_MINUTES_IN_MS;
 
           if (isPending || isProcessingButExpired) {
-            ctx.scheduler.runAfter(0, internal.functions.bulkAddOperations.processWord, {
+            ctx.scheduler.runAfter(0, internal.bulkAddOperations.processWord, {
               operationId: operation._id,
               word: word.word,
             });
@@ -102,7 +102,7 @@ export const processWord = internalAction({
       result = { success: false, suggestions: [] };
     }
 
-    await ctx.runMutation(internal.functions.bulkAddOperations.processWordFinished, {
+    await ctx.runMutation(internal.bulkAddOperations.processWordFinished, {
       operationId: args.operationId,
       word: args.word,
       wordId: result.success ? result.word?._id : undefined,

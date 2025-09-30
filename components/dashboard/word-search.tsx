@@ -33,7 +33,7 @@ interface WordSearchProps {
 export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
   const [searchTerm, setSearchTerm] = useState("");
   const searchResult = useQuery(
-    api.functions.words.searchWord,
+    api.words.searchWord,
     searchTerm.trim().length > 0
       ? {
           term: searchTerm,
@@ -63,7 +63,7 @@ export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
   }, []);
 
   const [addingWordIds, setAddingWordIds] = useState<string[]>([]);
-  const addWordToBox = useMutation(api.functions.wordBoxes.addWord);
+  const addWordToBox = useMutation(api.wordBoxes.addWord);
   const handleAddWord = async (wordId: Id<"words">) => {
     if (!wordBoxId) {
       return;

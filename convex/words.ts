@@ -1,10 +1,10 @@
 import { v } from "convex/values";
-import { query, internalMutation, action, internalQuery, ActionCtx } from "../_generated/server";
-import { internal } from "../_generated/api";
-import { Doc } from "../_generated/dataModel";
+import { query, internalMutation, action, internalQuery, ActionCtx } from "./_generated/server";
+import { internal } from "./_generated/api";
+import { Doc } from "./_generated/dataModel";
 import { ConvexError } from "convex/values";
-import schema from "../schema";
-import { getCurrentUser, throwIfUnauthenticated } from "../lib/authHelpers";
+import schema from "./schema";
+import { getCurrentUser, throwIfUnauthenticated } from "./users";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import z from "zod";
@@ -100,7 +100,7 @@ export async function addNewWordInternal(
   word: string
 ): Promise<AddNewWordResponse> {
   // Check if word already exists
-  const existingWord = await ctx.runQuery(internal.functions.words.getExistingWord, {
+  const existingWord = await ctx.runQuery(internal.words.getExistingWord, {
     word: word,
   });
 
@@ -207,7 +207,7 @@ export async function addNewWordInternal(
   };
 
   // Insert the word into the database
-  const insertedWord = await ctx.runMutation(internal.functions.words.insertWord, {
+  const insertedWord = await ctx.runMutation(internal.words.insertWord, {
     word: wordData,
   });
 

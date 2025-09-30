@@ -67,12 +67,12 @@ export default function LibraryBoxDetailPage() {
   const [bulkAddDialogOpen, setBulkAddDialogOpen] = useState(false);
 
   const params = useParams<{ boxId: Id<"wordBoxes"> }>();
-  const wordBoxResult = useQuery(api.functions.wordBoxes.getWordBox, { boxId: params.boxId });
+  const wordBoxResult = useQuery(api.wordBoxes.getWordBox, { boxId: params.boxId });
 
   const [searchTerm, setSearchTerm] = useState("");
   const [wordTypeFilter, setWordTypeFilter] = useState<string | undefined>();
   const getWordsResult = usePaginatedQuery(
-    api.functions.wordBoxes.getWords,
+    api.wordBoxes.getWords,
     wordBoxResult.data
       ? {
           boxId: params.boxId,
@@ -86,7 +86,7 @@ export default function LibraryBoxDetailPage() {
   );
 
   const [removingWordIds, setRemovingWordIds] = useState<string[]>([]);
-  const removeWord = useMutation(api.functions.wordBoxes.removeWord);
+  const removeWord = useMutation(api.wordBoxes.removeWord);
   const handleRemove = async (wordId: Id<"words">) => {
     try {
       setRemovingWordIds(prev => [...prev, wordId]);

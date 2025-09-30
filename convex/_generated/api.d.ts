@@ -8,14 +8,12 @@
  * @module
  */
 
+import type * as bulkAddOperations from "../bulkAddOperations.js";
 import type * as crons from "../crons.js";
-import type * as functions_bulkAddOperations from "../functions/bulkAddOperations.js";
-import type * as functions_users from "../functions/users.js";
-import type * as functions_wordBoxes from "../functions/wordBoxes.js";
-import type * as functions_words from "../functions/words.js";
-import type * as lib_authHelpers from "../lib/authHelpers.js";
-import type * as lib_wordboxHelpers from "../lib/wordboxHelpers.js";
 import type * as migrations from "../migrations.js";
+import type * as users from "../users.js";
+import type * as wordBoxes from "../wordBoxes.js";
+import type * as words from "../words.js";
 
 import type {
   ApiFromModules,
@@ -32,14 +30,12 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  bulkAddOperations: typeof bulkAddOperations;
   crons: typeof crons;
-  "functions/bulkAddOperations": typeof functions_bulkAddOperations;
-  "functions/users": typeof functions_users;
-  "functions/wordBoxes": typeof functions_wordBoxes;
-  "functions/words": typeof functions_words;
-  "lib/authHelpers": typeof lib_authHelpers;
-  "lib/wordboxHelpers": typeof lib_wordboxHelpers;
   migrations: typeof migrations;
+  users: typeof users;
+  wordBoxes: typeof wordBoxes;
+  words: typeof words;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 

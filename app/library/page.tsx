@@ -14,7 +14,7 @@ import { IconOrb } from "@/components/ui/icon-orb";
 
 export default function LibraryPage() {
   const [newWordBoxDialogIsOpen, setNewWordBoxDialogIsOpen] = useState(false);
-  const wordBoxesResult = useQuery(api.functions.wordBoxes.getMyWordBoxes, {});
+  const wordBoxesResult = useQuery(api.wordBoxes.getMyWordBoxes, {});
 
   return (
     <>
