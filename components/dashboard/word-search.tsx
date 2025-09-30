@@ -28,9 +28,10 @@ import { getErrorMessage } from "@/lib/utils";
 interface WordSearchProps {
   className?: string;
   wordBoxId?: Id<"wordBoxes">;
+  showCaption?: boolean;
 }
 
-export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
+export function WordSearch({ className, wordBoxId, showCaption = true }: WordSearchProps = {}) {
   const [searchTerm, setSearchTerm] = useState("");
   const searchResult = useQuery(
     api.words.searchWord,
@@ -87,16 +88,18 @@ export function WordSearch({ className, wordBoxId }: WordSearchProps = {}) {
   return (
     <div className={cn("relative", className ?? "max-w-2xl mx-auto")} ref={searchContainerRef}>
       <div>
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold mb-2">
-            {wordBoxId ? "Add words to this collection" : "Discover German Words"}
-          </h1>
-          <p className="text-muted-foreground">
-            {wordBoxId
-              ? "Search your vocabulary database and add words instantly."
-              : "Search and explore the German language"}
-          </p>
-        </div>
+        {showCaption && (
+          <div className="mb-6 text-center">
+            <h1 className="mb-2 text-3xl font-bold">
+              {wordBoxId ? "Add words to this collection" : "Discover German Words"}
+            </h1>
+            <p className="text-muted-foreground">
+              {wordBoxId
+                ? "Search your vocabulary database and add words instantly."
+                : "Search and explore the German language"}
+            </p>
+          </div>
+        )}
 
         <div className="relative">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
