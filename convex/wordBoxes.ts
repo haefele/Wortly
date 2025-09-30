@@ -118,6 +118,7 @@ export const createWordBox = mutation({
       name,
       userId: user._id,
       wordCount: 0,
+      sentenceCount: 0,
       description: args.description,
     });
 
@@ -177,6 +178,15 @@ export const deleteWordBox = mutation({
 
     for (const assignment of assignments) {
       await ctx.db.delete(assignment._id);
+    }
+
+    const sentences = await ctx.db
+      .query("wordBoxSentences")
+      .withIndex("by_boxId_addedAt", q => q.eq("boxId", box._id))
+      .collect();
+
+    for (const sentence of sentences) {
+      await ctx.db.delete(sentence._id);
     }
 
     await ctx.db.delete(box._id);
@@ -276,3 +286,111 @@ export function getSearchText(word: Doc<"words">) {
     .flatMap(value => (value ? [value.toLowerCase()] : []))
     .join(" ");
 }
+
+export const getSentences = query({
+  args: {
+    boxId: v.id("wordBoxes"),
+    paginationOpts: paginationOptsValidator,
+    searchTerm: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+
+    const box = await ctx.db.get(args.boxId);
+    if (!box || box.userId !== user._id) {
+      throw new Error("Word box not found");
+    }
+
+    const trimmedSearchTerm = args.searchTerm?.trim().toLowerCase();
+
+    const results =
+      trimmedSearchTerm && trimmedSearchTerm.length > 0
+        ? await ctx.db
+            .query("wordBoxSentences")
+            .withSearchIndex("search_by_box", q =>
+              q.search("searchText", trimmedSearchTerm).eq("boxId", args.boxId)
+            )
+            .paginate(args.paginationOpts)
+        : await ctx.db
+            .query("wordBoxSentences")
+            .withIndex("by_boxId_addedAt", q => q.eq("boxId", args.boxId))
+            .order("desc")
+            .paginate(args.paginationOpts);
+
+    return results;
+  },
+});
+
+export const addSentence = mutation({
+  args: {
+    boxId: v.id("wordBoxes"),
+    sentence: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+
+    const box = await ctx.db.get(args.boxId);
+    if (!box || box.userId !== user._id) {
+      throw new Error("Word box not found");
+    }
+
+    const sentence = args.sentence.trim();
+    if (sentence.length === 0) {
+      throw new Error("Sentence is required");
+    }
+
+    const searchText = sentence.toLowerCase();
+
+    const id = await ctx.db.insert("wordBoxSentences", {
+      boxId: args.boxId,
+      userId: user._id,
+      sentence,
+      addedAt: Date.now(),
+      searchText,
+    });
+
+    await ctx.db.patch(box._id, {
+      sentenceCount: (box.sentenceCount ?? 0) + 1,
+    });
+
+    const created = await ctx.db.get(id);
+    if (!created) {
+      throw new Error("Failed to add sentence");
+    }
+
+    return created;
+  },
+});
+
+export const removeSentence = mutation({
+  args: {
+    sentenceId: v.id("wordBoxSentences"),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+
+    const sentence = await ctx.db.get(args.sentenceId);
+    if (!sentence) {
+      return null;
+    }
+
+    const box = await ctx.db.get(sentence.boxId);
+    if (!box || box.userId !== user._id) {
+      throw new Error("Word box not found");
+    }
+
+    await ctx.db.delete(sentence._id);
+
+    if (box.sentenceCount && box.sentenceCount > 0) {
+      await ctx.db.patch(box._id, {
+        sentenceCount: Math.max(0, box.sentenceCount - 1),
+      });
+    } else {
+      await ctx.db.patch(box._id, {
+        sentenceCount: 0,
+      });
+    }
+
+    return null;
+  },
+});
