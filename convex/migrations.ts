@@ -39,3 +39,19 @@ export const updateSearchTextInAssignments = migrations.define({
 export const runUpdateSearchTextInAssignments = migrations.runner(
   internal.migrations.updateSearchTextInAssignments
 );
+
+export const backfillSentenceCounts = migrations.define({
+  table: "wordBoxes",
+  migrateOne: async (ctx, row) => {
+    const count = await ctx.db
+      .query("wordBoxSentences")
+      .withIndex("by_boxId_addedAt", q => q.eq("boxId", row._id))
+      .collect();
+
+    return { sentenceCount: count.length };
+  },
+});
+
+export const runBackfillSentenceCounts = migrations.runner(
+  internal.migrations.backfillSentenceCounts
+);

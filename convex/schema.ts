@@ -29,6 +29,7 @@ export default defineSchema({
     name: v.string(),
     userId: v.id("users"),
     wordCount: v.number(),
+    sentenceCount: v.optional(v.number()),
     description: v.optional(v.string()),
   })
     .index("by_userId", ["userId"])
@@ -48,6 +49,20 @@ export default defineSchema({
     .searchIndex("search_by_box", {
       searchField: "searchText",
       filterFields: ["boxId", "wordType"],
+    }),
+
+  wordBoxSentences: defineTable({
+    boxId: v.id("wordBoxes"),
+    userId: v.id("users"),
+    sentence: v.string(),
+    addedAt: v.number(),
+    searchText: v.string(),
+  })
+    .index("by_boxId_addedAt", ["boxId", "addedAt"])
+    .index("by_userId", ["userId"])
+    .searchIndex("search_by_box", {
+      searchField: "searchText",
+      filterFields: ["boxId"],
     }),
 
   bulkAddOperations: defineTable({
