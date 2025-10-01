@@ -117,10 +117,10 @@ export default function LibraryBoxDetailPage() {
             <TabsTrigger value="words">Words</TabsTrigger>
             <TabsTrigger value="sentences">Sentences</TabsTrigger>
           </TabsList>
-          <TabsContent value="words" className="mt-8" forceMount>
+          <TabsContent value="words" className="mt-4" forceMount>
             <WordsTabContent boxId={params.boxId} />
           </TabsContent>
-          <TabsContent value="sentences" className="mt-8" forceMount>
+          <TabsContent value="sentences" className="mt-4" forceMount>
             <SentencesTabContent boxId={params.boxId} />
           </TabsContent>
         </Tabs>

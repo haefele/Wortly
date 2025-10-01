@@ -34,9 +34,7 @@ export function BulkAddWordsDialog({ boxId, open, onOpenChange }: BulkAddWordsDi
     }
   }, [open]);
 
-  const createBulkAddOperation = useMutation(
-    api.bulkAddOperations.createBulkAddOperation
-  );
+  const createBulkAddOperation = useMutation(api.bulkAddOperations.createBulkAddOperation);
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 

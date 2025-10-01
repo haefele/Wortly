@@ -79,15 +79,18 @@ export function WordsTabContent({ boxId }: WordsTabContentProps) {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <h2 className="mb-2 text-3xl font-bold">Add words to this collection</h2>
-        <p className="text-muted-foreground">
-          Search your vocabulary database and add words instantly.
-        </p>
-      </div>
-
-      <WordSearch wordBoxId={boxId} showCaption={false} />
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">Curate this collection</CardTitle>
+          <CardDescription>
+            Search your vocabulary database and add words without leaving this tab.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <WordSearch wordBoxId={boxId} placeholder="Search words to add..." size="md" />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

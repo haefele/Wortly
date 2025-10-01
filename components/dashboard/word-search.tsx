@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { cva } from "class-variance-authority";
 import { useQuery } from "convex-helpers/react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -28,10 +29,55 @@ import { getErrorMessage } from "@/lib/utils";
 interface WordSearchProps {
   className?: string;
   wordBoxId?: Id<"wordBoxes">;
-  showCaption?: boolean;
+  placeholder?: string;
+  size?: "md" | "lg";
 }
 
-export function WordSearch({ className, wordBoxId, showCaption = true }: WordSearchProps = {}) {
+const inputVariants = cva("w-full", {
+  variants: {
+    size: {
+      md: "pl-9 text-base",
+      lg: "pl-12 h-14 text-lg rounded-xl",
+    },
+  },
+  defaultVariants: {
+    size: "md",
+  },
+});
+
+const iconVariants = cva("absolute top-1/2 transform -translate-y-1/2 text-muted-foreground z-10", {
+  variants: {
+    size: {
+      md: "left-3 w-4 h-4",
+      lg: "left-4 w-5 h-5",
+    },
+  },
+  defaultVariants: {
+    size: "md",
+  },
+});
+
+const dropdownVariants = cva(
+  "absolute left-0 right-0 z-50 border rounded-xl bg-background shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300",
+  {
+    variants: {
+      size: {
+        md: "mt-3",
+        lg: "mt-4",
+      },
+    },
+    defaultVariants: {
+      size: "md",
+    },
+  }
+);
+
+export function WordSearch({
+  className,
+  wordBoxId,
+  placeholder,
+  size = "md",
+}: WordSearchProps = {}) {
   const [searchTerm, setSearchTerm] = useState("");
   const searchResult = useQuery(
     api.words.searchWord,
@@ -86,38 +132,23 @@ export function WordSearch({ className, wordBoxId, showCaption = true }: WordSea
   };
 
   return (
-    <div className={cn("relative", className ?? "max-w-2xl mx-auto")} ref={searchContainerRef}>
-      <div>
-        {showCaption && (
-          <div className="mb-6 text-center">
-            <h1 className="mb-2 text-3xl font-bold">
-              {wordBoxId ? "Add words to this collection" : "Discover German Words"}
-            </h1>
-            <p className="text-muted-foreground">
-              {wordBoxId
-                ? "Search your vocabulary database and add words instantly."
-                : "Search and explore the German language"}
-            </p>
-          </div>
-        )}
-
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
-          <Input
-            type="text"
-            placeholder={wordBoxId ? "Search words to add..." : "Search German words..."}
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            onFocus={() => setIsDropdownOpen(searchTerm.trim().length > 0)}
-            className="pl-12 h-14 text-lg rounded-xl"
-            maxLength={50}
-          />
-        </div>
+    <div className={cn("relative", className)} ref={searchContainerRef}>
+      <div className="relative">
+        <Search className={iconVariants({ size: size })} />
+        <Input
+          type="text"
+          placeholder={placeholder ?? "Search German words..."}
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          onFocus={() => setIsDropdownOpen(searchTerm.trim().length > 0)}
+          className={inputVariants({ size: size })}
+          maxLength={50}
+        />
       </div>
 
       {/* Search Results Dropdown */}
       {isDropdownOpen && (
-        <div className="absolute left-0 right-0 z-50 border rounded-xl bg-background shadow-2xl mt-4 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className={dropdownVariants({ size: size })}>
           {searchResult.isPending ? (
             <SearchingIndicator className="py-12" />
           ) : searchResult.isSuccess && searchResult.data.results.length === 0 ? (
