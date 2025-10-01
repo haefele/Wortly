@@ -163,7 +163,11 @@ export function WordsTabContent({ boxId }: WordsTabContentProps) {
                 : "Manage words in this collection."}
           </CardDescription>
           <CardAction className="self-center flex items-center">
-            <Badge variant="secondary" className="font-normal">
+            <Badge
+              key={wordCount}
+              variant="secondary"
+              className="animate-badge-pop"
+            >
               {wordCount} {wordCount === 1 ? 'word' : 'words'}
             </Badge>
           </CardAction>
