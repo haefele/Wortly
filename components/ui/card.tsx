@@ -13,6 +13,8 @@ const cardVariants = cva(
           "group/card relative overflow-hidden transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md",
         spotlight:
           "relative overflow-hidden bg-background/90 supports-[backdrop-filter]:backdrop-blur-xl before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-gradient-to-br before:from-primary/12 before:via-transparent before:to-transparent before:content-['']",
+        toolbar:
+          "py-3 px-3 sm:px-4 gap-4 md:gap-6 md:flex-row md:items-center bg-background/50 backdrop-blur-md [&[data-slot=card-content]]:px-0",
       },
     },
     defaultVariants: {

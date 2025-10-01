@@ -6,15 +6,9 @@ import { useMutation } from "convex/react";
 import type { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
 import { WordSearch } from "@/components/dashboard/word-search";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardAction } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -38,13 +32,17 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
 import { WORD_TYPES } from "@/lib/word-types";
-import { ChevronDown, ListFilter, Loader2, Search, Trash2 } from "lucide-react";
+import { ChevronDown, Filter, Loader2, Plus, Trash2, Search, X } from "lucide-react";
+import { BulkAddWordsDialog } from "@/components/library/bulk-add-words-dialog";
+import { useEffect, useRef } from "react";
 
 interface WordsTabContentProps {
   boxId: Id<"wordBoxes">;
 }
 
 export function WordsTabContent({ boxId }: WordsTabContentProps) {
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [wordTypeFilter, setWordTypeFilter] = useState<string | undefined>();
 
@@ -78,20 +76,82 @@ export function WordsTabContent({ boxId }: WordsTabContentProps) {
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Curate this collection</CardTitle>
-          <CardDescription>
-            Search your vocabulary database and add words without leaving this tab.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <WordSearch wordBoxId={boxId} placeholder="Search words to add..." size="md" />
-        </CardContent>
-      </Card>
+  // focus shortcut for search '/'
+  const searchWrapperRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === '/' && (e.target instanceof HTMLElement) && !e.target.closest('input, textarea')) {
+        e.preventDefault();
+        const input = searchWrapperRef.current?.querySelector('input');
+        if (input) {
+          (input as HTMLInputElement).focus();
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
+  return (
+    <div className="space-y-5">
+      {/* Sticky toolbar */}
+      <div className="sticky top-0 z-20 -mx-1 sm:mx-0">
+        <Card variant="toolbar">
+          {/* Left cluster: filters */}
+          <div className="flex flex-wrap items-center gap-3 md:flex-1">
+            <div className="relative w-full sm:w-56">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Filter collection"
+                className="pl-9 pr-8"
+                maxLength={50}
+                aria-label="Filter words in this collection"
+              />
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="field" className="gap-1">
+                  <Filter /> {wordTypeFilter ? wordTypeFilter : 'Type'}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuRadioGroup
+                  value={wordTypeFilter || 'all'}
+                  onValueChange={value => setWordTypeFilter(value === 'all' ? undefined : value)}
+                >
+                  <DropdownMenuRadioItem value="all">All types</DropdownMenuRadioItem>
+                  {WORD_TYPES.map(type => (
+                    <DropdownMenuRadioItem key={type} value={type}>
+                      {type}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          {/* Right cluster: add search & actions */}
+          <div className="flex flex-wrap items-center gap-3 md:justify-end md:flex-1">
+            <div ref={searchWrapperRef} className="w-full sm:w-72">
+              <WordSearch
+                wordBoxId={boxId}
+                placeholder="Add words to this collection…"
+                size="md"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="field"
+              onClick={() => setBulkAddOpen(true)}
+            >
+              <Plus /> Add many
+            </Button>
+          </div>
+        </Card>
+      </div>
+
+      {/* Table & list card */}
       <Card>
         <CardHeader>
           <CardTitle>Words in this collection</CardTitle>
@@ -100,22 +160,14 @@ export function WordsTabContent({ boxId }: WordsTabContentProps) {
               ? `Showing matches for "${searchTerm}".`
               : wordCount === 0
                 ? "This collection has no words yet. Add your first word to get started."
-                : `Manage ${wordCount} word${wordCount === 1 ? "" : "s"} in this collection.`}
+                : "Manage words in this collection."}
           </CardDescription>
-          <CardAction>
-            <div className="relative md:w-64">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={searchTerm}
-                onChange={event => setSearchTerm(event.target.value)}
-                placeholder="Search words"
-                className="pl-9"
-                maxLength={50}
-              />
-            </div>
+          <CardAction className="self-center flex items-center">
+            <Badge variant="secondary" className="font-normal">
+              {wordCount} {wordCount === 1 ? 'word' : 'words'}
+            </Badge>
           </CardAction>
         </CardHeader>
-
         <CardContent className="space-y-6">
           {searchTerm.trim().length > 0 && getWordsResult.status === "LoadingFirstPage" ? (
             <SearchingIndicator label="Searching words..." className="py-6" size="sm" />
@@ -131,28 +183,6 @@ export function WordsTabContent({ boxId }: WordsTabContentProps) {
                       <div className="flex items-center gap-2">
                         <span>Type</span>
                         {wordTypeFilter ? <>({wordTypeFilter})</> : null}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" aria-label="Filter by type">
-                              <ListFilter />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start" className="w-48">
-                            <DropdownMenuRadioGroup
-                              value={wordTypeFilter || "all"}
-                              onValueChange={value =>
-                                setWordTypeFilter(value === "all" ? undefined : value)
-                              }
-                            >
-                              <DropdownMenuRadioItem value="all">All types</DropdownMenuRadioItem>
-                              {WORD_TYPES.map(type => (
-                                <DropdownMenuRadioItem key={type} value={type}>
-                                  {type}
-                                </DropdownMenuRadioItem>
-                              ))}
-                            </DropdownMenuRadioGroup>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
                       </div>
                     </TableHead>
                     <TableHead className="w-6/12">Translation</TableHead>
@@ -231,6 +261,8 @@ export function WordsTabContent({ boxId }: WordsTabContentProps) {
           )}
         </CardContent>
       </Card>
+
+      <BulkAddWordsDialog boxId={boxId} open={bulkAddOpen} onOpenChange={setBulkAddOpen} />
     </div>
   );
 }
