@@ -34,14 +34,14 @@ wortly/
 ├── components/         # React components
 │   ├── ui/                 # shadcn/ui components
 │   └── ...                 # Custom components
+├── contexts/           # Custom react contexts
 ├── convex/             # Backend (Convex)
 │   ├── functions/          # API functions
 │   ├── lib/                # Helper functions
 │   ├── schema.ts           # Database schema
 │   └── auth.config.ts      # Authentication config
 ├── hooks/              # Custom React hooks
-├── lib/                # Utility functions
-└── .claude/            # AI assistant plans and docs
+└── lib/                # Utility functions
 ```
 
 ## 🎯 Core Functionality
