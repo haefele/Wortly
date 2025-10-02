@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -92,39 +92,48 @@ export function SentencesTabContent({ boxId }: SentencesTabContentProps) {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <h2 className="mb-2 text-3xl font-bold">Add sentences to this collection</h2>
-        <p className="text-muted-foreground">
-          Capture custom phrases or examples tailored to your learning.
-        </p>
-      </div>
-
-      <form
-        onSubmit={handleAddSentence}
-        className="space-y-3 rounded-lg border border-dashed bg-muted/20 p-4"
-      >
-        <div className="flex flex-col gap-3">
-          <Textarea
-            value={newSentence}
-            onChange={event => setNewSentence(event.target.value)}
-            placeholder="Type your German sentence"
-            className="min-h-24"
-            maxLength={280}
-            disabled={addingSentence}
-            required
-          />
-          <div className="flex items-center justify-end gap-2">
-            <Button type="submit" disabled={addingSentence}>
-              {addingSentence ? <Loader2 className="animate-spin" /> : <Plus />}
-              {addingSentence ? "Adding" : "Add sentence"}
-            </Button>
+    <div className="space-y-5">
+      <div className="sticky top-0 z-20 -mx-1 sm:mx-0">
+        <Card variant="toolbar">
+          <div className="flex flex-wrap items-center gap-3 md:flex-1">
+            <div className="relative w-full sm:w-56">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={sentenceSearchTerm}
+                onChange={event => setSentenceSearchTerm(event.target.value)}
+                placeholder="Filter sentences"
+                className="pl-9"
+                maxLength={200}
+                aria-label="Filter sentences in this collection"
+              />
+            </div>
           </div>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Sentences help you capture custom phrases or examples tailored to your learning.
-        </p>
-      </form>
+
+          <form onSubmit={handleAddSentence} className="flex w-full md:flex-1">
+            <div className="relative w-full md:flex-1">
+              <Input
+                value={newSentence}
+                onChange={event => setNewSentence(event.target.value)}
+                placeholder="Add a German sentence"
+                className="pr-12"
+                maxLength={280}
+                disabled={addingSentence}
+                required
+              />
+              <Button
+                type="submit"
+                variant="ghost"
+                size="icon"
+                disabled={addingSentence}
+                className="absolute right-1 top-1/2 -translate-y-1/2"
+              >
+                {addingSentence ? <Loader2 className="animate-spin" /> : <Plus />}
+                <span className="sr-only">Add sentence</span>
+              </Button>
+            </div>
+          </form>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader>
@@ -134,19 +143,12 @@ export function SentencesTabContent({ boxId }: SentencesTabContentProps) {
               ? `Showing matches for "${sentenceSearchTerm}".`
               : !sentenceCount
                 ? "This collection has no sentences yet. Add your first sentence to get started."
-                : `Manage ${sentenceCount} sentence${sentenceCount === 1 ? "" : "s"} in this collection.`}
+                : "Manage sentences in this collection."}
           </CardDescription>
-          <CardAction>
-            <div className="relative md:w-64">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={sentenceSearchTerm}
-                onChange={event => setSentenceSearchTerm(event.target.value)}
-                placeholder="Search sentences"
-                className="pl-9"
-                maxLength={200}
-              />
-            </div>
+          <CardAction className="self-center">
+            <Badge key={sentenceCount} variant="secondary" className="animate-badge-pop">
+              {sentenceCount} {sentenceCount === 1 ? "sentence" : "sentences"}
+            </Badge>
           </CardAction>
         </CardHeader>
 
@@ -169,12 +171,9 @@ export function SentencesTabContent({ boxId }: SentencesTabContentProps) {
                   {getSentencesResult.results.map(sentence => (
                     <TableRow key={sentence._id}>
                       <TableCell>
-                        <div className="flex items-start gap-3">
-                          <Quote className="mt-1 h-4 w-4 text-muted-foreground" />
-                          <p className="max-w-2xl whitespace-pre-wrap text-sm leading-relaxed">
-                            {sentence.sentence}
-                          </p>
-                        </div>
+                        <span>
+                          {sentence.sentence}
+                        </span>
                       </TableCell>
                       <TableCell className="text-right">
                         <Tooltip>
