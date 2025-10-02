@@ -58,7 +58,7 @@ const iconVariants = cva("absolute top-1/2 transform -translate-y-1/2 text-muted
 });
 
 const dropdownVariants = cva(
-  "absolute left-0 right-0 z-50 border rounded-xl bg-background shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300",
+  "absolute left-1/2 z-50 border rounded-xl bg-background shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300 min-w-full min-w-[400px] max-w-[600px] -translate-x-1/2",
   {
     variants: {
       size: {

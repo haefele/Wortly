@@ -123,7 +123,6 @@ export default function LibraryBoxDetailPage() {
         onOpenChange={setEditDialogOpen}
       />
 
-
       <DeleteWordBoxDialog
         boxId={params.boxId}
         open={deleteDialogOpen}
