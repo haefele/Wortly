@@ -28,7 +28,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { SearchingIndicator } from "@/components/dashboard/searching-indicator";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
-import { ChevronDown, Loader2, Plus, Quote, Search, Trash2 } from "lucide-react";
+import { ChevronDown, Loader2, Plus, Search, Trash2 } from "lucide-react";
 
 interface SentencesTabContentProps {
   boxId: Id<"wordBoxes">;
@@ -171,9 +171,7 @@ export function SentencesTabContent({ boxId }: SentencesTabContentProps) {
                   {getSentencesResult.results.map(sentence => (
                     <TableRow key={sentence._id}>
                       <TableCell>
-                        <span>
-                          {sentence.sentence}
-                        </span>
+                        <span>{sentence.sentence}</span>
                       </TableCell>
                       <TableCell className="text-right">
                         <Tooltip>

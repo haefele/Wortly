@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Library, Trash2, ArrowLeft, MoreHorizontal, Edit, Plus } from "lucide-react";
+import { Library, Trash2, ArrowLeft, MoreHorizontal, Edit } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
