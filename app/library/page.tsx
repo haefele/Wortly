@@ -64,32 +64,42 @@ export default function LibraryPage() {
 
         {wordBoxesResult.isSuccess && wordBoxesResult.data.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {wordBoxesResult.data.map(box => (
-              <Link key={box._id} href={`/library/${box._id}`}>
-                <Card variant="clickable">
-                  <CardHeader className="flex items-center gap-2">
-                    <Library className="h-5 w-5 text-primary" />
-                    <CardTitle>{box.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-muted-foreground text-sm line-clamp-1">
-                      {box.description && box.description.trim().length > 0
-                        ? box.description
-                        : "Organize and review your saved words."}
-                    </div>
-                  </CardContent>
-                  <CardFooter className="justify-between">
-                    <Badge variant="secondary">
-                      {box.wordCount} word{box.wordCount === 1 ? "" : "s"}
-                    </Badge>
-                    <span className="text-muted-foreground flex items-center text-xs transition-transform duration-200 group-hover/card:translate-x-1">
-                      Open
-                      <ArrowRight className="h-3.5 w-3.5 ml-1" />
-                    </span>
-                  </CardFooter>
-                </Card>
-              </Link>
-            ))}
+            {wordBoxesResult.data.map(box => {
+              const wordCount = box.wordCount;
+              const sentenceCount = box.sentenceCount ?? 0;
+
+              return (
+                <Link key={box._id} href={`/library/${box._id}`}>
+                  <Card variant="clickable">
+                    <CardHeader className="flex items-center gap-2">
+                      <Library className="h-5 w-5 text-primary" />
+                      <CardTitle>{box.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-muted-foreground text-sm line-clamp-1">
+                        {box.description && box.description.trim().length > 0
+                          ? box.description
+                          : "Organize and review your saved words."}
+                      </div>
+                    </CardContent>
+                    <CardFooter className="justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">
+                          {wordCount} word{wordCount === 1 ? "" : "s"}
+                        </Badge>
+                        <Badge variant="secondary">
+                          {sentenceCount} sentence{sentenceCount === 1 ? "" : "s"}
+                        </Badge>
+                      </div>
+                      <span className="text-muted-foreground flex items-center text-xs transition-transform duration-200 group-hover/card:translate-x-1">
+                        Open
+                        <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                      </span>
+                    </CardFooter>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         )}
       </PageContainer>
