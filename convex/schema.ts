@@ -88,4 +88,28 @@ export default defineSchema({
   })
     .index("by_userId", ["userId"])
     .index("by_status", ["status"]),
+
+  practiceSessions: defineTable({
+    userId: v.id("users"),
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+    name: v.string(),
+
+    mode: v.literal("multiple_choice"),
+
+    multipleChoice: v.object({
+      wordBoxId: v.id("wordBoxes"),
+      questions: v.array(
+        v.object({
+          wordId: v.id("words"),
+          otherWordIds: v.array(v.id("words")),
+
+          selectedWordId: v.optional(v.id("words")),
+          answeredAt: v.optional(v.number()),
+        })
+      ),
+      currentQuestionIndex: v.optional(v.number()),
+    }),
+  })
+    .index("by_userId_and_createdAt", ["userId", "createdAt"]),
 });
