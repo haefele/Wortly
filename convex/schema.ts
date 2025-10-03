@@ -110,6 +110,5 @@ export default defineSchema({
       ),
       currentQuestionIndex: v.optional(v.number()),
     }),
-  })
-    .index("by_userId_and_createdAt", ["userId", "createdAt"]),
+  }).index("by_userId_and_createdAt", ["userId", "createdAt"]),
 });
