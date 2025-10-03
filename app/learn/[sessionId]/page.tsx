@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "convex-helpers/react";
 import { useMutation } from "convex/react";
 import { toast } from "sonner";
@@ -33,12 +33,6 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, getErrorMessage } from "@/lib/utils";
-
-interface PracticeSessionPageProps {
-  params: {
-    sessionId: string;
-  };
-}
 
 type MultipleChoiceInProgress = {
   completed: false;
@@ -112,7 +106,8 @@ type UseQueryResult<T> =
       isSuccess: false;
     };
 
-export default function PracticeSessionPage({ params }: PracticeSessionPageProps) {
+export default function PracticeSessionPage() {
+  const params = useParams<{ sessionId: string }>();
   const sessionId = params.sessionId as Id<"practiceSessions">;
 
   const sessionStatus = useQuery(api.practiceSessions.getMultipleChoiceStatus, {
