@@ -115,6 +115,9 @@ async function getMultipleChoiceInProgressStatus(
     .map(f => ({ wordId: f._id, text: getPreferredTranslation(f) }));
   shuffleInPlace(options);
 
+  const selectedWordId = currentQuestion.selectedWordId ?? null;
+  const correctWordId = selectedWordId ? currentQuestion.wordId : null;
+
   return {
     completed: false as const,
     _id: session._id,
@@ -128,6 +131,8 @@ async function getMultipleChoiceInProgressStatus(
       currentQuestion: {
         word: word?.word,
         options: options,
+        selectedWordId,
+        correctWordId,
       },
     },
   };
