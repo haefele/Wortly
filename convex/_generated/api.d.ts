@@ -11,6 +11,7 @@
 import type * as bulkAddOperations from "../bulkAddOperations.js";
 import type * as crons from "../crons.js";
 import type * as migrations from "../migrations.js";
+import type * as practiceSessions from "../practiceSessions.js";
 import type * as users from "../users.js";
 import type * as wordBoxes from "../wordBoxes.js";
 import type * as words from "../words.js";
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   bulkAddOperations: typeof bulkAddOperations;
   crons: typeof crons;
   migrations: typeof migrations;
+  practiceSessions: typeof practiceSessions;
   users: typeof users;
   wordBoxes: typeof wordBoxes;
   words: typeof words;
