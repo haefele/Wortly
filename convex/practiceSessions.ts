@@ -110,10 +110,13 @@ async function getMultipleChoiceInProgressStatus(
   const word = allWords.get(currentQuestion.wordId);
   const otherWords = currentQuestion.otherWordIds.map(id => allWords.get(id));
 
-  const options = [word, ...otherWords]
+  const shuffled = deterministicShuffle([word, ...otherWords], `${session._id}:${
+    session.multipleChoice.currentQuestionIndex ?? 0
+  }`);
+
+  const options = shuffled
     .filter((w): w is Doc<"words"> => !!w)
     .map(f => ({ wordId: f._id, text: getPreferredTranslation(f) }));
-  shuffleInPlace(options);
 
   const selectedWordId = currentQuestion.selectedWordId ?? null;
   const correctWordId = selectedWordId ? currentQuestion.wordId : null;
@@ -329,6 +332,36 @@ function pickRandomDistinctElements<T>(items: T[], count: number): T[] {
   const pool = [...items];
   shuffleInPlace(pool);
   return pool.slice(0, Math.min(count, pool.length));
+}
+
+function deterministicShuffle<T>(items: Array<T>, seed: string): Array<T> {
+  const random = mulberry32(hashSeed(seed));
+  const result = [...items];
+
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+
+  return result;
+}
+
+function hashSeed(seed: string): number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (Math.imul(31, hash) + seed.charCodeAt(i)) | 0;
+  }
+  return hash;
+}
+
+function mulberry32(state: number): () => number {
+  let a = state;
+  return () => {
+    let t = (a += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
 function shuffleInPlace<T>(items: T[]) {
