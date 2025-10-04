@@ -131,7 +131,7 @@ export default function LearnPage() {
                     </>
                   ) : (
                     <>
-                      <ArrowRight /> Load more sessions
+                      <ChevronDown /> Load more sessions
                     </>
                   )}
                 </Button>
