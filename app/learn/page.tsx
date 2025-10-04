@@ -19,7 +19,14 @@ import {
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { PageContainer } from "@/components/page-container";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -90,14 +97,18 @@ export default function LearnPage() {
       >
         {isInitialLoading && <PracticeSessionsSkeleton />}
 
-        {!isInitialLoading && !hasSessions && <EmptyState onStart={() => setStartDialogOpen(true)} />}
+        {!isInitialLoading && !hasSessions && (
+          <EmptyState onStart={() => setStartDialogOpen(true)} />
+        )}
 
         {hasSessions && (
           <div className="space-y-6">
             <SectionHeader
               title="Recent sessions"
               count={practiceSessions.results.length}
-              isLoading={practiceSessions.isLoading && practiceSessions.status !== "LoadingFirstPage"}
+              isLoading={
+                practiceSessions.isLoading && practiceSessions.status !== "LoadingFirstPage"
+              }
             />
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -324,7 +335,8 @@ function StartPracticeDialog({ open, onOpenChange }: StartPracticeDialogProps) {
 
   const wordBoxLabel =
     wordBoxesResult.isSuccess && selectedWordBoxId
-      ? wordBoxesResult.data.find(box => box._id === selectedWordBoxId)?.name ?? "Select collection"
+      ? (wordBoxesResult.data.find(box => box._id === selectedWordBoxId)?.name ??
+        "Select collection")
       : "Select collection";
 
   const handleStartMultipleChoice = async () => {

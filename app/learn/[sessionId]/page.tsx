@@ -132,8 +132,7 @@ export default function PracticeSessionPage() {
   const answerResult: AnswerResult | null = currentQuestionState?.selectedWordId
     ? {
         selectedWordId: currentQuestionState.selectedWordId,
-        correctWordId:
-          currentQuestionState.correctWordId ?? currentQuestionState.selectedWordId,
+        correctWordId: currentQuestionState.correctWordId ?? currentQuestionState.selectedWordId,
         isCorrect:
           currentQuestionState.correctWordId !== null
             ? currentQuestionState.selectedWordId === currentQuestionState.correctWordId
@@ -170,7 +169,10 @@ export default function PracticeSessionPage() {
         }
       >
         <ErrorState
-          message={getErrorMessage(sessionStatus.isError ? sessionStatus.error : undefined, "Practice session not found.")}
+          message={getErrorMessage(
+            sessionStatus.isError ? sessionStatus.error : undefined,
+            "Practice session not found."
+          )}
         />
       </PageContainer>
     );
@@ -284,9 +286,7 @@ function InProgressView({
           <CardTitle className="text-2xl">
             {session.multipleChoice.currentQuestion.word ?? "Practice prompt"}
           </CardTitle>
-          <CardDescription>
-            Choose the correct translation from the options below.
-          </CardDescription>
+          <CardDescription>Choose the correct translation from the options below.</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -303,8 +303,13 @@ function InProgressView({
                 variant="outline"
                 className={cn(
                   "justify-start whitespace-normal text-left",
-                  isCorrect && answerResult && "border-emerald-500/70 bg-emerald-500/10 text-emerald-600",
-                  isSelected && !isCorrect && answerResult && "border-destructive/70 bg-destructive/10 text-destructive",
+                  isCorrect &&
+                    answerResult &&
+                    "border-emerald-500/70 bg-emerald-500/10 text-emerald-600",
+                  isSelected &&
+                    !isCorrect &&
+                    answerResult &&
+                    "border-destructive/70 bg-destructive/10 text-destructive",
                   answerResult && !isCorrect && !isSelected && "opacity-75"
                 )}
                 disabled={disabled}
@@ -456,10 +461,15 @@ function CompletedView({ session }: { session: MultipleChoiceCompleted }) {
         <CardContent className="space-y-4">
           {questions.map((question, index) => {
             const correctWord = question.word;
-            const allOptions = [question.word, ...question.otherWords].filter(Boolean) as Doc<"words">[];
-            const selectedWord = allOptions.find(option => option._id === question.selectedWordId) ?? null;
+            const allOptions = [question.word, ...question.otherWords].filter(
+              Boolean
+            ) as Doc<"words">[];
+            const selectedWord =
+              allOptions.find(option => option._id === question.selectedWordId) ?? null;
             const isCorrect = correctWord?._id && question.selectedWordId === correctWord._id;
-            const correctAnswer = correctWord ? getPreferredTranslation(correctWord) : "Word unavailable";
+            const correctAnswer = correctWord
+              ? getPreferredTranslation(correctWord)
+              : "Word unavailable";
             const selectedAnswer = selectedWord
               ? getPreferredTranslation(selectedWord)
               : "Not answered";
@@ -479,9 +489,7 @@ function CompletedView({ session }: { session: MultipleChoiceCompleted }) {
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
                       Question {index + 1}
                     </p>
-                    <h3 className="text-lg font-semibold">
-                      {correctWord?.word ?? "Word removed"}
-                    </h3>
+                    <h3 className="text-lg font-semibold">{correctWord?.word ?? "Word removed"}</h3>
                   </div>
                   <Badge variant={isCorrect ? "secondary" : "destructive"}>
                     {isCorrect ? <CheckCircle2 /> : <XCircle />}
@@ -491,7 +499,9 @@ function CompletedView({ session }: { session: MultipleChoiceCompleted }) {
                 <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
                   <div>
                     <span className="block text-xs uppercase tracking-wide">Your answer</span>
-                    <span className={cn(!isCorrect && selectedWord ? "text-destructive" : "")}>{selectedAnswer}</span>
+                    <span className={cn(!isCorrect && selectedWord ? "text-destructive" : "")}>
+                      {selectedAnswer}
+                    </span>
                   </div>
                   <div>
                     <span className="block text-xs uppercase tracking-wide">Correct answer</span>
