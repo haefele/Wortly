@@ -10,7 +10,6 @@ import {
   Loader2,
   BookOpenCheck,
   Sparkles,
-  Clock,
   ChevronDown,
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
@@ -144,59 +143,43 @@ function EmptyState({ onStart }: { onStart: () => void }) {
 }
 
 function SessionCard({ session }: { session: PracticeSessionSummary }) {
-  const isCompleted = Boolean(session.completedAt);
-  const totalQuestions = session.multipleChoice.totalQuestions;
-  const answeredCount = session.multipleChoice.answeredCount;
-  const progress = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
-  const createdAt = formatTimestamp(session.createdAt);
-  const completedAt = session.completedAt ? formatTimestamp(session.completedAt) : null;
-  const collectionName = session.multipleChoice.wordBoxName || "Collection unavailable";
-  const statusText = isCompleted
-    ? completedAt
-      ? `Completed ${completedAt}`
-      : "Completed"
-    : `Started ${createdAt}`;
-  const sessionTitle = session.multipleChoice.wordBoxName;
+  const status = getSessionStatusMeta(session);
+  const metrics = getSessionMetrics(session);
+  const sessionTitle = session.multipleChoice.wordBoxName || "Practice session";
+  const progressPercent = status.kind === "completed" ? 100 : metrics.progressPercent;
 
   return (
     <Link href={`/learn/${session._id}`} className="group">
       <Card variant="clickable" className="h-full">
-        <CardHeader className="space-y-3">
-          <div className="flex items-center gap-2">
+        <CardHeader className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary" className="flex items-center gap-1">
               <BookOpenCheck /> Multiple choice
             </Badge>
-            <StatusBadge isCompleted={isCompleted} />
+            <StatusBadge status={status} />
           </div>
-          <CardTitle className="text-xl">{sessionTitle}</CardTitle>
-          <p className="text-sm font-medium text-muted-foreground">{collectionName}</p>
-          <CardDescription>{statusText}</CardDescription>
+          <div className="space-y-2">
+            <CardTitle className="text-xl">{sessionTitle}</CardTitle>
+            <CardDescription>{status.description}</CardDescription>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Progress</span>
               <span>
-                {answeredCount}/{totalQuestions} answered
+                Progress <span className="text-border">•</span> {progressPercent}%
+              </span>
+              <span>
+                {metrics.answered}/{metrics.total} answered
               </span>
             </div>
-            <Progress value={isCompleted ? 100 : progress} />
-          </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span>{createdAt}</span>
-            {completedAt && (
-              <>
-                <span className="text-border">•</span>
-                <span>{completedAt}</span>
-              </>
-            )}
+            <Progress value={progressPercent} />
           </div>
         </CardContent>
-        <CardFooter className="justify-between text-xs text-muted-foreground">
-          <span>{isCompleted ? "Review results" : "Continue practice"}</span>
-          <span className="flex items-center gap-1 transition-transform duration-200 group-hover:translate-x-1">
-            Open <ArrowRight className="h-3.5 w-3.5" />
+        <CardFooter className="flex items-center justify-end text-sm text-muted-foreground">
+          <span className="flex items-center gap-1 font-medium text-foreground">
+            {status.ctaLabel}
+            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
           </span>
         </CardFooter>
       </Card>
@@ -204,20 +187,101 @@ function SessionCard({ session }: { session: PracticeSessionSummary }) {
   );
 }
 
-function StatusBadge({ isCompleted }: { isCompleted: boolean }) {
-  if (isCompleted) {
-    return (
-      <Badge variant="default" className="bg-emerald-500/90 text-white shadow-none">
-        Completed
-      </Badge>
-    );
+type SessionStatusMeta = {
+  kind: "completed" | "in-progress";
+  label: string;
+  badgeVariant: "default" | "outline";
+  badgeClassName: string;
+  ctaLabel: string;
+  description: string;
+};
+
+type SessionMetrics = {
+  total: number;
+  answered: number;
+  progressPercent: number;
+};
+
+function getSessionStatusMeta(session: PracticeSessionSummary): SessionStatusMeta {
+  const metrics = getSessionMetrics(session);
+
+  if (session.completedAt) {
+    return {
+      kind: "completed" as const,
+      label: "Completed",
+      badgeVariant: "default",
+      badgeClassName: "bg-emerald-500/90 text-white shadow-none",
+      ctaLabel: "Review results",
+      description: formatStatusDescription("Completed", session.completedAt),
+    };
   }
 
+  const hasStarted = metrics.answered > 0;
+
+  return {
+    kind: "in-progress" as const,
+    label: hasStarted ? "In progress" : "Not started",
+    badgeVariant: "outline",
+    badgeClassName: "border-primary/40 text-primary",
+    ctaLabel: hasStarted ? "Continue practice" : "Start practice",
+    description: formatStatusDescription(hasStarted ? "Started" : "Created", session.createdAt),
+  };
+}
+
+function getSessionMetrics(session: PracticeSessionSummary): SessionMetrics {
+  const total = session.multipleChoice.totalQuestions;
+  const answered = session.multipleChoice.answeredCount;
+  const progressPercent = total > 0 ? Math.round((answered / total) * 100) : 0;
+
+  return {
+    total,
+    answered,
+    progressPercent,
+  };
+}
+
+function StatusBadge({ status }: { status: SessionStatusMeta }) {
   return (
-    <Badge variant="outline" className="border-primary/40 text-primary">
-      In progress
+    <Badge variant={status.badgeVariant} className={status.badgeClassName}>
+      {status.label}
     </Badge>
   );
+}
+
+function formatStatusDescription(prefix: string, timestamp: number) {
+  const absolute = formatTimestamp(timestamp);
+  const relative = formatRelativeTimeFromNow(timestamp);
+
+  return `${prefix} ${absolute} • ${relative}`;
+}
+
+function formatRelativeTimeFromNow(value: number) {
+  const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+  const divisions = [
+    { amount: 60, unit: "second" as const },
+    { amount: 60, unit: "minute" as const },
+    { amount: 24, unit: "hour" as const },
+    { amount: 7, unit: "day" as const },
+    { amount: 4.34524, unit: "week" as const },
+    { amount: 12, unit: "month" as const },
+    { amount: Infinity, unit: "year" as const },
+  ];
+
+  let duration = (value - Date.now()) / 1000;
+
+  if (Math.abs(duration) < 1) {
+    return "Just now";
+  }
+
+  for (const division of divisions) {
+    if (Math.abs(duration) < division.amount) {
+      return formatter.format(Math.round(duration), division.unit);
+    }
+
+    duration /= division.amount;
+  }
+
+  return formatter.format(Math.round(duration), "year");
 }
 
 function formatTimestamp(value: number) {
