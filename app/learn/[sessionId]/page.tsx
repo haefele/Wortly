@@ -37,11 +37,11 @@ import { cn, getErrorMessage } from "@/lib/utils";
 type MultipleChoiceInProgress = {
   completed: false;
   _id: Id<"practiceSessions">;
-  name: string;
   createdAt: number;
   completedAt: number | null | undefined;
   multipleChoice: {
-    wordBox: Doc<"wordBoxes">;
+    wordBoxId: Id<"wordBoxes">;
+    wordBoxName: string;
     totalQuestions: number;
     currentQuestionNumber: number;
     currentQuestion: {
@@ -59,11 +59,11 @@ type MultipleChoiceInProgress = {
 type MultipleChoiceCompleted = {
   completed: true;
   _id: Id<"practiceSessions">;
-  name: string;
   createdAt: number;
   completedAt: number | null | undefined;
   multipleChoice: {
-    wordBox: Doc<"wordBoxes">;
+    wordBoxId: Id<"wordBoxes">;
+    wordBoxName: string;
     questions: Array<{
       word: Doc<"words"> | null;
       otherWords: Array<Doc<"words"> | null>;
@@ -224,10 +224,12 @@ export default function PracticeSessionPage() {
     </Button>
   );
 
+  const sessionTitle = session.multipleChoice.wordBoxName;
+
   return (
     <PageContainer
-      title={session.name}
-      description={`Multiple choice • ${session.multipleChoice.wordBox.name}`}
+      title={sessionTitle}
+      description={`Multiple choice • ${session.multipleChoice.wordBoxName}`}
       icon={BookOpenCheck}
       headerActions={headerActions}
     >
@@ -395,7 +397,7 @@ function CompletedView({ session }: { session: MultipleChoiceCompleted }) {
     try {
       setIsRestarting(true);
       const newSessionId = await startMultipleChoice({
-        wordBoxId: session.multipleChoice.wordBox._id,
+        wordBoxId: session.multipleChoice.wordBoxId,
       });
       toast.success("New practice session started.");
       router.push(`/learn/${newSessionId}`);
@@ -426,7 +428,7 @@ function CompletedView({ session }: { session: MultipleChoiceCompleted }) {
           <div>
             <span className="block text-xs uppercase tracking-wide">Collection</span>
             <span className="text-foreground font-medium">
-              {session.multipleChoice.wordBox.name}
+              {session.multipleChoice.wordBoxName}
             </span>
           </div>
           <div>
@@ -526,7 +528,7 @@ function SessionMeta({ session }: { session: MultipleChoiceStatus }) {
       <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-3">
           <Badge variant="secondary" className="self-start">
-            {session.multipleChoice.wordBox.name}
+            {session.multipleChoice.wordBoxName}
           </Badge>
           <CardDescription>
             {session.completed

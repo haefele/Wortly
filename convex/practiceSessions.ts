@@ -25,11 +25,11 @@ export const getPracticeSessions = query({
       page: sessions.page.map(session => ({
         _id: session._id,
         _creationTime: session._creationTime,
-        name: session.name,
         mode: session.mode,
         createdAt: session.createdAt,
         completedAt: session.completedAt,
         multipleChoice: {
+          wordBoxName: session.multipleChoice.wordBoxName,
           totalQuestions: session.multipleChoice.questions.length,
           answeredCount: session.multipleChoice.questions.filter(q => q.selectedWordId).length,
           currentQuestionIndex: session.multipleChoice.currentQuestionIndex,
@@ -58,21 +58,17 @@ export const getMultipleChoiceStatus = query({
     }
 
     const wordBox = await ctx.db.get(session.multipleChoice.wordBoxId);
-    if (!wordBox) {
-      throw new ConvexError("Associated word box not found.");
-    }
 
     if (session.completedAt) {
-      return getMultipleChoiceCompletedStatus(session, wordBox, ctx.db);
+      return getMultipleChoiceCompletedStatus(session, ctx.db);
     } else {
-      return getMultipleChoiceInProgressStatus(session, wordBox, ctx.db);
+      return getMultipleChoiceInProgressStatus(session, ctx.db);
     }
   },
 });
 
 async function getMultipleChoiceCompletedStatus(
   session: Doc<"practiceSessions">,
-  wordBox: Doc<"wordBoxes">,
   db: DatabaseReader
 ) {
   const allWords = await loadWordMapForSession(db, session.multipleChoice.questions);
@@ -80,11 +76,11 @@ async function getMultipleChoiceCompletedStatus(
   return {
     completed: true as const,
     _id: session._id,
-    name: session.name,
     createdAt: session.createdAt,
     completedAt: session.completedAt,
     multipleChoice: {
-      wordBox: wordBox,
+      wordBoxId: session.multipleChoice.wordBoxId,
+      wordBoxName: session.multipleChoice.wordBoxName,
       questions: session.multipleChoice.questions.map(question => {
         const word = allWords.get(question.wordId);
         const otherWords = question.otherWordIds.map(id => allWords.get(id));
@@ -101,7 +97,6 @@ async function getMultipleChoiceCompletedStatus(
 
 async function getMultipleChoiceInProgressStatus(
   session: Doc<"practiceSessions">,
-  wordBox: Doc<"wordBoxes">,
   db: DatabaseReader
 ) {
   const allWords = await loadWordMapForSession(db, session.multipleChoice.questions);
@@ -126,11 +121,11 @@ async function getMultipleChoiceInProgressStatus(
   return {
     completed: false as const,
     _id: session._id,
-    name: session.name,
     createdAt: session.createdAt,
     completedAt: session.completedAt,
     multipleChoice: {
-      wordBox: wordBox,
+      wordBoxId: session.multipleChoice.wordBoxId,
+      wordBoxName: session.multipleChoice.wordBoxName,
       totalQuestions: session.multipleChoice.questions.length,
       currentQuestionNumber: (session.multipleChoice.currentQuestionIndex ?? 0) + 1,
       currentQuestion: {
@@ -191,10 +186,10 @@ export const startMultipleChoice = mutation({
     const sessionId = await ctx.db.insert("practiceSessions", {
       userId: user._id,
       createdAt: Date.now(),
-      name: generateSessionName(box.name),
       mode: "multiple_choice",
       multipleChoice: {
         wordBoxId: box._id,
+        wordBoxName: box.name,
         questions,
         currentQuestionIndex: 0,
       },
@@ -328,16 +323,6 @@ async function loadWordMapForSession(
   }
 
   return wordMap;
-}
-
-function generateSessionName(wordBoxName: string): string {
-  const date = new Date();
-  const iso = [date.getFullYear(), pad(date.getMonth() + 1), pad(date.getDate())].join("-");
-  return `${wordBoxName} • ${iso}`;
-}
-
-function pad(value: number): string {
-  return value.toString().padStart(2, "0");
 }
 
 function getPreferredTranslation(word: Doc<"words"> | null): string {
