@@ -93,12 +93,12 @@ export default defineSchema({
     userId: v.id("users"),
     createdAt: v.number(),
     completedAt: v.optional(v.number()),
-    name: v.string(),
 
     mode: v.literal("multiple_choice"),
 
     multipleChoice: v.object({
       wordBoxId: v.id("wordBoxes"),
+      wordBoxName: v.string(),
       questions: v.array(
         v.object({
           wordId: v.id("words"),

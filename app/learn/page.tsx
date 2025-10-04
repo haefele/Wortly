@@ -33,7 +33,6 @@ import { Id } from "@/convex/_generated/dataModel";
 type PracticeSessionSummary = {
   _id: Id<"practiceSessions">;
   _creationTime: number;
-  name: string;
   mode: "multiple_choice";
   createdAt: number;
   completedAt?: number | null;
@@ -41,6 +40,7 @@ type PracticeSessionSummary = {
     totalQuestions: number;
     answeredCount: number;
     currentQuestionIndex?: number | null;
+    wordBoxName: string;
   };
 };
 
@@ -150,6 +150,13 @@ function SessionCard({ session }: { session: PracticeSessionSummary }) {
   const progress = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
   const createdAt = formatTimestamp(session.createdAt);
   const completedAt = session.completedAt ? formatTimestamp(session.completedAt) : null;
+  const collectionName = session.multipleChoice.wordBoxName || "Collection unavailable";
+  const statusText = isCompleted
+    ? completedAt
+      ? `Completed ${completedAt}`
+      : "Completed"
+    : `Started ${createdAt}`;
+  const sessionTitle = session.multipleChoice.wordBoxName;
 
   return (
     <Link href={`/learn/${session._id}`} className="group">
@@ -161,10 +168,9 @@ function SessionCard({ session }: { session: PracticeSessionSummary }) {
             </Badge>
             <StatusBadge isCompleted={isCompleted} />
           </div>
-          <CardTitle className="text-xl">{session.name}</CardTitle>
-          <CardDescription>
-            {isCompleted ? `Completed ${completedAt}` : `Started ${createdAt}`}
-          </CardDescription>
+          <CardTitle className="text-xl">{sessionTitle}</CardTitle>
+          <p className="text-sm font-medium text-muted-foreground">{collectionName}</p>
+          <CardDescription>{statusText}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
