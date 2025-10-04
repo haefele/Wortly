@@ -1,11 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { usePaginatedQuery, useQuery } from "convex-helpers/react";
-import { useMutation } from "convex/react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { usePaginatedQuery } from "convex-helpers/react";
 import {
   GraduationCap,
   Play,
@@ -13,7 +10,6 @@ import {
   Loader2,
   BookOpenCheck,
   Sparkles,
-  ListChecks,
   Clock,
   ChevronDown,
 } from "lucide-react";
@@ -30,26 +26,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import type { Id } from "@/convex/_generated/dataModel";
-import { getErrorMessage } from "@/lib/utils";
+import { StartPracticeDialog } from "@/components/learn/start-practice-dialog";
+import { IconOrb } from "@/components/ui/icon-orb";
+import { Id } from "@/convex/_generated/dataModel";
 
 type PracticeSessionSummary = {
   _id: Id<"practiceSessions">;
@@ -89,28 +68,18 @@ export default function LearnPage() {
         description="Review your progress and sharpen your vocabulary recall"
         icon={GraduationCap}
         headerActions={
-          <Button size="lg" variant="gradient" onClick={() => setStartDialogOpen(true)}>
+          <Button onClick={() => setStartDialogOpen(true)}>
             <Play />
             Start practice session
           </Button>
         }
       >
-        {isInitialLoading && <PracticeSessionsSkeleton />}
-
         {!isInitialLoading && !hasSessions && (
           <EmptyState onStart={() => setStartDialogOpen(true)} />
         )}
 
         {hasSessions && (
           <div className="space-y-6">
-            <SectionHeader
-              title="Recent sessions"
-              count={practiceSessions.results.length}
-              isLoading={
-                practiceSessions.isLoading && practiceSessions.status !== "LoadingFirstPage"
-              }
-            />
-
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {practiceSessions.results.map(session => (
                 <SessionCard key={session._id} session={session} />
@@ -121,7 +90,7 @@ export default function LearnPage() {
               <div className="flex justify-center">
                 <Button
                   variant="outline"
-                  size="lg"
+                  size="sm"
                   onClick={() => practiceSessions.loadMore(PAGE_SIZE)}
                   disabled={practiceSessions.isLoading}
                 >
@@ -146,69 +115,11 @@ export default function LearnPage() {
   );
 }
 
-function SectionHeader({
-  title,
-  count,
-  isLoading,
-}: {
-  title: string;
-  count: number;
-  isLoading: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <h2 className="text-3xl font-bold">{title}</h2>
-        <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
-      </div>
-      <span className="flex items-center gap-2 rounded-full bg-muted/40 px-3 py-1 text-sm text-muted-foreground">
-        {isLoading && <Loader2 className="animate-spin" />} {count} session{count === 1 ? "" : "s"}
-      </span>
-    </div>
-  );
-}
-
-function PracticeSessionsSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Skeleton className="h-8 w-36" />
-        <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
-      </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <Card key={index} className="p-0">
-            <CardHeader>
-              <Skeleton className="h-6 w-3/4" />
-              <CardDescription>
-                <Skeleton className="mt-2 h-4 w-1/2" />
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Skeleton className="h-2 w-full" />
-                <Skeleton className="h-2 w-full" />
-              </div>
-              <Skeleton className="h-3 w-2/3" />
-            </CardContent>
-            <CardFooter className="justify-between">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-4 w-20" />
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function EmptyState({ onStart }: { onStart: () => void }) {
   return (
-    <Card variant="spotlight" className="max-w-3xl">
+    <Card variant="spotlight">
       <CardContent className="flex flex-col items-center gap-6 p-12 text-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-          <Sparkles className="h-10 w-10 text-primary" />
-        </div>
+        <IconOrb size="lg" icon={Sparkles} />
         <div className="space-y-3">
           <h3 className="text-2xl font-semibold">Ready for your first practice session?</h3>
           <p className="max-w-2xl text-sm text-muted-foreground">
@@ -310,167 +221,4 @@ function formatTimestamp(value: number) {
   });
 
   return formatter.format(new Date(value));
-}
-
-interface StartPracticeDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-function StartPracticeDialog({ open, onOpenChange }: StartPracticeDialogProps) {
-  const router = useRouter();
-  const wordBoxesResult = useQuery(api.wordBoxes.getMyWordBoxes, {});
-  const startMultipleChoice = useMutation(api.practiceSessions.startMultipleChoice);
-
-  const [selectedWordBoxId, setSelectedWordBoxId] = useState<Id<"wordBoxes"> | null>(null);
-  const [isStarting, setIsStarting] = useState(false);
-
-  const firstWordBoxId = wordBoxesResult.isSuccess ? wordBoxesResult.data[0]?._id : undefined;
-
-  useEffect(() => {
-    if (firstWordBoxId && !selectedWordBoxId) {
-      setSelectedWordBoxId(firstWordBoxId);
-    }
-  }, [firstWordBoxId, selectedWordBoxId]);
-
-  const wordBoxLabel =
-    wordBoxesResult.isSuccess && selectedWordBoxId
-      ? (wordBoxesResult.data.find(box => box._id === selectedWordBoxId)?.name ??
-        "Select collection")
-      : "Select collection";
-
-  const handleStartMultipleChoice = async () => {
-    if (!selectedWordBoxId) {
-      toast.error("Select a collection to practice.");
-      return;
-    }
-
-    try {
-      setIsStarting(true);
-      const sessionId = await startMultipleChoice({ wordBoxId: selectedWordBoxId });
-      toast.success("Practice session started.");
-      onOpenChange(false);
-      router.push(`/learn/${sessionId}`);
-    } catch (error) {
-      toast.error(getErrorMessage(error, "Failed to start practice session."));
-    } finally {
-      setIsStarting(false);
-    }
-  };
-
-  const noCollections = wordBoxesResult.isSuccess && wordBoxesResult.data.length === 0;
-
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={value => {
-        if (!value) {
-          setIsStarting(false);
-        }
-        onOpenChange(value);
-      }}
-    >
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Start a practice session</DialogTitle>
-          <DialogDescription>
-            Choose a collection and practice mode to begin reinforcing your vocabulary.
-          </DialogDescription>
-        </DialogHeader>
-
-        {wordBoxesResult.isPending && (
-          <div className="space-y-3">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-28 w-full" />
-          </div>
-        )}
-
-        {noCollections && (
-          <Card variant="spotlight" className="bg-muted/40">
-            <CardContent className="space-y-3 p-6 text-sm text-muted-foreground">
-              <p>You need at least one collection with words before starting practice.</p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  onOpenChange(false);
-                  router.push("/library");
-                }}
-              >
-                <ArrowRight /> Manage collections
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {wordBoxesResult.isSuccess && wordBoxesResult.data.length > 0 && (
-          <div className="space-y-5">
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground">Collection</p>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="justify-between" size="field">
-                    {wordBoxLabel}
-                    <ChevronDown />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64">
-                  <DropdownMenuLabel>Choose collection</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuRadioGroup
-                    value={selectedWordBoxId ?? ""}
-                    onValueChange={value =>
-                      setSelectedWordBoxId(value ? (value as Id<"wordBoxes">) : null)
-                    }
-                  >
-                    {wordBoxesResult.data.map(box => (
-                      <DropdownMenuRadioItem key={box._id} value={box._id}>
-                        <div className="flex flex-col items-start">
-                          <span className="text-sm font-medium">{box.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {box.wordCount} word{box.wordCount === 1 ? "" : "s"}
-                          </span>
-                        </div>
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            <Card className="border-dashed border-primary/40">
-              <CardHeader className="space-y-3">
-                <Badge variant="secondary" className="self-start">
-                  <ListChecks /> Recommended
-                </Badge>
-                <CardTitle>Multiple choice quiz</CardTitle>
-                <CardDescription>
-                  Answer quick-fire prompts by picking the correct translation. Ideal for rapid
-                  recall and spaced repetition.
-                </CardDescription>
-              </CardHeader>
-              <CardFooter>
-                <Button onClick={handleStartMultipleChoice} disabled={isStarting}>
-                  {isStarting ? (
-                    <>
-                      <Loader2 className="animate-spin" /> Starting…
-                    </>
-                  ) : (
-                    <>
-                      <Play /> Start multiple choice
-                    </>
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
-        )}
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isStarting}>
-            Cancel
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
 }
