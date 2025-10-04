@@ -10,6 +10,7 @@
 
 import type * as bulkAddOperations from "../bulkAddOperations.js";
 import type * as crons from "../crons.js";
+import type * as lib_shuffle from "../lib/shuffle.js";
 import type * as migrations from "../migrations.js";
 import type * as practiceSessions from "../practiceSessions.js";
 import type * as users from "../users.js";
@@ -33,6 +34,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   bulkAddOperations: typeof bulkAddOperations;
   crons: typeof crons;
+  "lib/shuffle": typeof lib_shuffle;
   migrations: typeof migrations;
   practiceSessions: typeof practiceSessions;
   users: typeof users;
