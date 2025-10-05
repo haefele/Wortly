@@ -8,27 +8,20 @@ import {
   Play,
   ArrowRight,
   Loader2,
-  BookOpenCheck,
   Sparkles,
-  Clock,
   ChevronDown,
+  SquareStack,
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { PageContainer } from "@/components/page-container";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { StartPracticeDialog } from "@/components/learn/start-practice-dialog";
 import { IconOrb } from "@/components/ui/icon-orb";
 import { Id } from "@/convex/_generated/dataModel";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 type PracticeSessionSummary = {
   _id: Id<"practiceSessions">;
@@ -44,7 +37,7 @@ type PracticeSessionSummary = {
   };
 };
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 8;
 
 export default function LearnPage() {
   const [startDialogOpen, setStartDialogOpen] = useState(false);
@@ -80,7 +73,7 @@ export default function LearnPage() {
 
         {hasSessions && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {practiceSessions.results.map(session => (
                 <SessionCard key={session._id} session={session} />
               ))}
@@ -144,59 +137,48 @@ function EmptyState({ onStart }: { onStart: () => void }) {
 }
 
 function SessionCard({ session }: { session: PracticeSessionSummary }) {
-  const isCompleted = Boolean(session.completedAt);
-  const totalQuestions = session.multipleChoice.totalQuestions;
-  const answeredCount = session.multipleChoice.answeredCount;
-  const progress = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
-  const createdAt = formatTimestamp(session.createdAt);
-  const completedAt = session.completedAt ? formatTimestamp(session.completedAt) : null;
-  const collectionName = session.multipleChoice.wordBoxName || "Collection unavailable";
-  const statusText = isCompleted
-    ? completedAt
-      ? `Completed ${completedAt}`
-      : "Completed"
-    : `Started ${createdAt}`;
-  const sessionTitle = session.multipleChoice.wordBoxName;
+  const status = getSessionStatusMeta(session);
+
+  const progressPercent =
+    status.kind === "completed"
+      ? 100
+      : Math.round(
+          (session.multipleChoice.answeredCount / session.multipleChoice.totalQuestions) * 100
+        );
 
   return (
     <Link href={`/learn/${session._id}`} className="group">
       <Card variant="clickable" className="h-full">
-        <CardHeader className="space-y-3">
+        <CardHeader className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <BookOpenCheck /> Multiple choice
-            </Badge>
-            <StatusBadge isCompleted={isCompleted} />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SquareStack className="h-5 w-5 text-primary" />
+              </TooltipTrigger>
+              <TooltipContent side="top">Multiple choice</TooltipContent>
+            </Tooltip>
+            <CardTitle>{session.multipleChoice.wordBoxName}</CardTitle>
           </div>
-          <CardTitle className="text-xl">{sessionTitle}</CardTitle>
-          <p className="text-sm font-medium text-muted-foreground">{collectionName}</p>
-          <CardDescription>{statusText}</CardDescription>
+          <Badge variant={status.badgeVariant} className={status.badgeClassName}>
+            {status.label}
+          </Badge>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Progress</span>
+              <span>Progress {progressPercent}%</span>
               <span>
-                {answeredCount}/{totalQuestions} answered
+                {session.multipleChoice.answeredCount}/{session.multipleChoice.totalQuestions}{" "}
+                answered
               </span>
             </div>
-            <Progress value={isCompleted ? 100 : progress} />
-          </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span>{createdAt}</span>
-            {completedAt && (
-              <>
-                <span className="text-border">•</span>
-                <span>{completedAt}</span>
-              </>
-            )}
+            <Progress value={progressPercent} />
           </div>
         </CardContent>
-        <CardFooter className="justify-between text-xs text-muted-foreground">
-          <span>{isCompleted ? "Review results" : "Continue practice"}</span>
-          <span className="flex items-center gap-1 transition-transform duration-200 group-hover:translate-x-1">
-            Open <ArrowRight className="h-3.5 w-3.5" />
+        <CardFooter className="flex items-center justify-end">
+          <span className="text-muted-foreground flex items-center text-xs transition-transform duration-200 group-hover/card:translate-x-1">
+            {status.ctaLabel}
+            <ArrowRight className="h-3.5 w-3.5 ml-1" />
           </span>
         </CardFooter>
       </Card>
@@ -204,27 +186,32 @@ function SessionCard({ session }: { session: PracticeSessionSummary }) {
   );
 }
 
-function StatusBadge({ isCompleted }: { isCompleted: boolean }) {
-  if (isCompleted) {
-    return (
-      <Badge variant="default" className="bg-emerald-500/90 text-white shadow-none">
-        Completed
-      </Badge>
-    );
+function getSessionStatusMeta(session: PracticeSessionSummary) {
+  const hasStarted = session.multipleChoice.answeredCount > 0;
+
+  if (session.completedAt) {
+    return {
+      kind: "completed" as const,
+      label: "Completed",
+      badgeVariant: "default" as const,
+      badgeClassName: "bg-emerald-500 text-white",
+      ctaLabel: "Review results",
+    };
+  } else if (hasStarted) {
+    return {
+      kind: "in-progress" as const,
+      label: "In progress",
+      badgeVariant: "outline" as const,
+      badgeClassName: "border-primary text-primary",
+      ctaLabel: "Continue practice",
+    };
+  } else {
+    return {
+      kind: "not-started" as const,
+      label: "Not started",
+      badgeVariant: "secondary" as const,
+      badgeClassName: "",
+      ctaLabel: "Start practice",
+    };
   }
-
-  return (
-    <Badge variant="outline" className="border-primary/40 text-primary">
-      In progress
-    </Badge>
-  );
-}
-
-function formatTimestamp(value: number) {
-  const formatter = new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-
-  return formatter.format(new Date(value));
 }
