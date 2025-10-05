@@ -10,7 +10,6 @@ import {
   Loader2,
   Sparkles,
   ChevronDown,
-  SquareStack,
   Crown,
   Medal,
   Lightbulb,
@@ -18,6 +17,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
+import type { FunctionReturnType } from "convex/server";
 import { PageContainer } from "@/components/page-container";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,23 +25,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { StartPracticeDialog } from "@/components/learn/start-practice-dialog";
 import { IconOrb } from "@/components/ui/icon-orb";
-import { Id } from "@/convex/_generated/dataModel";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { LearnConstants } from "./constants";
 
-type PracticeSessionSummary = {
-  _id: Id<"practiceSessions">;
-  _creationTime: number;
-  mode: "multiple_choice";
-  createdAt: number;
-  completedAt?: number | null;
-  multipleChoice: {
-    totalQuestions: number;
-    answeredCount: number;
-    currentQuestionIndex?: number | null;
-    wordBoxName: string;
-    correctCount: number;
-  };
-};
+type PracticeSessionSummary = FunctionReturnType<typeof api.practiceSessions.getPracticeSessions>["page"][number];
 
 const PAGE_SIZE = 8;
 
@@ -165,7 +152,7 @@ function SessionCard({ session }: { session: PracticeSessionSummary }) {
           <div className="flex items-center gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <SquareStack className="h-5 w-5 text-primary" />
+                <LearnConstants.MultipleChoiceIcon className="h-5 w-5 text-primary" />
               </TooltipTrigger>
               <TooltipContent side="top">Multiple choice</TooltipContent>
             </Tooltip>
@@ -258,42 +245,42 @@ function getSessionStatusMeta(session: PracticeSessionSummary) {
 function getScoreGradeMeta(percent: number) {
   if (percent === 100) {
     return {
-      backgroundClass: "bg-yellow-50",
-      borderClass: "border-yellow-200",
-      textClass: "text-yellow-700",
-      label: "Flawless victory!",
+      backgroundClass: "bg-sky-50",
+      borderClass: "border-sky-300",
+      textClass: "text-sky-700",
+      label: "Perfect recall!",
       icon: Trophy,
     } as const;
   } else if (percent >= 90) {
     return {
       backgroundClass: "bg-emerald-50",
-      borderClass: "border-emerald-200",
+      borderClass: "border-emerald-300",
       textClass: "text-emerald-700",
-      label: "Excellent recall!",
+      label: "Excellent!",
       icon: Crown,
     } as const;
   } else if (percent >= 75) {
     return {
-      backgroundClass: "bg-amber-50",
-      borderClass: "border-amber-200",
-      textClass: "text-amber-700",
-      label: "Great progress!",
+      backgroundClass: "bg-green-50",
+      borderClass: "border-green-200",
+      textClass: "text-green-700",
+      label: "Good job!",
       icon: Medal,
     } as const;
   } else if (percent >= 50) {
     return {
-      backgroundClass: "bg-blue-50",
-      borderClass: "border-blue-200/70",
-      textClass: "text-blue-700",
-      label: "Solid effort",
+      backgroundClass: "bg-amber-50",
+      borderClass: "border-amber-100",
+      textClass: "text-amber-700",
+      label: "Keep going!",
       icon: Lightbulb,
     } as const;
   } else {
     return {
       backgroundClass: "bg-rose-50",
-      borderClass: "border-rose-200",
+      borderClass: "border-rose-100",
       textClass: "text-rose-700",
-      label: "You can do better!",
+      label: "Time to review!",
       icon: Frown,
     } as const;
   }
