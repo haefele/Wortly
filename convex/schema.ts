@@ -94,17 +94,27 @@ export default defineSchema({
     createdAt: v.number(),
     completedAt: v.optional(v.number()),
 
-    mode: v.literal("multiple_choice"),
+    type: v.literal("multiple_choice"),
 
     multipleChoice: v.object({
-      wordBoxId: v.id("wordBoxes"),
+      type: v.literal("german_word_choose_translation"),
+      wordBoxId: v.optional(v.id("wordBoxes")),
       wordBoxName: v.string(),
       questions: v.array(
         v.object({
-          wordId: v.id("words"),
-          otherWordIds: v.array(v.id("words")),
+          question: v.string(),
+          wordId: v.optional(v.id("words")),
 
-          selectedWordId: v.optional(v.id("words")),
+          answers: v.array(
+            v.object({
+              text: v.string(),
+              wordId: v.optional(v.id("words")),
+            })
+          ),
+
+          correctAnswerIndex: v.number(),
+
+          selectedAnswerIndex: v.optional(v.number()),
           answeredAt: v.optional(v.number()),
         })
       ),

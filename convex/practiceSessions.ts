@@ -1,9 +1,10 @@
 import { paginationOptsValidator } from "convex/server";
 import { query, mutation, DatabaseReader } from "./_generated/server";
-import { v, ConvexError } from "convex/values";
+import { v, ConvexError, Infer } from "convex/values";
 import { getCurrentUser } from "./users";
 import { Doc, Id } from "./_generated/dataModel";
-import { deterministicShuffle, pickRandomDistinctElements } from "./lib/shuffle";
+import { pickRandomDistinctElements, shuffle } from "./lib/shuffle";
+import schema from "./schema";
 
 const MAX_QUESTIONS = 10;
 const OPTIONS_PER_QUESTION = 4;
@@ -24,18 +25,21 @@ export const getPracticeSessions = query({
     return {
       page: sessions.page.map(session => {
         const totalQuestions = session.multipleChoice.questions.length;
-        const answeredCount = session.multipleChoice.questions.filter(q => q.selectedWordId).length;
+        const answeredCount = session.multipleChoice.questions.filter(
+          q => q.selectedAnswerIndex !== undefined
+        ).length;
         const correctCount = session.multipleChoice.questions.filter(
-          q => q.selectedWordId && q.selectedWordId === q.wordId
+          q => q.selectedAnswerIndex !== undefined && q.selectedAnswerIndex === q.correctAnswerIndex
         ).length;
 
         return {
           _id: session._id,
           _creationTime: session._creationTime,
-          mode: session.mode,
+          type: session.type,
           createdAt: session.createdAt,
           completedAt: session.completedAt,
           multipleChoice: {
+            type: session.multipleChoice.type,
             wordBoxName: session.multipleChoice.wordBoxName,
             totalQuestions,
             answeredCount,
@@ -62,12 +66,6 @@ export const getMultipleChoiceStatus = query({
       throw new Error("Practice session not found");
     }
 
-    if (session.mode !== "multiple_choice") {
-      throw new ConvexError("Unsupported practice session mode.");
-    }
-
-    const wordBox = await ctx.db.get(session.multipleChoice.wordBoxId);
-
     if (session.completedAt) {
       return getMultipleChoiceCompletedStatus(session, ctx.db);
     } else {
@@ -80,7 +78,12 @@ async function getMultipleChoiceCompletedStatus(
   session: Doc<"practiceSessions">,
   db: DatabaseReader
 ) {
-  const allWords = await loadWordMapForSession(db, session.multipleChoice.questions);
+  if (
+    session.type !== "multiple_choice" &&
+    session.multipleChoice.type !== "german_word_choose_translation"
+  ) {
+    throw new ConvexError("Unsupported practice session type.");
+  }
 
   return {
     completed: true as const,
@@ -90,16 +93,7 @@ async function getMultipleChoiceCompletedStatus(
     multipleChoice: {
       wordBoxId: session.multipleChoice.wordBoxId,
       wordBoxName: session.multipleChoice.wordBoxName,
-      questions: session.multipleChoice.questions.map(question => {
-        const word = allWords.get(question.wordId);
-        const otherWords = question.otherWordIds.map(id => allWords.get(id));
-
-        return {
-          word: word,
-          otherWords: otherWords,
-          selectedWordId: question.selectedWordId,
-        };
-      }),
+      questions: session.multipleChoice.questions,
     },
   };
 }
@@ -108,24 +102,15 @@ async function getMultipleChoiceInProgressStatus(
   session: Doc<"practiceSessions">,
   db: DatabaseReader
 ) {
-  const allWords = await loadWordMapForSession(db, session.multipleChoice.questions);
+  if (
+    session.type !== "multiple_choice" &&
+    session.multipleChoice.type !== "german_word_choose_translation"
+  ) {
+    throw new ConvexError("Unsupported practice session type.");
+  }
 
   const currentQuestion =
     session.multipleChoice.questions[session.multipleChoice.currentQuestionIndex ?? 0];
-  const word = allWords.get(currentQuestion.wordId);
-  const otherWords = currentQuestion.otherWordIds.map(id => allWords.get(id));
-
-  const shuffled = deterministicShuffle(
-    [word, ...otherWords],
-    `${session._id}:${session.multipleChoice.currentQuestionIndex ?? 0}`
-  );
-
-  const options = shuffled
-    .filter((w): w is Doc<"words"> => !!w)
-    .map(f => ({ wordId: f._id, text: getPreferredTranslation(f) }));
-
-  const selectedWordId = currentQuestion.selectedWordId ?? null;
-  const correctWordId = selectedWordId ? currentQuestion.wordId : null;
 
   return {
     completed: false as const,
@@ -138,14 +123,17 @@ async function getMultipleChoiceInProgressStatus(
       totalQuestions: session.multipleChoice.questions.length,
       currentQuestionNumber: (session.multipleChoice.currentQuestionIndex ?? 0) + 1,
       currentQuestion: {
-        word: word?.word,
-        options: options,
-        selectedWordId,
-        correctWordId,
+        question: currentQuestion.question,
+        options: currentQuestion.answers.map(f => f.text),
+        selectedAnswerIndex: currentQuestion.selectedAnswerIndex,
+        correctAnswerIndex: currentQuestion.correctAnswerIndex,
       },
     },
   };
 }
+
+type MultipleChoice = Infer<typeof schema.tables.practiceSessions.validator>["multipleChoice"];
+type MultipleChoiceQuestion = MultipleChoice["questions"][0];
 
 export const startMultipleChoice = mutation({
   args: {
@@ -175,28 +163,52 @@ export const startMultipleChoice = mutation({
       Math.min(MAX_QUESTIONS, wordIds.length)
     );
 
-    const questions = questionWordIds.map(wordId => {
-      const decoyPool = wordIds.filter(otherId => otherId !== wordId);
-      const decoys = pickRandomDistinctElements(
-        decoyPool,
-        Math.min(OPTIONS_PER_QUESTION - 1, decoyPool.length)
-      );
+    const questions = await Promise.all(
+      questionWordIds.map(async wordId => {
+        const wrongAnswerPool = wordIds.filter(otherId => otherId !== wordId);
+        const wrongAnswerWordIds = pickRandomDistinctElements(
+          wrongAnswerPool,
+          Math.min(OPTIONS_PER_QUESTION - 1, wrongAnswerPool.length)
+        );
 
-      if (decoys.length < OPTIONS_PER_QUESTION - 1) {
-        throw new ConvexError("Not enough unique words to generate answer options.");
-      }
+        if (wrongAnswerWordIds.length < OPTIONS_PER_QUESTION - 1) {
+          throw new ConvexError("Not enough unique words to generate answer options.");
+        }
 
-      return {
-        wordId,
-        otherWordIds: decoys,
-      };
-    });
+        const shuffledAnswers = shuffle(
+          await Promise.all(
+            [wordId, ...wrongAnswerWordIds].map(async id => {
+              const w = await ctx.db.get(id);
+              return {
+                text: getPreferredTranslation(w),
+                wordId: w?._id,
+              };
+            })
+          )
+        );
+
+        const word = await ctx.db.get(wordId);
+
+        return {
+          question: word?.word,
+          wordId,
+
+          answers: shuffledAnswers,
+
+          correctAnswerIndex: shuffledAnswers.findIndex(a => a.wordId === wordId),
+
+          selectedAnswerIndex: undefined,
+          answeredAt: undefined,
+        } as MultipleChoiceQuestion;
+      })
+    );
 
     const sessionId = await ctx.db.insert("practiceSessions", {
       userId: user._id,
       createdAt: Date.now(),
-      mode: "multiple_choice",
+      type: "multiple_choice",
       multipleChoice: {
+        type: "german_word_choose_translation",
         wordBoxId: box._id,
         wordBoxName: box.name,
         questions,
@@ -211,7 +223,7 @@ export const startMultipleChoice = mutation({
 export const answerMultipleChoice = mutation({
   args: {
     sessionId: v.id("practiceSessions"),
-    selectedWordId: v.id("words"),
+    selectedAnswerIndex: v.number(),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
@@ -221,34 +233,29 @@ export const answerMultipleChoice = mutation({
       throw new Error("Practice session not found");
     }
 
-    const currentIndex = session.multipleChoice.currentQuestionIndex;
-    if (currentIndex === undefined || currentIndex === null) {
+    const currentQuestionIndex = session.multipleChoice.currentQuestionIndex;
+    if (currentQuestionIndex === undefined || currentQuestionIndex === null) {
       throw new ConvexError("Practice session already completed.");
     }
 
-    if (currentIndex < 0 || currentIndex >= session.multipleChoice.questions.length) {
-      throw new ConvexError("Invalid current question index.");
-    }
-
-    const question = session.multipleChoice.questions[currentIndex];
-    if (question.selectedWordId) {
+    const question = session.multipleChoice.questions[currentQuestionIndex];
+    if (question.selectedAnswerIndex !== undefined) {
       throw new ConvexError("This question has already been answered.");
     }
 
-    const optionIds = [question.wordId, ...question.otherWordIds];
-    if (!optionIds.includes(args.selectedWordId)) {
-      throw new ConvexError("Selected option is not part of this question.");
+    if (args.selectedAnswerIndex < 0 || args.selectedAnswerIndex >= question.answers.length) {
+      throw new ConvexError("Selected option is out of range.");
     }
 
-    question.selectedWordId = args.selectedWordId;
+    question.selectedAnswerIndex = args.selectedAnswerIndex;
     question.answeredAt = Date.now();
 
     await ctx.db.replace(session._id, session);
 
     return {
-      isCorrect: args.selectedWordId === question.wordId,
-      correctWordId: question.wordId,
-      selectedWordId: args.selectedWordId,
+      isCorrect: args.selectedAnswerIndex === question.correctAnswerIndex,
+      correctAnswerIndex: question.correctAnswerIndex,
+      selectedAnswerIndex: args.selectedAnswerIndex,
     };
   },
 });
@@ -278,7 +285,7 @@ export const nextQuestionMultipleChoice = mutation({
     }
 
     const question = session.multipleChoice.questions[currentIndex];
-    if (!question.selectedWordId) {
+    if (question.selectedAnswerIndex === undefined) {
       throw new ConvexError("Answer the current question before moving on.");
     }
 
@@ -312,27 +319,6 @@ export const nextQuestionMultipleChoice = mutation({
     };
   },
 });
-
-async function loadWordMapForSession(
-  db: DatabaseReader,
-  questions: Array<{ wordId: Id<"words">; otherWordIds: Id<"words">[] }>
-) {
-  const wordMap = new Map<Id<"words">, Doc<"words"> | null>();
-
-  for (const question of questions) {
-    if (!wordMap.has(question.wordId)) {
-      wordMap.set(question.wordId, await db.get(question.wordId));
-    }
-
-    for (const otherId of question.otherWordIds) {
-      if (!wordMap.has(otherId)) {
-        wordMap.set(otherId, await db.get(otherId));
-      }
-    }
-  }
-
-  return wordMap;
-}
 
 function getPreferredTranslation(word: Doc<"words"> | null): string {
   if (!word) {

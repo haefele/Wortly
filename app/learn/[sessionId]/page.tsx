@@ -18,7 +18,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
-import type { Doc, Id } from "@/convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import { PageContainer } from "@/components/page-container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,78 +33,9 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, getErrorMessage } from "@/lib/utils";
+import { FunctionReturnType } from "convex/server";
 
-type MultipleChoiceInProgress = {
-  completed: false;
-  _id: Id<"practiceSessions">;
-  createdAt: number;
-  completedAt: number | null | undefined;
-  multipleChoice: {
-    wordBoxId: Id<"wordBoxes">;
-    wordBoxName: string;
-    totalQuestions: number;
-    currentQuestionNumber: number;
-    currentQuestion: {
-      word: string | undefined;
-      options: Array<{
-        wordId: Id<"words">;
-        text: string;
-      }>;
-      selectedWordId: Id<"words"> | null;
-      correctWordId: Id<"words"> | null;
-    };
-  };
-};
-
-type MultipleChoiceCompleted = {
-  completed: true;
-  _id: Id<"practiceSessions">;
-  createdAt: number;
-  completedAt: number | null | undefined;
-  multipleChoice: {
-    wordBoxId: Id<"wordBoxes">;
-    wordBoxName: string;
-    questions: Array<{
-      word: Doc<"words"> | null;
-      otherWords: Array<Doc<"words"> | null>;
-      selectedWordId: Id<"words"> | null | undefined;
-    }>;
-  };
-};
-
-type MultipleChoiceStatus = MultipleChoiceInProgress | MultipleChoiceCompleted;
-
-type AnswerResult = {
-  isCorrect: boolean;
-  correctWordId: Id<"words">;
-  selectedWordId: Id<"words">;
-};
-
-type UseQueryResult<T> =
-  | {
-      status: "pending";
-      data: undefined;
-      error: undefined;
-      isPending: true;
-      isError: false;
-      isSuccess: false;
-    }
-  | {
-      status: "success";
-      data: T;
-      error: undefined;
-      isPending: false;
-      isError: false;
-      isSuccess: true;
-    }
-  | {
-      status: "error";
-      data: undefined;
-      error: unknown;
-      isPending: false;
-      isError: true;
-      isSuccess: false;
-    };
+type MultipleChoiceStatus = FunctionReturnType<typeof api.practiceSessions.getMultipleChoiceStatus>;
 
 export default function PracticeSessionPage() {
   const params = useParams<{ sessionId: string }>();
@@ -112,11 +43,11 @@ export default function PracticeSessionPage() {
 
   const sessionStatus = useQuery(api.practiceSessions.getMultipleChoiceStatus, {
     sessionId,
-  }) as UseQueryResult<MultipleChoiceStatus>;
+  });
   const answerMultipleChoice = useMutation(api.practiceSessions.answerMultipleChoice);
   const nextQuestion = useMutation(api.practiceSessions.nextQuestionMultipleChoice);
 
-  const [answeringOptionId, setAnsweringOptionId] = useState<Id<"words"> | null>(null);
+  const [answeringIndex, setAnsweringIndex] = useState<number | null>(null);
   const [advancing, setAdvancing] = useState(false);
 
   const currentQuestionNumber =
@@ -129,19 +60,8 @@ export default function PracticeSessionPage() {
       ? sessionStatus.data.multipleChoice.currentQuestion
       : null;
 
-  const answerResult: AnswerResult | null = currentQuestionState?.selectedWordId
-    ? {
-        selectedWordId: currentQuestionState.selectedWordId,
-        correctWordId: currentQuestionState.correctWordId ?? currentQuestionState.selectedWordId,
-        isCorrect:
-          currentQuestionState.correctWordId !== null
-            ? currentQuestionState.selectedWordId === currentQuestionState.correctWordId
-            : true,
-      }
-    : null;
-
   useEffect(() => {
-    setAnsweringOptionId(null);
+    setAnsweringIndex(null);
   }, [currentQuestionNumber]);
 
   const isLoading = sessionStatus.isPending;
@@ -180,26 +100,30 @@ export default function PracticeSessionPage() {
 
   const session = sessionStatus.data;
 
-  const handleSelectOption = async (wordId: Id<"words">) => {
-    if (session.completed || answerResult || answeringOptionId) {
+  const handleSelectOption = async (answerIndex: number) => {
+    if (
+      session.completed ||
+      currentQuestionState?.selectedAnswerIndex !== undefined ||
+      answeringIndex !== null
+    ) {
       return;
     }
 
-    setAnsweringOptionId(wordId);
+    setAnsweringIndex(answerIndex);
     try {
-      const result = await answerMultipleChoice({ sessionId, selectedWordId: wordId });
+      const result = await answerMultipleChoice({ sessionId, selectedAnswerIndex: answerIndex });
       if (!result.isCorrect) {
         toast.warning("Not quite right. Review the correct answer before continuing.");
       }
     } catch (error) {
       toast.error(getErrorMessage(error, "Failed to submit answer."));
     } finally {
-      setAnsweringOptionId(null);
+      setAnsweringIndex(null);
     }
   };
 
   const handleNextQuestion = async () => {
-    if (session.completed || !answerResult) {
+    if (session.completed || currentQuestionState?.selectedAnswerIndex === undefined) {
       return;
     }
 
@@ -241,8 +165,7 @@ export default function PracticeSessionPage() {
         ) : (
           <InProgressView
             session={session}
-            answerResult={answerResult}
-            answeringOptionId={answeringOptionId}
+            answeringIndex={answeringIndex}
             advancing={advancing}
             onSelectOption={handleSelectOption}
             onNextQuestion={handleNextQuestion}
@@ -255,24 +178,27 @@ export default function PracticeSessionPage() {
 
 function InProgressView({
   session,
-  answerResult,
-  answeringOptionId,
+  answeringIndex,
   advancing,
   onSelectOption,
   onNextQuestion,
 }: {
-  session: MultipleChoiceInProgress;
-  answerResult: AnswerResult | null;
-  answeringOptionId: Id<"words"> | null;
+  session: MultipleChoiceStatus;
+  answeringIndex: number | null;
   advancing: boolean;
-  onSelectOption: (wordId: Id<"words">) => void;
+  onSelectOption: (answerIndex: number) => void;
   onNextQuestion: () => void;
 }) {
+  if (session.completed) {
+    throw new Error("Practice session already completed.");
+  }
+
   const totalQuestions = session.multipleChoice.totalQuestions;
   const currentNumber = session.multipleChoice.currentQuestionNumber;
   const isLastQuestion = currentNumber >= totalQuestions;
-  const answeredCount = Math.min(totalQuestions, currentNumber - 1 + (answerResult ? 1 : 0));
-  const progressValue = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
+  const progressValue =
+    totalQuestions > 0 ? Math.round(((currentNumber - 1) / totalQuestions) * 100) : 0;
+  const answered = session.multipleChoice.currentQuestion.selectedAnswerIndex !== undefined;
 
   return (
     <Card>
@@ -286,38 +212,38 @@ function InProgressView({
         <Progress value={progressValue} />
         <div className="space-y-2">
           <CardTitle className="text-2xl">
-            {session.multipleChoice.currentQuestion.word ?? "Practice prompt"}
+            {session.multipleChoice.currentQuestion.question ?? "Practice prompt"}
           </CardTitle>
           <CardDescription>Choose the correct translation from the options below.</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid gap-3 sm:grid-cols-2">
-          {session.multipleChoice.currentQuestion.options.map(option => {
-            const isSelected = answerResult?.selectedWordId === option.wordId;
-            const isCorrect = answerResult?.correctWordId === option.wordId;
-            const disabled = Boolean(answerResult) || Boolean(answeringOptionId);
+          {session.multipleChoice.currentQuestion.options.map((option, index) => {
+            const isSelected = index === session.multipleChoice.currentQuestion.selectedAnswerIndex;
+            const isCorrect = index === session.multipleChoice.currentQuestion.correctAnswerIndex;
+            const disabled = answered || answeringIndex !== null;
 
             return (
               <Button
-                key={option.wordId}
+                key={index}
                 type="button"
                 variant="outline"
                 className={cn(
                   "justify-start whitespace-normal text-left",
                   isCorrect &&
-                    answerResult &&
+                    answered &&
                     "border-emerald-500/70 bg-emerald-500/10 text-emerald-600",
                   isSelected &&
                     !isCorrect &&
-                    answerResult &&
+                    answered &&
                     "border-destructive/70 bg-destructive/10 text-destructive",
-                  answerResult && !isCorrect && !isSelected && "opacity-75"
+                  answered && !isCorrect && !isSelected && "opacity-75"
                 )}
                 disabled={disabled}
-                onClick={() => onSelectOption(option.wordId)}
+                onClick={() => onSelectOption(index)}
               >
-                {answerResult ? (
+                {answered ? (
                   isCorrect ? (
                     <CheckCircle2 className="text-emerald-500" />
                   ) : isSelected ? (
@@ -325,20 +251,21 @@ function InProgressView({
                   ) : (
                     <Circle className="text-muted-foreground" />
                   )
-                ) : answeringOptionId === option.wordId ? (
+                ) : answeringIndex === index ? (
                   <Loader2 className="animate-spin text-muted-foreground" />
                 ) : (
                   <Circle className="text-muted-foreground" />
                 )}
-                <span className="text-sm font-medium">{option.text}</span>
+                <span className="text-sm font-medium">{option}</span>
               </Button>
             );
           })}
         </div>
 
         <div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20 p-4 text-sm">
-          {answerResult ? (
-            answerResult.isCorrect ? (
+          {answered ? (
+            session.multipleChoice.currentQuestion.selectedAnswerIndex ===
+            session.multipleChoice.currentQuestion.correctAnswerIndex ? (
               <div className="flex items-center gap-2 font-medium text-emerald-600">
                 <CheckCircle2 /> Correct! Keep it up.
               </div>
@@ -360,10 +287,7 @@ function InProgressView({
         </div>
       </CardContent>
       <CardFooter className="flex flex-wrap items-center justify-between gap-3">
-        <span className="text-xs text-muted-foreground">
-          {answeredCount} of {totalQuestions} questions answered
-        </span>
-        <Button onClick={onNextQuestion} disabled={!answerResult || advancing}>
+        <Button onClick={onNextQuestion} disabled={!answered || advancing}>
           {advancing ? (
             <>
               <Loader2 className="animate-spin" />
@@ -381,19 +305,27 @@ function InProgressView({
   );
 }
 
-function CompletedView({ session }: { session: MultipleChoiceCompleted }) {
+function CompletedView({ session }: { session: MultipleChoiceStatus }) {
+  if (!session.completed) {
+    throw new Error("Practice session not completed.");
+  }
+
   const router = useRouter();
   const startMultipleChoice = useMutation(api.practiceSessions.startMultipleChoice);
   const [isRestarting, setIsRestarting] = useState(false);
   const questions = session.multipleChoice.questions;
   const totalQuestions = questions.length;
   const totalCorrect = questions.filter(question => {
-    const correctId = question.word?._id;
-    return correctId && question.selectedWordId === correctId;
+    return (
+      question.selectedAnswerIndex !== undefined &&
+      question.selectedAnswerIndex === question.correctAnswerIndex
+    );
   }).length;
   const accuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
 
   const handleRestart = async () => {
+    if (!session.multipleChoice.wordBoxId) return;
+
     try {
       setIsRestarting(true);
       const newSessionId = await startMultipleChoice({
@@ -462,23 +394,18 @@ function CompletedView({ session }: { session: MultipleChoiceCompleted }) {
         </CardHeader>
         <CardContent className="space-y-4">
           {questions.map((question, index) => {
-            const correctWord = question.word;
-            const allOptions = [question.word, ...question.otherWords].filter(
-              Boolean
-            ) as Doc<"words">[];
-            const selectedWord =
-              allOptions.find(option => option._id === question.selectedWordId) ?? null;
-            const isCorrect = correctWord?._id && question.selectedWordId === correctWord._id;
-            const correctAnswer = correctWord
-              ? getPreferredTranslation(correctWord)
-              : "Word unavailable";
-            const selectedAnswer = selectedWord
-              ? getPreferredTranslation(selectedWord)
-              : "Not answered";
+            const correctWord = question.question;
+            const isCorrect = question.selectedAnswerIndex === question.correctAnswerIndex;
+            const isSelectedAnswer = question.selectedAnswerIndex === index;
+            const correctAnswer = question.answers[question.correctAnswerIndex]?.text ?? "Unknown";
+            const selectedAnswer =
+              question.selectedAnswerIndex !== undefined
+                ? (question.answers[question.selectedAnswerIndex]?.text ?? null)
+                : null;
 
             return (
               <div
-                key={`${question.word?._id ?? index}-${index}`}
+                key={index}
                 className={cn(
                   "rounded-lg border p-4",
                   isCorrect
@@ -491,7 +418,7 @@ function CompletedView({ session }: { session: MultipleChoiceCompleted }) {
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
                       Question {index + 1}
                     </p>
-                    <h3 className="text-lg font-semibold">{correctWord?.word ?? "Word removed"}</h3>
+                    <h3 className="text-lg font-semibold">{correctWord ?? "Word removed"}</h3>
                   </div>
                   <Badge variant={isCorrect ? "secondary" : "destructive"}>
                     {isCorrect ? <CheckCircle2 /> : <XCircle />}
@@ -501,7 +428,7 @@ function CompletedView({ session }: { session: MultipleChoiceCompleted }) {
                 <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
                   <div>
                     <span className="block text-xs uppercase tracking-wide">Your answer</span>
-                    <span className={cn(!isCorrect && selectedWord ? "text-destructive" : "")}>
+                    <span className={cn(!isCorrect && isSelectedAnswer ? "text-destructive" : "")}>
                       {selectedAnswer}
                     </span>
                   </div>
@@ -591,8 +518,4 @@ function formatDateTime(timestamp: number) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(timestamp));
-}
-
-function getPreferredTranslation(word: Doc<"words">) {
-  return word.translations.en ?? word.translations.ru ?? word.word;
 }
