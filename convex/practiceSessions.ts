@@ -22,19 +22,28 @@ export const getPracticeSessions = query({
       .paginate(args.paginationOpts);
 
     return {
-      page: sessions.page.map(session => ({
-        _id: session._id,
-        _creationTime: session._creationTime,
-        mode: session.mode,
-        createdAt: session.createdAt,
-        completedAt: session.completedAt,
-        multipleChoice: {
-          wordBoxName: session.multipleChoice.wordBoxName,
-          totalQuestions: session.multipleChoice.questions.length,
-          answeredCount: session.multipleChoice.questions.filter(q => q.selectedWordId).length,
-          currentQuestionIndex: session.multipleChoice.currentQuestionIndex,
-        },
-      })),
+      page: sessions.page.map(session => {
+        const totalQuestions = session.multipleChoice.questions.length;
+        const answeredCount = session.multipleChoice.questions.filter(q => q.selectedWordId).length;
+        const correctCount = session.multipleChoice.questions.filter(
+          q => q.selectedWordId && q.selectedWordId === q.wordId
+        ).length;
+
+        return {
+          _id: session._id,
+          _creationTime: session._creationTime,
+          mode: session.mode,
+          createdAt: session.createdAt,
+          completedAt: session.completedAt,
+          multipleChoice: {
+            wordBoxName: session.multipleChoice.wordBoxName,
+            totalQuestions,
+            answeredCount,
+            correctCount,
+            currentQuestionIndex: session.multipleChoice.currentQuestionIndex,
+          },
+        };
+      }),
       isDone: sessions.isDone,
       continueCursor: sessions.continueCursor ?? null,
     };
