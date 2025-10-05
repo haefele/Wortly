@@ -28,7 +28,9 @@ import { IconOrb } from "@/components/ui/icon-orb";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { LearnConstants } from "./constants";
 
-type PracticeSessionSummary = FunctionReturnType<typeof api.practiceSessions.getPracticeSessions>["page"][number];
+type PracticeSessionSummary = FunctionReturnType<
+  typeof api.practiceSessions.getPracticeSessions
+>["page"][number];
 
 const PAGE_SIZE = 8;
 
