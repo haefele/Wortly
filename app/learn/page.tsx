@@ -11,6 +11,11 @@ import {
   Sparkles,
   ChevronDown,
   SquareStack,
+  Crown,
+  Medal,
+  Lightbulb,
+  Frown,
+  Trophy,
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { PageContainer } from "@/components/page-container";
@@ -34,6 +39,7 @@ type PracticeSessionSummary = {
     answeredCount: number;
     currentQuestionIndex?: number | null;
     wordBoxName: string;
+    correctCount: number;
   };
 };
 
@@ -138,17 +144,23 @@ function EmptyState({ onStart }: { onStart: () => void }) {
 
 function SessionCard({ session }: { session: PracticeSessionSummary }) {
   const status = getSessionStatusMeta(session);
+  const isCompleted = status.kind === "completed";
+  const scorePercent = session.multipleChoice.totalQuestions
+    ? Math.round(
+        (session.multipleChoice.correctCount / session.multipleChoice.totalQuestions) * 100
+      )
+    : 0;
+  const scoreMeta = getScoreGradeMeta(scorePercent);
 
-  const progressPercent =
-    status.kind === "completed"
-      ? 100
-      : Math.round(
-          (session.multipleChoice.answeredCount / session.multipleChoice.totalQuestions) * 100
-        );
+  const progressPercent = isCompleted
+    ? 100
+    : Math.round(
+        (session.multipleChoice.answeredCount / session.multipleChoice.totalQuestions) * 100
+      );
 
   return (
     <Link href={`/learn/${session._id}`} className="group">
-      <Card variant="clickable" className="h-full">
+      <Card variant="clickable">
         <CardHeader className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Tooltip>
@@ -165,14 +177,41 @@ function SessionCard({ session }: { session: PracticeSessionSummary }) {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Progress {progressPercent}%</span>
-              <span>
-                {session.multipleChoice.answeredCount}/{session.multipleChoice.totalQuestions}{" "}
-                answered
-              </span>
-            </div>
-            <Progress value={progressPercent} />
+            {isCompleted ? (
+              <div
+                className={`rounded-lg border p-3 text-xs ${scoreMeta.backgroundClass} ${scoreMeta.borderClass}`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm">
+                      <scoreMeta.icon className={`h-5 w-5 ${scoreMeta.textClass}`} />
+                    </div>
+                    <div>
+                      <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        Score
+                      </span>
+                      <div className={`text-lg font-semibold leading-none ${scoreMeta.textClass}`}>
+                        {scorePercent}%
+                      </div>
+                    </div>
+                  </div>
+                  <span className={`text-xs font-semibold ${scoreMeta.textClass}`}>
+                    {scoreMeta.label}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Progress {progressPercent}%</span>
+                  <span>
+                    {session.multipleChoice.answeredCount}/{session.multipleChoice.totalQuestions}{" "}
+                    answered
+                  </span>
+                </div>
+                <Progress value={progressPercent} />
+              </>
+            )}
           </div>
         </CardContent>
         <CardFooter className="flex items-center justify-end">
@@ -213,5 +252,49 @@ function getSessionStatusMeta(session: PracticeSessionSummary) {
       badgeClassName: "",
       ctaLabel: "Start practice",
     };
+  }
+}
+
+function getScoreGradeMeta(percent: number) {
+  if (percent === 100) {
+    return {
+      backgroundClass: "bg-yellow-50",
+      borderClass: "border-yellow-200",
+      textClass: "text-yellow-700",
+      label: "Flawless victory!",
+      icon: Trophy,
+    } as const;
+  } else if (percent >= 90) {
+    return {
+      backgroundClass: "bg-emerald-50",
+      borderClass: "border-emerald-200",
+      textClass: "text-emerald-700",
+      label: "Excellent recall!",
+      icon: Crown,
+    } as const;
+  } else if (percent >= 75) {
+    return {
+      backgroundClass: "bg-amber-50",
+      borderClass: "border-amber-200",
+      textClass: "text-amber-700",
+      label: "Great progress!",
+      icon: Medal,
+    } as const;
+  } else if (percent >= 50) {
+    return {
+      backgroundClass: "bg-blue-50",
+      borderClass: "border-blue-200/70",
+      textClass: "text-blue-700",
+      label: "Solid effort",
+      icon: Lightbulb,
+    } as const;
+  } else {
+    return {
+      backgroundClass: "bg-rose-50",
+      borderClass: "border-rose-200",
+      textClass: "text-rose-700",
+      label: "You can do better!",
+      icon: Frown,
+    } as const;
   }
 }
