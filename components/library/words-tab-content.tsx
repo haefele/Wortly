@@ -16,7 +16,11 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,8 +43,17 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
 import { WORD_TYPES } from "@/lib/word-types";
-import { ChevronDown, Filter, Loader2, Plus, Trash2, Search, X } from "lucide-react";
+import { ChevronDown, Filter, Plus, Trash2, Search, X } from "lucide-react";
 import { BulkAddWordsDialog } from "@/components/library/bulk-add-words-dialog";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Spinner } from "@/components/ui/spinner";
 
 interface WordsTabContentProps {
   boxId: Id<"wordBoxes">;
@@ -82,6 +95,22 @@ export function WordsTabContent({ boxId }: WordsTabContentProps) {
     }
   };
 
+  const trimmedSearchTerm = searchTerm.trim();
+  const emptyTitle =
+    trimmedSearchTerm.length > 0 || wordTypeFilter ? "No matching words" : "Add your first word";
+  const emptyDescription = (() => {
+    if (trimmedSearchTerm.length > 0 && wordTypeFilter) {
+      return `No matches found for "${trimmedSearchTerm}" and type "${wordTypeFilter}".`;
+    }
+    if (trimmedSearchTerm.length > 0) {
+      return `No matches found for "${trimmedSearchTerm}".`;
+    }
+    if (wordTypeFilter) {
+      return `No matches found for type "${wordTypeFilter}".`;
+    }
+    return "This collection does not have any words yet.";
+  })();
+
   return (
     <div className="space-y-5">
       {/* Sticky toolbar */}
@@ -89,17 +118,18 @@ export function WordsTabContent({ boxId }: WordsTabContentProps) {
         <Card variant="toolbar">
           {/* Left cluster: filters */}
           <div className="flex flex-wrap items-center gap-3 md:flex-1">
-            <div className="relative w-full sm:w-56">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
+            <InputGroup className="w-full sm:w-56">
+              <InputGroupAddon>
+                <Search className="text-muted-foreground" />
+              </InputGroupAddon>
+              <InputGroupInput
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 placeholder="Filter collection"
-                className="pl-9 pr-8"
                 maxLength={50}
                 aria-label="Filter words in this collection"
               />
-            </div>
+            </InputGroup>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="field" className="gap-1">
@@ -205,7 +235,7 @@ export function WordsTabContent({ boxId }: WordsTabContentProps) {
                               onClick={() => handleRemove(word._id)}
                             >
                               {removingWordIds.includes(word._id) ? (
-                                <Loader2 className="animate-spin" />
+                                <Spinner className="size-4" />
                               ) : (
                                 <Trash2 />
                               )}
@@ -219,16 +249,21 @@ export function WordsTabContent({ boxId }: WordsTabContentProps) {
 
                   {getWordsResult.results.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4}>
-                        <div className="rounded-lg border border-dashed bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
-                          {searchTerm.trim().length > 0 && wordTypeFilter
-                            ? `No matches found for "${searchTerm}" and type "${wordTypeFilter}".`
-                            : searchTerm.trim().length > 0
-                              ? `No matches found for "${searchTerm}".`
-                              : wordTypeFilter
-                                ? `No matches found for type "${wordTypeFilter}".`
-                                : "This collection does not have any words yet."}
-                        </div>
+                      <TableCell colSpan={4} className="p-0">
+                        <Empty className="border border-dashed bg-muted/30 py-12">
+                          <EmptyHeader>
+                            <EmptyMedia variant="icon">
+                              <Search className="text-muted-foreground" />
+                            </EmptyMedia>
+                            <EmptyTitle>{emptyTitle}</EmptyTitle>
+                            <EmptyDescription>{emptyDescription}</EmptyDescription>
+                          </EmptyHeader>
+                          {trimmedSearchTerm.length === 0 && !wordTypeFilter && (
+                            <EmptyContent>
+                              Keep building this collection by adding words from the search toolbar.
+                            </EmptyContent>
+                          )}
+                        </Empty>
                       </TableCell>
                     </TableRow>
                   )}

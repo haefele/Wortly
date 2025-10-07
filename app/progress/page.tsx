@@ -11,7 +11,7 @@ export default function ProgressPage() {
       description="Track your learning achievements"
       icon={TrendingUp}
     >
-      <FeatureComingSoon />
+      <FeatureComingSoon className="py-16" />
     </PageContainer>
   );
 }

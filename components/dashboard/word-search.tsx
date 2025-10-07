@@ -5,8 +5,22 @@ import { cva } from "class-variance-authority";
 import { useQuery } from "convex-helpers/react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { SearchingIndicator } from "@/components/dashboard/searching-indicator";
+import { ArticleBadge } from "@/components/ui/article-badge";
+import { WordTypeBadge } from "@/components/ui/word-type-badge";
+import { AddWordSuggestion } from "./add-word-suggestion";
+import { Check, Plus, Search } from "lucide-react";
+import type { Id } from "@/convex/_generated/dataModel";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -15,16 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArticleBadge } from "@/components/ui/article-badge";
-import { WordTypeBadge } from "@/components/ui/word-type-badge";
-import { AddWordSuggestion } from "./add-word-suggestion";
-import { Check, Loader2, Plus, Search } from "lucide-react";
-import type { Id } from "@/convex/_generated/dataModel";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { toast } from "sonner";
-import { getErrorMessage } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
 
 interface WordSearchProps {
   className?: string;
@@ -33,11 +38,11 @@ interface WordSearchProps {
   size?: "md" | "lg";
 }
 
-const inputVariants = cva("w-full", {
+const inputGroupVariants = cva("w-full", {
   variants: {
     size: {
-      md: "pl-9 text-base",
-      lg: "pl-12 h-14 text-lg rounded-xl",
+      md: "",
+      lg: "h-14 rounded-xl",
     },
   },
   defaultVariants: {
@@ -45,11 +50,11 @@ const inputVariants = cva("w-full", {
   },
 });
 
-const iconVariants = cva("absolute top-1/2 transform -translate-y-1/2 text-muted-foreground z-10", {
+const inputTextVariants = cva("", {
   variants: {
     size: {
-      md: "left-3 w-4 h-4",
-      lg: "left-4 w-5 h-5",
+      md: "text-base",
+      lg: "text-lg",
     },
   },
   defaultVariants: {
@@ -133,18 +138,26 @@ export function WordSearch({
 
   return (
     <div className={cn("relative", className)} ref={searchContainerRef}>
-      <div className="relative">
-        <Search className={iconVariants({ size: size })} />
-        <Input
+      <InputGroup className={inputGroupVariants({ size })}>
+        <InputGroupAddon>
+          <Search
+            className={cn(
+              "text-muted-foreground",
+              size === "lg" ? "size-5" : "size-4"
+            )}
+          />
+        </InputGroupAddon>
+        <InputGroupInput
           type="text"
           placeholder={placeholder ?? "Search German words..."}
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           onFocus={() => setIsDropdownOpen(searchTerm.trim().length > 0)}
-          className={inputVariants({ size: size })}
           maxLength={50}
+          className={inputTextVariants({ size })}
+          aria-label="Search German words"
         />
-      </div>
+      </InputGroup>
 
       {/* Search Results Dropdown */}
       {isDropdownOpen && (
@@ -215,11 +228,7 @@ export function WordSearch({
                                   disabled={addingWordIds.includes(word._id)}
                                   onClick={() => handleAddWord(word._id)}
                                 >
-                                  {addingWordIds.includes(word._id) ? (
-                                    <Loader2 className="animate-spin" />
-                                  ) : (
-                                    <Plus />
-                                  )}
+                                  {addingWordIds.includes(word._id) ? <Spinner /> : <Plus />}
                                 </Button>
                               )}
                             </div>
@@ -230,7 +239,6 @@ export function WordSearch({
                   </TableBody>
                 </Table>
 
-                {/* Show AddWordSuggestion if there are results but no exact match */}
                 {!searchResult.data.hasExactMatch && (
                   <div className="border-t">
                     <AddWordSuggestion

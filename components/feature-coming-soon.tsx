@@ -1,8 +1,29 @@
-export default function FeatureComingSoon() {
+import { Sparkles } from "lucide-react";
+
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+
+interface FeatureComingSoonProps {
+  className?: string;
+}
+
+export default function FeatureComingSoon({ className }: FeatureComingSoonProps) {
   return (
-    <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-      <span className="text-gray-500 text-lg mb-2">🚧</span>
-      <span className="text-gray-500">More features coming soon!</span>
-    </div>
+    <Empty className={className ? className : "border border-dashed bg-muted/30"}>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Sparkles className="size-6" />
+        </EmptyMedia>
+        <EmptyTitle>More features are on the way!</EmptyTitle>
+        <EmptyDescription>
+          We&apos;re actively building this - check back soon for new functionality.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
   );
 }

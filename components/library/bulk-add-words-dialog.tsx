@@ -16,7 +16,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
-import { Loader2, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 interface BulkAddWordsDialogProps {
   boxId: Id<"wordBoxes">;
@@ -94,7 +95,7 @@ export function BulkAddWordsDialog({ boxId, open, onOpenChange }: BulkAddWordsDi
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? <Loader2 className="animate-spin" /> : <Upload />}
+              {isSubmitting ? <Spinner className="size-4" /> : <Upload />}
               {isSubmitting ? "Adding..." : "Add words"}
             </Button>
           </DialogFooter>

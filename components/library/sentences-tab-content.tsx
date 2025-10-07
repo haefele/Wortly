@@ -14,7 +14,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -28,7 +33,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { SearchingIndicator } from "@/components/dashboard/searching-indicator";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
-import { ChevronDown, Loader2, Plus, Search, Trash2 } from "lucide-react";
+import { ChevronDown, Plus, Search, Trash2 } from "lucide-react";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Spinner } from "@/components/ui/spinner";
 
 interface SentencesTabContentProps {
   boxId: Id<"wordBoxes">;
@@ -91,46 +104,50 @@ export function SentencesTabContent({ boxId }: SentencesTabContentProps) {
     }
   };
 
+  const trimmedSentenceSearchTerm = sentenceSearchTerm.trim();
+  const sentencesEmptyTitle =
+    trimmedSentenceSearchTerm.length > 0 ? "No matching sentences" : "Add your first sentence";
+  const sentencesEmptyDescription =
+    trimmedSentenceSearchTerm.length > 0
+      ? `No matches found for "${trimmedSentenceSearchTerm}".`
+      : "This collection does not have any sentences yet.";
+
   return (
     <div className="space-y-5">
       <div className="sticky top-0 z-20 -mx-1 sm:mx-0">
         <Card variant="toolbar">
           <div className="flex flex-wrap items-center gap-3 md:flex-1">
-            <div className="relative w-full sm:w-56">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
+            <InputGroup className="w-full sm:w-56">
+              <InputGroupAddon>
+                <Search className="text-muted-foreground" />
+              </InputGroupAddon>
+              <InputGroupInput
                 value={sentenceSearchTerm}
                 onChange={event => setSentenceSearchTerm(event.target.value)}
                 placeholder="Filter sentences"
-                className="pl-9"
                 maxLength={200}
                 aria-label="Filter sentences in this collection"
               />
-            </div>
+            </InputGroup>
           </div>
 
           <form onSubmit={handleAddSentence} className="flex w-full md:flex-1">
-            <div className="relative w-full md:flex-1">
-              <Input
+            <InputGroup className="w-full md:flex-1">
+              <InputGroupInput
                 value={newSentence}
                 onChange={event => setNewSentence(event.target.value)}
                 placeholder="Add a German sentence"
-                className="pr-12"
                 maxLength={280}
                 disabled={addingSentence}
-                required
+                aria-label="Add a German sentence"
               />
-              <Button
-                type="submit"
-                variant="ghost"
-                size="icon"
-                disabled={addingSentence}
-                className="absolute right-1 top-1/2 -translate-y-1/2"
-              >
-                {addingSentence ? <Loader2 className="animate-spin" /> : <Plus />}
-                <span className="sr-only">Add sentence</span>
-              </Button>
-            </div>
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton type="submit" disabled={addingSentence}>
+                  {addingSentence ? <Spinner className="size-4" /> : <Plus />}
+                  <span className="sr-only">Add sentence</span>
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
           </form>
         </Card>
       </div>
@@ -184,7 +201,7 @@ export function SentencesTabContent({ boxId }: SentencesTabContentProps) {
                               disabled={removingSentenceIds.includes(sentence._id)}
                             >
                               {removingSentenceIds.includes(sentence._id) ? (
-                                <Loader2 className="animate-spin" />
+                                <Spinner className="size-4" />
                               ) : (
                                 <Trash2 />
                               )}
@@ -198,12 +215,16 @@ export function SentencesTabContent({ boxId }: SentencesTabContentProps) {
 
                   {getSentencesResult.results.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={2}>
-                        <div className="rounded-lg border border-dashed bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
-                          {sentenceSearchTerm.trim().length > 0
-                            ? `No matches found for "${sentenceSearchTerm}".`
-                            : "This collection does not have any sentences yet."}
-                        </div>
+                      <TableCell colSpan={2} className="p-0">
+                        <Empty className="border border-dashed bg-muted/30 py-12">
+                          <EmptyHeader>
+                            <EmptyMedia variant="icon">
+                              <Search className="text-muted-foreground" />
+                            </EmptyMedia>
+                            <EmptyTitle>{sentencesEmptyTitle}</EmptyTitle>
+                            <EmptyDescription>{sentencesEmptyDescription}</EmptyDescription>
+                          </EmptyHeader>
+                        </Empty>
                       </TableCell>
                     </TableRow>
                   )}
