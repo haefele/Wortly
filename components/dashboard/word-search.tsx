@@ -5,11 +5,7 @@ import { cva } from "class-variance-authority";
 import { useQuery } from "convex-helpers/react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { SearchingIndicator } from "@/components/dashboard/searching-indicator";
 import { ArticleBadge } from "@/components/ui/article-badge";
 import { WordTypeBadge } from "@/components/ui/word-type-badge";
@@ -140,12 +136,7 @@ export function WordSearch({
     <div className={cn("relative", className)} ref={searchContainerRef}>
       <InputGroup className={inputGroupVariants({ size })}>
         <InputGroupAddon>
-          <Search
-            className={cn(
-              "text-muted-foreground",
-              size === "lg" ? "size-5" : "size-4"
-            )}
-          />
+          <Search className={cn("text-muted-foreground", size === "lg" ? "size-5" : "size-4")} />
         </InputGroupAddon>
         <InputGroupInput
           type="text"
