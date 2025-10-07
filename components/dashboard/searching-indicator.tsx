@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
 
 const containerVariants = cva("text-center text-muted-foreground", {
   variants: {
@@ -15,11 +15,11 @@ const containerVariants = cva("text-center text-muted-foreground", {
   },
 });
 
-const skeletonVariants = cva("rounded-full bg-primary", {
+const spinnerVariants = cva("text-primary", {
   variants: {
     size: {
-      sm: "h-3 w-3",
-      md: "h-4 w-4",
+      sm: "size-3",
+      md: "size-4",
     },
   },
   defaultVariants: {
@@ -40,7 +40,7 @@ export function SearchingIndicator({
   return (
     <div className={cn(containerVariants({ size }), className)}>
       <div className="flex items-center justify-center space-x-2">
-        <Skeleton className={skeletonVariants({ size })} />
+        <Spinner className={spinnerVariants({ size })} />
         <span>{label}</span>
       </div>
     </div>

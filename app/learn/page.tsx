@@ -7,7 +7,6 @@ import {
   GraduationCap,
   Play,
   ArrowRight,
-  Loader2,
   Sparkles,
   ChevronDown,
   Crown,
@@ -27,6 +26,15 @@ import { StartPracticeDialog } from "@/components/learn/start-practice-dialog";
 import { IconOrb } from "@/components/ui/icon-orb";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { LearnConstants } from "./constants";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 type PracticeSessionSummary = FunctionReturnType<
   typeof api.practiceSessions.getPracticeSessions
@@ -63,7 +71,7 @@ export default function LearnPage() {
         }
       >
         {!isInitialLoading && !hasSessions && (
-          <EmptyState onStart={() => setStartDialogOpen(true)} />
+          <PracticeEmptyState onStart={() => setStartDialogOpen(true)} />
         )}
 
         {hasSessions && (
@@ -84,7 +92,7 @@ export default function LearnPage() {
                 >
                   {practiceSessions.isLoading ? (
                     <>
-                      <Loader2 className="animate-spin" /> Loading more
+                      <Spinner className="size-4" /> Loading more
                     </>
                   ) : (
                     <>
@@ -103,30 +111,34 @@ export default function LearnPage() {
   );
 }
 
-function EmptyState({ onStart }: { onStart: () => void }) {
+function PracticeEmptyState({ onStart }: { onStart: () => void }) {
   return (
     <Card variant="spotlight">
-      <CardContent className="flex flex-col items-center gap-6 p-12 text-center">
-        <IconOrb size="lg" icon={Sparkles} />
-        <div className="space-y-3">
-          <h3 className="text-2xl font-semibold">Ready for your first practice session?</h3>
-          <p className="max-w-2xl text-sm text-muted-foreground">
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="default">
+            <IconOrb size="lg" icon={Sparkles} />
+          </EmptyMedia>
+          <EmptyTitle>Ready for your first practice session?</EmptyTitle>
+          <EmptyDescription>
             Create a collection of words and challenge yourself with multiple-choice quizzes. Track
             progress, revisit past attempts, and turn vocabulary into lasting knowledge.
-          </p>
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
-          <Button size="lg" variant="gradient" onClick={onStart}>
-            <Play /> Start practice session
-          </Button>
-          <Button variant="ghost" size="lg" asChild>
-            <Link href="/library">
-              Browse collections
-              <ArrowRight />
-            </Link>
-          </Button>
-        </div>
-      </CardContent>
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
+            <Button size="lg" variant="gradient" onClick={onStart}>
+              <Play /> Start practice session
+            </Button>
+            <Button variant="ghost" size="lg" asChild>
+              <Link href="/library">
+                Browse collections
+                <ArrowRight />
+              </Link>
+            </Button>
+          </div>
+        </EmptyContent>
+      </Empty>
     </Card>
   );
 }

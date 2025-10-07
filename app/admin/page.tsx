@@ -17,7 +17,7 @@ export default function AdminPage() {
       description="Admin panel for managing the application and admin actions"
       icon={Shield}
     >
-      <FeatureComingSoon />
+      <FeatureComingSoon className="py-16" />
     </PageContainer>
   );
 }

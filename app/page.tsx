@@ -2,16 +2,9 @@
 
 import { PageContainer } from "@/components/page-container";
 import { WordSearch } from "@/components/dashboard/word-search";
-import { RecentWords } from "@/components/dashboard/recent-words";
 import { Home } from "lucide-react";
-import type { Doc } from "@/convex/_generated/dataModel";
 
 export default function DashboardPage() {
-  const handleAddToLibrary = (word: Doc<"words">) => {
-    // TODO: Implement add to library functionality
-    console.log("Adding word to library:", word);
-  };
-
   return (
     <PageContainer title="Dashboard" description="Search and explore German words" icon={Home}>
       <section className="space-y-6">
@@ -23,9 +16,6 @@ export default function DashboardPage() {
         </div>
         <WordSearch className="mx-auto max-w-2xl" size="lg" />
       </section>
-
-      {/* Recent Words Section */}
-      <RecentWords onAddToLibrary={handleAddToLibrary} />
     </PageContainer>
   );
 }

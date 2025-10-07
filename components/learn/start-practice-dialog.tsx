@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowRight, ChevronDown, ListChecks, Loader2, Play } from "lucide-react";
+import { ArrowRight, ChevronDown, ListChecks, Play } from "lucide-react";
 import { useMutation } from "convex/react";
 import { useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
@@ -37,6 +37,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 
 interface StartPracticeDialogProps {
   open: boolean;
@@ -178,7 +179,7 @@ export function StartPracticeDialog({ open, onOpenChange }: StartPracticeDialogP
                 <Button onClick={handleStartMultipleChoice} disabled={isStarting}>
                   {isStarting ? (
                     <>
-                      <Loader2 className="animate-spin" /> Starting…
+                      <Spinner className="size-4" /> Starting…
                     </>
                   ) : (
                     <>

@@ -6,10 +6,11 @@ import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { IconOrb } from "@/components/ui/icon-orb";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, Sparkles, AlertCircle } from "lucide-react";
+import { Sparkles, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
 import type { Doc } from "@/convex/_generated/dataModel";
+import { Spinner } from "@/components/ui/spinner";
 
 interface AddWordSuggestionProps {
   searchTerm: string;
@@ -54,13 +55,7 @@ export function AddWordSuggestion({
     case "loading":
       return (
         <div className="text-center py-4 md:py-8 space-y-6">
-          <IconOrb
-            tone="blue"
-            size="lg"
-            className="mx-auto"
-            icon={Loader2}
-            iconClassName="animate-spin"
-          />
+          <IconOrb tone="blue" size="lg" className="mx-auto" icon={Spinner} />
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-foreground">
               Adding &ldquo;{searchTerm}&rdquo;...

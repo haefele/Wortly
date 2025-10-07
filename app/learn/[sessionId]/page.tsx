@@ -12,7 +12,6 @@ import {
   BookOpenCheck,
   CheckCircle2,
   Circle,
-  Loader2,
   RefreshCcw,
   Trophy,
   XCircle,
@@ -34,6 +33,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, getErrorMessage } from "@/lib/utils";
 import { FunctionReturnType } from "convex/server";
+import { Spinner } from "@/components/ui/spinner";
 
 type MultipleChoiceStatus = FunctionReturnType<typeof api.practiceSessions.getMultipleChoiceStatus>;
 
@@ -249,10 +249,10 @@ function InProgressView({
                   ) : isSelected ? (
                     <XCircle className="text-destructive" />
                   ) : (
-                    <Circle className="text-muted-foreground" />
+                    <Circle />
                   )
                 ) : answeringIndex === index ? (
-                  <Loader2 className="animate-spin text-muted-foreground" />
+                  <Spinner className="size-4" />
                 ) : (
                   <Circle className="text-muted-foreground" />
                 )}
@@ -290,7 +290,7 @@ function InProgressView({
         <Button onClick={onNextQuestion} disabled={!answered || advancing}>
           {advancing ? (
             <>
-              <Loader2 className="animate-spin" />
+              <Spinner className="size-4" />
               {isLastQuestion ? "Finishing..." : "Loading..."}
             </>
           ) : (
@@ -376,7 +376,7 @@ function CompletedView({ session }: { session: MultipleChoiceStatus }) {
           <Button onClick={handleRestart} disabled={isRestarting}>
             {isRestarting ? (
               <>
-                <Loader2 className="animate-spin" /> Starting…
+                <Spinner className="size-4" /> Starting…
               </>
             ) : (
               <>

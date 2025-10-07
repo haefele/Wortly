@@ -11,6 +11,14 @@ import { useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
 import { NewWordBoxDialog } from "@/components/library/new-wordbox-dialog";
 import { IconOrb } from "@/components/ui/icon-orb";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 export default function LibraryPage() {
   const [newWordBoxDialogIsOpen, setNewWordBoxDialogIsOpen] = useState(false);
@@ -31,34 +39,36 @@ export default function LibraryPage() {
       >
         {wordBoxesResult.isSuccess && wordBoxesResult.data.length === 0 && (
           <Card variant="spotlight">
-            <CardContent className="p-12 text-center flex flex-col items-center gap-6">
-              <IconOrb size="lg" icon={FolderOpen} />
-              <div className="space-y-2">
-                <h3 className="text-2xl font-semibold text-foreground">
-                  Create your first Collection!
-                </h3>
-                <p className="max-w-md text-sm text-muted-foreground">
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="default">
+                  <IconOrb size="lg" icon={FolderOpen} />
+                </EmptyMedia>
+                <EmptyTitle>Create your first collection</EmptyTitle>
+                <EmptyDescription>
                   Group related vocabulary, track progress with clarity, and bring structure to your
                   learning journey.
-                </p>
-              </div>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
-                <Button
-                  size="lg"
-                  variant="gradient"
-                  onClick={() => setNewWordBoxDialogIsOpen(true)}
-                >
-                  <Plus />
-                  New Collection
-                </Button>
-                <Button variant="ghost" size="lg" asChild>
-                  <Link href="/">
-                    Discover words
-                    <ArrowRight />
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
+                  <Button
+                    size="lg"
+                    variant="gradient"
+                    onClick={() => setNewWordBoxDialogIsOpen(true)}
+                  >
+                    <Plus />
+                    New Collection
+                  </Button>
+                  <Button variant="ghost" size="lg" asChild>
+                    <Link href="/">
+                      Discover words
+                      <ArrowRight />
+                    </Link>
+                  </Button>
+                </div>
+              </EmptyContent>
+            </Empty>
           </Card>
         )}
 
