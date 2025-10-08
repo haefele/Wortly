@@ -8,7 +8,6 @@ import {
   Play,
   ArrowRight,
   Sparkles,
-  ChevronDown,
   Crown,
   Medal,
   Lightbulb,
@@ -28,7 +27,8 @@ import { StartPracticeDialog } from "./start-practice-dialog";
 import { IconOrb } from "@/components/ui/icon-orb";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { LearnConstants } from "./constants";
-import { Spinner } from "@/components/ui/spinner";
+import { InfiniteScrollSentinel } from "@/components/infinite-scroll-sentinel";
+import { SearchingIndicator } from "@/components/searching-indicator";
 import {
   Empty,
   EmptyContent,
@@ -42,7 +42,7 @@ type PracticeSessionSummary = FunctionReturnType<
   typeof api.practiceSessions.getPracticeSessions
 >["page"][number];
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 24;
 
 export default function LearnPage() {
   const [startDialogOpen, setStartDialogOpen] = useState(false);
@@ -85,24 +85,11 @@ export default function LearnPage() {
             </div>
 
             {canLoadMore && (
-              <div className="flex justify-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => practiceSessions.loadMore(PAGE_SIZE)}
-                  disabled={practiceSessions.isLoading}
-                >
-                  {practiceSessions.isLoading ? (
-                    <>
-                      <Spinner className="size-4" /> Loading more
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown /> Load more sessions
-                    </>
-                  )}
-                </Button>
-              </div>
+              <InfiniteScrollSentinel onLoadMore={() => practiceSessions.loadMore(PAGE_SIZE)} />
+            )}
+
+            {practiceSessions.isLoading && (
+              <SearchingIndicator size="sm" className="py-2" label="Loading more sessions..." />
             )}
           </div>
         )}
