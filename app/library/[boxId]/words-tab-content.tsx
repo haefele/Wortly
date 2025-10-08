@@ -246,7 +246,7 @@ export function WordsTabContent({ boxId }: WordsTabContentProps) {
                   {getWordsResult.results.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={4} className="p-0">
-                        <Empty className="border border-dashed bg-muted/30 py-12">
+                        <Empty className="py-12">
                           <EmptyHeader>
                             <EmptyMedia variant="icon">
                               <Search className="text-muted-foreground" />
@@ -254,11 +254,6 @@ export function WordsTabContent({ boxId }: WordsTabContentProps) {
                             <EmptyTitle>{emptyTitle}</EmptyTitle>
                             <EmptyDescription>{emptyDescription}</EmptyDescription>
                           </EmptyHeader>
-                          {trimmedSearchTerm.length === 0 && !wordTypeFilter && (
-                            <EmptyContent>
-                              Keep building this collection by adding words from the search toolbar.
-                            </EmptyContent>
-                          )}
                         </Empty>
                       </TableCell>
                     </TableRow>
