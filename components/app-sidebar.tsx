@@ -94,14 +94,10 @@ export function AppSidebar() {
                     <div className="space-y-1">
                       <h4 className="text-sm font-semibold">Streak at risk!</h4>
                       <p className="text-xs text-muted-foreground">
-                        Your {streakDays}-day streak will expire if you don't practice today.
+                        Your {streakDays}-day streak will expire if you don&apos;t practice today.
                       </p>
                     </div>
-                    <Button
-                      asChild
-                      size="sm"
-                      className="w-full"
-                    >
+                    <Button asChild size="sm" className="w-full">
                       <Link href="/learn">Practice now!</Link>
                     </Button>
                   </div>

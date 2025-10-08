@@ -48,7 +48,7 @@ export const getMe = query({
 
 export const getUserStreak = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const user = await getCurrentUser(ctx);
 
     const streak = user.streak;
