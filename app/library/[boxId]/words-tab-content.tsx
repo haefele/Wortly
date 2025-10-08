@@ -43,7 +43,6 @@ import { Filter, Plus, Trash2, Search, X } from "lucide-react";
 import { BulkAddWordsDialog } from "./bulk-add-words-dialog";
 import {
   Empty,
-  EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
