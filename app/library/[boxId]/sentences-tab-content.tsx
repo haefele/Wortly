@@ -216,7 +216,7 @@ export function SentencesTabContent({ boxId }: SentencesTabContentProps) {
                   {getSentencesResult.results.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={2} className="p-0">
-                        <Empty className="border border-dashed bg-muted/30 py-12">
+                        <Empty className="py-12">
                           <EmptyHeader>
                             <EmptyMedia variant="icon">
                               <Search className="text-muted-foreground" />
