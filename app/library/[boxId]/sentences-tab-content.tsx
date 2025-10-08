@@ -30,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { SearchingIndicator } from "@/components/dashboard/searching-indicator";
+import { SearchingIndicator } from "@/components/searching-indicator";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
 import { ChevronDown, Plus, Search, Trash2 } from "lucide-react";

@@ -16,11 +16,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EditWordBoxDialog } from "@/components/library/edit-wordbox-dialog";
-import { DeleteWordBoxDialog } from "@/components/library/delete-wordbox-dialog";
+import { EditWordBoxDialog } from "./edit-wordbox-dialog";
+import { DeleteWordBoxDialog } from "./delete-wordbox-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WordsTabContent } from "@/components/library/words-tab-content";
-import { SentencesTabContent } from "@/components/library/sentences-tab-content";
+import { WordsTabContent } from "./words-tab-content";
+import { SentencesTabContent } from "./sentences-tab-content";
 
 export default function LibraryBoxDetailPage() {
   const router = useRouter();
