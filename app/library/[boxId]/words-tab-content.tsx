@@ -39,7 +39,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
 import { WORD_TYPES } from "@/lib/word-types";
-import { ChevronDown, Filter, Plus, Trash2, Search, X } from "lucide-react";
+import { Filter, Plus, Trash2, Search, X } from "lucide-react";
 import { BulkAddWordsDialog } from "./bulk-add-words-dialog";
 import {
   Empty,
@@ -50,6 +50,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
+import { InfiniteScrollSentinel } from "@/components/infinite-scroll-sentinel";
 
 interface WordsTabContentProps {
   boxId: Id<"wordBoxes">;
@@ -264,18 +265,9 @@ export function WordsTabContent({ boxId }: WordsTabContentProps) {
           )}
 
           {getWordsResult.status === "CanLoadMore" && (
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => getWordsResult.loadMore(25)}
-                disabled={getWordsResult.isLoading}
-              >
-                <ChevronDown />
-                Load more words
-              </Button>
-            </div>
+            <InfiniteScrollSentinel onLoadMore={() => getWordsResult.loadMore(25)} />
           )}
+
           {getWordsResult.status === "LoadingMore" && (
             <SearchingIndicator size="sm" className="py-2" label="Loading more words..." />
           )}

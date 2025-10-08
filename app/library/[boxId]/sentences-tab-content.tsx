@@ -33,7 +33,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { SearchingIndicator } from "@/components/searching-indicator";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
-import { ChevronDown, Plus, Search, Trash2 } from "lucide-react";
+import { Plus, Search, Trash2 } from "lucide-react";
 import {
   Empty,
   EmptyDescription,
@@ -42,6 +42,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
+import { InfiniteScrollSentinel } from "@/components/infinite-scroll-sentinel";
 
 interface SentencesTabContentProps {
   boxId: Id<"wordBoxes">;
@@ -234,18 +235,9 @@ export function SentencesTabContent({ boxId }: SentencesTabContentProps) {
           )}
 
           {getSentencesResult.status === "CanLoadMore" && (
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => getSentencesResult.loadMore(25)}
-                disabled={getSentencesResult.isLoading}
-              >
-                <ChevronDown />
-                Load more sentences
-              </Button>
-            </div>
+            <InfiniteScrollSentinel onLoadMore={() => getSentencesResult.loadMore(25)} />
           )}
+
           {getSentencesResult.status === "LoadingMore" && (
             <SearchingIndicator size="sm" className="py-2" label="Loading more sentences..." />
           )}
