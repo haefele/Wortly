@@ -5,7 +5,7 @@ import { usePaginatedQuery, useQuery } from "convex-helpers/react";
 import { useMutation } from "convex/react";
 import type { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
-import { WordSearch } from "@/components/dashboard/word-search";
+import { WordSearch } from "@/components/word-search";
 import {
   Card,
   CardContent,
@@ -34,13 +34,13 @@ import {
 } from "@/components/ui/table";
 import { ArticleBadge } from "@/components/ui/article-badge";
 import { WordTypeBadge } from "@/components/ui/word-type-badge";
-import { SearchingIndicator } from "@/components/dashboard/searching-indicator";
+import { SearchingIndicator } from "@/components/searching-indicator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
 import { WORD_TYPES } from "@/lib/word-types";
 import { ChevronDown, Filter, Plus, Trash2, Search, X } from "lucide-react";
-import { BulkAddWordsDialog } from "@/components/library/bulk-add-words-dialog";
+import { BulkAddWordsDialog } from "./bulk-add-words-dialog";
 import {
   Empty,
   EmptyContent,

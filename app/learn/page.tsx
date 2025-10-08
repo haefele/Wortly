@@ -22,7 +22,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { StartPracticeDialog } from "@/components/learn/start-practice-dialog";
+import { StartPracticeDialog } from "./start-practice-dialog";
 import { IconOrb } from "@/components/ui/icon-orb";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { LearnConstants } from "./constants";

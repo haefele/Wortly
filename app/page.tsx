@@ -1,7 +1,7 @@
 "use client";
 
 import { PageContainer } from "@/components/page-container";
-import { WordSearch } from "@/components/dashboard/word-search";
+import { WordSearch } from "@/components/word-search";
 import { Home } from "lucide-react";
 
 export default function DashboardPage() {

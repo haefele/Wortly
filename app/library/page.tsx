@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
-import { NewWordBoxDialog } from "@/components/library/new-wordbox-dialog";
+import { NewWordBoxDialog } from "./new-wordbox-dialog";
 import { IconOrb } from "@/components/ui/icon-orb";
 import {
   Empty,

@@ -6,7 +6,7 @@ import { useQuery } from "convex-helpers/react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { SearchingIndicator } from "@/components/dashboard/searching-indicator";
+import { SearchingIndicator } from "@/components/searching-indicator";
 import { ArticleBadge } from "@/components/ui/article-badge";
 import { WordTypeBadge } from "@/components/ui/word-type-badge";
 import { AddWordSuggestion } from "./add-word-suggestion";
