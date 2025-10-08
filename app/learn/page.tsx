@@ -14,6 +14,9 @@ import {
   Frown,
   Trophy,
   Clock,
+  CheckCircle2,
+  Circle,
+  CircleDashed,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { api } from "@/convex/_generated/api";
@@ -166,6 +169,7 @@ function SessionCard({ session }: { session: PracticeSessionSummary }) {
             <CardTitle>{session.multipleChoice.wordBoxName}</CardTitle>
           </div>
           <Badge variant={status.badgeVariant} className={status.badgeClassName}>
+            <status.icon className="h-3 w-3" />
             {status.label}
           </Badge>
         </CardHeader>
@@ -238,6 +242,7 @@ function getSessionStatusMeta(session: PracticeSessionSummary) {
       badgeVariant: "default" as const,
       badgeClassName: "bg-emerald-500 text-white",
       ctaLabel: "Review",
+      icon: CheckCircle2,
     };
   } else if (hasStarted) {
     return {
@@ -246,6 +251,7 @@ function getSessionStatusMeta(session: PracticeSessionSummary) {
       badgeVariant: "outline" as const,
       badgeClassName: "border-primary text-primary",
       ctaLabel: "Continue",
+      icon: CircleDashed,
     };
   } else {
     return {
@@ -254,6 +260,7 @@ function getSessionStatusMeta(session: PracticeSessionSummary) {
       badgeVariant: "secondary" as const,
       badgeClassName: "",
       ctaLabel: "Start",
+      icon: Circle,
     };
   }
 }
