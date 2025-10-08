@@ -5,6 +5,7 @@ import { getCurrentUser } from "./users";
 import { Doc, Id } from "./_generated/dataModel";
 import { pickRandomDistinctElements, shuffle } from "./lib/shuffle";
 import schema from "./schema";
+import { internal } from "./_generated/api";
 
 const MAX_QUESTIONS = 10;
 const OPTIONS_PER_QUESTION = 4;
@@ -293,11 +294,19 @@ export const nextQuestionMultipleChoice = mutation({
     if (nextIndex >= session.multipleChoice.questions.length) {
       const { currentQuestionIndex: _omit, ...rest } = session.multipleChoice;
 
+      const completedAt = session.completedAt ?? Date.now();
+
       await ctx.db.patch(session._id, {
         multipleChoice: {
           ...rest,
         },
-        completedAt: session.completedAt ?? Date.now(),
+        completedAt,
+      });
+
+      // Update streak when session is completed
+      await ctx.scheduler.runAfter(0, internal.users.updateStreak, {
+        userId: user._id,
+        completedAt,
       });
 
       return {

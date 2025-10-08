@@ -20,6 +20,10 @@ import { usePathname } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWortlyUser } from "@/contexts/user-context";
 import { Doc } from "@/convex/_generated/dataModel";
+import { useQuery } from "convex-helpers/react";
+import { api } from "@/convex/_generated/api";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Button } from "@/components/ui/button";
 
 const getNavigationItems = (user?: Doc<"users">) => {
   const baseItems = [
@@ -60,9 +64,11 @@ export function AppSidebar() {
   const { user, isLoading } = useWortlyUser();
   const pathname = usePathname();
   const { state, isMobile, setOpenMobile } = useSidebar();
-
-  const streakDays = 5; // This would come from your database/state
   const navigationItems = getNavigationItems(user);
+
+  const getUserStreakResult = useQuery(api.users.getUserStreak);
+  const streakDays = getUserStreakResult.data?.streakDays ?? 0;
+  const needsPracticeToday = getUserStreakResult.data?.needsPracticeToday ?? false;
 
   return (
     <Sidebar variant="inset">
@@ -73,10 +79,40 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col">
             <h2 className="text-lg font-semibold">Wortly</h2>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Flame className="h-3 w-3 text-orange-500" />
-              <span>{streakDays} day streak</span>
-            </div>
+            {getUserStreakResult.isPending ? (
+              <Skeleton className="h-3 w-20" />
+            ) : needsPracticeToday && streakDays > 0 ? (
+              <HoverCard>
+                <HoverCardTrigger asChild>
+                  <div className="flex items-center gap-1 text-xs text-red-500 cursor-pointer">
+                    <Flame className="h-3 w-3 text-orange-500" />
+                    <span>{streakDays} day streak</span>
+                  </div>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-64">
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-semibold">Streak at risk!</h4>
+                      <p className="text-xs text-muted-foreground">
+                        Your {streakDays}-day streak will expire if you don't practice today.
+                      </p>
+                    </div>
+                    <Button
+                      asChild
+                      size="sm"
+                      className="w-full"
+                    >
+                      <Link href="/learn">Practice now!</Link>
+                    </Button>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
+            ) : (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Flame className="h-3 w-3 text-orange-500" />
+                <span>{streakDays} day streak</span>
+              </div>
+            )}
           </div>
           {state === "expanded" && !isMobile && <SidebarTrigger className="ml-auto" />}
         </div>
