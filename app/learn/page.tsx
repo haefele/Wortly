@@ -14,7 +14,9 @@ import {
   Lightbulb,
   Frown,
   Trophy,
+  Clock,
 } from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
 import { api } from "@/convex/_generated/api";
 import type { FunctionReturnType } from "convex/server";
 import { PageContainer } from "@/components/page-container";
@@ -159,6 +161,10 @@ function SessionCard({ session }: { session: PracticeSessionSummary }) {
         (session.multipleChoice.answeredCount / session.multipleChoice.totalQuestions) * 100
       );
 
+  const displayDate = session.completedAt ?? session.createdAt;
+  const relativeDate = formatDistanceToNow(displayDate, { addSuffix: true });
+  const exactDate = format(displayDate, "Pp");
+
   return (
     <Link href={`/learn/${session._id}`} className="group">
       <Card variant="clickable">
@@ -215,7 +221,16 @@ function SessionCard({ session }: { session: PracticeSessionSummary }) {
             )}
           </div>
         </CardContent>
-        <CardFooter className="flex items-center justify-end">
+        <CardFooter className="flex items-center justify-between">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Clock className="h-3.5 w-3.5" />
+                <span>{relativeDate}</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">{exactDate}</TooltipContent>
+          </Tooltip>
           <span className="text-muted-foreground flex items-center text-xs transition-transform duration-200 group-hover/card:translate-x-1">
             {status.ctaLabel}
             <ArrowRight className="h-3.5 w-3.5 ml-1" />
@@ -235,7 +250,7 @@ function getSessionStatusMeta(session: PracticeSessionSummary) {
       label: "Completed",
       badgeVariant: "default" as const,
       badgeClassName: "bg-emerald-500 text-white",
-      ctaLabel: "Review results",
+      ctaLabel: "Review",
     };
   } else if (hasStarted) {
     return {
@@ -243,7 +258,7 @@ function getSessionStatusMeta(session: PracticeSessionSummary) {
       label: "In progress",
       badgeVariant: "outline" as const,
       badgeClassName: "border-primary text-primary",
-      ctaLabel: "Continue practice",
+      ctaLabel: "Continue",
     };
   } else {
     return {
@@ -251,7 +266,7 @@ function getSessionStatusMeta(session: PracticeSessionSummary) {
       label: "Not started",
       badgeVariant: "secondary" as const,
       badgeClassName: "",
-      ctaLabel: "Start practice",
+      ctaLabel: "Start",
     };
   }
 }
