@@ -24,6 +24,7 @@ import { useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const getNavigationItems = (user?: Doc<"users">) => {
   const baseItems = [
@@ -144,7 +145,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border">
+      <SidebarFooter className={cn("border-t border-sidebar-border p-0 pt-2", isMobile && "p-2")}>
         {isLoading || !user ? (
           <div className="flex items-center gap-3 px-2 py-3">
             <Skeleton className="h-8 w-8 rounded-full" />
