@@ -198,7 +198,7 @@ function MultipleChoiceConfig({ wordBoxesResult, onBack, onStart }: MultipleChoi
             )}
           />
 
-          <DialogFooter>
+          <DialogFooter className="justify-between sm:justify-between">
             <Button
               variant="ghost"
               onClick={onBack}
