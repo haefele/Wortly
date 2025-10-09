@@ -81,7 +81,7 @@ export function AppSidebar() {
           <div className="flex flex-col">
             <h2 className="text-lg font-semibold">Wortly</h2>
             {getUserStreakResult.isPending ? (
-              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-4 w-20" />
             ) : needsPracticeToday && streakDays > 0 ? (
               <HoverCard>
                 <HoverCardTrigger asChild>
