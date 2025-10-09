@@ -1,6 +1,12 @@
-export function pickRandomDistinctElements<T>(items: T[], count: number): T[] {
+export function pickRandomElements<T>(items: T[], count: number): T[] {
+  // If we need more items than we have, allow repetition
+  if (count > items.length) {
+    return Array.from({ length: count }, () => items[Math.floor(Math.random() * items.length)]);
+  }
+
+  // Otherwise pick distinct elements
   const pool = shuffle(items);
-  return pool.slice(0, Math.min(count, pool.length));
+  return pool.slice(0, count);
 }
 
 export function shuffle<T>(items: T[]): Array<T> {

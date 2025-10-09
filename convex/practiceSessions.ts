@@ -2,8 +2,8 @@ import { paginationOptsValidator } from "convex/server";
 import { query, mutation, DatabaseReader } from "./_generated/server";
 import { v, ConvexError, Infer } from "convex/values";
 import { getCurrentUser } from "./users";
-import { Doc, Id } from "./_generated/dataModel";
-import { pickRandomDistinctElements, shuffle } from "./lib/shuffle";
+import { Doc, } from "./_generated/dataModel";
+import { pickRandomElements, shuffle } from "./lib/shuffle";
 import schema from "./schema";
 import { internal } from "./_generated/api";
 
@@ -139,6 +139,7 @@ type MultipleChoiceQuestion = MultipleChoice["questions"][0];
 export const startMultipleChoice = mutation({
   args: {
     wordBoxId: v.id("wordBoxes"),
+    questionCount: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
@@ -153,28 +154,21 @@ export const startMultipleChoice = mutation({
       .withIndex("by_boxId", q => q.eq("boxId", box._id))
       .collect();
 
-    if (assignments.length < OPTIONS_PER_QUESTION) {
-      throw new ConvexError("At least 4 words are required to start a practice session.");
+    if (assignments.length < 1) {
+      throw new ConvexError("At least 1 word is required to start a practice session.");
     }
 
     const wordIds = assignments.map(a => a.wordId);
 
-    const questionWordIds = pickRandomDistinctElements(
-      wordIds,
-      Math.min(MAX_QUESTIONS, wordIds.length)
-    );
+    const questionWordIds = pickRandomElements(wordIds, args.questionCount ?? MAX_QUESTIONS);
 
     const questions = await Promise.all(
       questionWordIds.map(async wordId => {
         const wrongAnswerPool = wordIds.filter(otherId => otherId !== wordId);
-        const wrongAnswerWordIds = pickRandomDistinctElements(
+        const wrongAnswerWordIds = pickRandomElements(
           wrongAnswerPool,
-          Math.min(OPTIONS_PER_QUESTION - 1, wrongAnswerPool.length)
+          OPTIONS_PER_QUESTION - 1
         );
-
-        if (wrongAnswerWordIds.length < OPTIONS_PER_QUESTION - 1) {
-          throw new ConvexError("Not enough unique words to generate answer options.");
-        }
 
         const shuffledAnswers = shuffle(
           await Promise.all(

@@ -49,13 +49,10 @@ interface StartPracticeDialogProps {
 type DialogStep = "select-type" | "configure";
 
 export function StartPracticeDialog({ open, onOpenChange }: StartPracticeDialogProps) {
-  const router = useRouter();
-
   const [step, setStep] = useState<DialogStep>("select-type");
   const [selectedType, setSelectedType] = useState<PracticeSessionType | null>(null);
 
   const wordBoxesResult = useQuery(api.wordBoxes.getMyWordBoxes, {});
-  const startMultipleChoice = useMutation(api.practiceSessions.startMultipleChoice);
 
   // Reset state when dialog closes
   useEffect(() => {
@@ -107,15 +104,7 @@ export function StartPracticeDialog({ open, onOpenChange }: StartPracticeDialogP
           <MultipleChoiceConfig
             wordBoxesResult={wordBoxesResult}
             onBack={handleBack}
-            onStart={async wordBoxId => {
-              try {
-                const sessionId = await startMultipleChoice({ wordBoxId });
-                onOpenChange(false);
-                router.push(`/learn/${sessionId}`);
-              } catch (error) {
-                toast.error(getErrorMessage(error, "Failed to start practice session"));
-              }
-            }}
+            onOpenChange={onOpenChange}
           />
         )}
       </DialogContent>
@@ -126,23 +115,26 @@ export function StartPracticeDialog({ open, onOpenChange }: StartPracticeDialogP
 interface MultipleChoiceConfigProps {
   wordBoxesResult: ReturnType<typeof useQuery<typeof api.wordBoxes.getMyWordBoxes>>;
   onBack: () => void;
-  onStart: (wordBoxId: Id<"wordBoxes">) => Promise<void>;
+  onOpenChange: (open: boolean) => void;
 }
 
-function MultipleChoiceConfig({ wordBoxesResult, onBack, onStart }: MultipleChoiceConfigProps) {
+function MultipleChoiceConfig({ wordBoxesResult, onBack, onOpenChange }: MultipleChoiceConfigProps) {
+  const router = useRouter();
   const wordBoxes = wordBoxesResult.data ?? [];
+  const startMultipleChoice = useMutation(api.practiceSessions.startMultipleChoice);
 
   const multipleChoiceFormSchema = z
     .object({
       wordBoxId: z.string().min(1, "Please select a collection"),
+      questionCount: z.string().min(1, "Please select number of questions"),
     })
     .refine(
       data => {
         const selectedBox = wordBoxes.find(box => box._id === data.wordBoxId);
-        return selectedBox && selectedBox.wordCount >= 4;
+        return selectedBox && selectedBox.wordCount >= 1;
       },
       {
-        message: "This collection needs at least 4 words to start a practice session",
+        message: "This collection needs at least 1 word to start a practice session",
         path: ["wordBoxId"],
       }
     );
@@ -151,8 +143,22 @@ function MultipleChoiceConfig({ wordBoxesResult, onBack, onStart }: MultipleChoi
     resolver: zodResolver(multipleChoiceFormSchema),
     defaultValues: {
       wordBoxId: "",
+      questionCount: "10",
     },
   });
+
+  const onSubmit = async (data: z.infer<typeof multipleChoiceFormSchema>) => {
+    try {
+      const sessionId = await startMultipleChoice({
+        wordBoxId: data.wordBoxId as Id<"wordBoxes">,
+        questionCount: parseInt(data.questionCount, 10),
+      });
+      onOpenChange(false);
+      router.push(`/learn/${sessionId}`);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to start practice session"));
+    }
+  };
 
   return (
     <>
@@ -164,10 +170,7 @@ function MultipleChoiceConfig({ wordBoxesResult, onBack, onStart }: MultipleChoi
       </DialogHeader>
 
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(data => onStart(data.wordBoxId as Id<"wordBoxes">))}
-          className="space-y-4"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
             control={form.control}
             name="wordBoxId"
@@ -191,6 +194,30 @@ function MultipleChoiceConfig({ wordBoxesResult, onBack, onStart }: MultipleChoi
                         </div>
                       </SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="questionCount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Number of questions</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select number of questions" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="5">5 questions</SelectItem>
+                    <SelectItem value="10">10 questions</SelectItem>
+                    <SelectItem value="20">20 questions</SelectItem>
+                    <SelectItem value="50">50 questions</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
