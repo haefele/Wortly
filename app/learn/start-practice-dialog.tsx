@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Play } from "lucide-react";
+import { ArrowLeft, Play } from "lucide-react";
 import { useMutation } from "convex/react";
 import { useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
@@ -11,7 +11,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { getErrorMessage } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -76,23 +76,17 @@ export function StartPracticeDialog({ open, onOpenChange }: StartPracticeDialogP
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 gap-3">
               {PRACTICE_SESSION_TYPES.map(type => (
-                <Item
-                  key={type.id}
-                  variant="outline"
-                  className="cursor-pointer hover:border-primary hover:bg-accent/50"
-                  onClick={() => handleTypeSelect(type.id)}
-                >
-                  <ItemMedia variant="icon" className="my-auto">
-                    <type.icon />
-                  </ItemMedia>
-                  <ItemContent>
-                    <ItemTitle>{type.label}</ItemTitle>
-                    <ItemDescription>{type.description}</ItemDescription>
-                  </ItemContent>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                </Item>
+                <Card key={type.id} variant="clickable" onClick={() => handleTypeSelect(type.id)}>
+                  <CardHeader className="flex items-center gap-3">
+                    <type.icon className="h-5 w-5 text-primary" />
+                    <CardTitle>{type.label}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription>{type.description}</CardDescription>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </>
