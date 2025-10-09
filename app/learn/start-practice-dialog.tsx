@@ -6,6 +6,9 @@ import { toast } from "sonner";
 import { ArrowLeft, Play } from "lucide-react";
 import { useMutation } from "convex/react";
 import { useQuery } from "convex-helpers/react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { getErrorMessage } from "@/lib/utils";
@@ -20,6 +23,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
@@ -119,28 +130,29 @@ interface MultipleChoiceConfigProps {
 }
 
 function MultipleChoiceConfig({ wordBoxesResult, onBack, onStart }: MultipleChoiceConfigProps) {
-  const [selectedWordBoxId, setSelectedWordBoxId] = useState<Id<"wordBoxes"> | null>(null);
-  const [isStarting, setIsStarting] = useState(false);
-
   const wordBoxes = wordBoxesResult.data ?? [];
-  const selectedWordBox = wordBoxes.find(box => box._id === selectedWordBoxId);
 
-  const canStart = selectedWordBox && selectedWordBox.wordCount >= 4;
-  const validationMessage =
-    selectedWordBox && selectedWordBox.wordCount < 4
-      ? "This collection needs at least 4 words to start a practice session"
-      : null;
+  const multipleChoiceFormSchema = z
+    .object({
+      wordBoxId: z.string().min(1, "Please select a collection"),
+    })
+    .refine(
+      data => {
+        const selectedBox = wordBoxes.find(box => box._id === data.wordBoxId);
+        return selectedBox && selectedBox.wordCount >= 4;
+      },
+      {
+        message: "This collection needs at least 4 words to start a practice session",
+        path: ["wordBoxId"],
+      }
+    );
 
-  const handleStart = async () => {
-    if (!selectedWordBoxId || !canStart) return;
-
-    try {
-      setIsStarting(true);
-      await onStart(selectedWordBoxId);
-    } finally {
-      setIsStarting(false);
-    }
-  };
+  const form = useForm<z.infer<typeof multipleChoiceFormSchema>>({
+    resolver: zodResolver(multipleChoiceFormSchema),
+    defaultValues: {
+      wordBoxId: "",
+    },
+  });
 
   return (
     <>
@@ -151,45 +163,58 @@ function MultipleChoiceConfig({ wordBoxesResult, onBack, onStart }: MultipleChoi
         </DialogDescription>
       </DialogHeader>
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Collection</label>
-          <Select
-            value={selectedWordBoxId ?? undefined}
-            onValueChange={value => setSelectedWordBoxId(value as Id<"wordBoxes">)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a collection" />
-            </SelectTrigger>
-            <SelectContent>
-              {wordBoxes.map(box => (
-                <SelectItem key={box._id} value={box._id}>
-                  <div className="flex items-center gap-2">
-                    <span>{box.name}</span>
-                    <Badge variant="secondary" className="ml-auto">
-                      {box.wordCount} {box.wordCount === 1 ? "word" : "words"}
-                    </Badge>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {validationMessage && (
-            <p className="text-sm text-muted-foreground">{validationMessage}</p>
-          )}
-        </div>
-      </div>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(data => onStart(data.wordBoxId as Id<"wordBoxes">))}
+          className="space-y-4"
+        >
+          <FormField
+            control={form.control}
+            name="wordBoxId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Collection</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a collection" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {wordBoxes.map(box => (
+                      <SelectItem key={box._id} value={box._id}>
+                        <div className="flex items-center gap-2">
+                          <span>{box.name}</span>
+                          <Badge variant="secondary" className="ml-auto">
+                            {box.wordCount} {box.wordCount === 1 ? "word" : "words"}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-      <DialogFooter className="flex-row justify-between">
-        <Button variant="ghost" onClick={onBack} disabled={isStarting}>
-          <ArrowLeft />
-          Back
-        </Button>
-        <Button onClick={handleStart} disabled={!canStart || isStarting}>
-          {isStarting ? <Spinner className="size-4" /> : <Play />}
-          Start session
-        </Button>
-      </DialogFooter>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={onBack}
+              disabled={form.formState.isSubmitting}
+              type="button"
+            >
+              <ArrowLeft />
+              Back
+            </Button>
+            <Button type="submit" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? <Spinner className="size-4" /> : <Play />}
+              Start session
+            </Button>
+          </DialogFooter>
+        </form>
+      </Form>
     </>
   );
 }
