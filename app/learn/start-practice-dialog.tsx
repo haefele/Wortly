@@ -118,7 +118,11 @@ interface MultipleChoiceConfigProps {
   onOpenChange: (open: boolean) => void;
 }
 
-function MultipleChoiceConfig({ wordBoxesResult, onBack, onOpenChange }: MultipleChoiceConfigProps) {
+function MultipleChoiceConfig({
+  wordBoxesResult,
+  onBack,
+  onOpenChange,
+}: MultipleChoiceConfigProps) {
   const router = useRouter();
   const wordBoxes = wordBoxesResult.data ?? [];
   const startMultipleChoice = useMutation(api.practiceSessions.startMultipleChoice);

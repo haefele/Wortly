@@ -195,7 +195,8 @@ function SessionCard({ session }: { session: PracticeSessionSummary }) {
                   </div>
                   <div className="flex flex-col items-end gap-0.5">
                     <span className="text-[10px] text-muted-foreground">
-                      {session.multipleChoice.correctCount}/{session.multipleChoice.totalQuestions} correct
+                      {session.multipleChoice.correctCount}/{session.multipleChoice.totalQuestions}{" "}
+                      correct
                     </span>
                     <span className={`text-xs font-semibold ${scoreMeta.textClass}`}>
                       {scoreMeta.label}

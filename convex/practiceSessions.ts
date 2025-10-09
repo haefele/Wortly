@@ -2,7 +2,7 @@ import { paginationOptsValidator } from "convex/server";
 import { query, mutation, DatabaseReader } from "./_generated/server";
 import { v, ConvexError, Infer } from "convex/values";
 import { getCurrentUser } from "./users";
-import { Doc, } from "./_generated/dataModel";
+import { Doc } from "./_generated/dataModel";
 import { pickRandomElements, shuffle } from "./lib/shuffle";
 import schema from "./schema";
 import { internal } from "./_generated/api";
@@ -165,10 +165,7 @@ export const startMultipleChoice = mutation({
     const questions = await Promise.all(
       questionWordIds.map(async wordId => {
         const wrongAnswerPool = wordIds.filter(otherId => otherId !== wordId);
-        const wrongAnswerWordIds = pickRandomElements(
-          wrongAnswerPool,
-          OPTIONS_PER_QUESTION - 1
-        );
+        const wrongAnswerWordIds = pickRandomElements(wrongAnswerPool, OPTIONS_PER_QUESTION - 1);
 
         const shuffledAnswers = shuffle(
           await Promise.all(
