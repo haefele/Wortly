@@ -156,7 +156,7 @@ function SessionCard({ session }: { session: PracticeSessionSummary }) {
   const exactDate = format(displayDate, "Pp");
 
   return (
-    <Link href={`/learn/${session._id}`} className="group">
+    <Link href={`/learn/${session._id}`} className="group self-start">
       <Card variant="clickable">
         <CardHeader className="flex items-center justify-between">
           <div className="flex items-center gap-2">
