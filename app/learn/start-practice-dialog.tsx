@@ -23,14 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -40,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { PRACTICE_SESSION_TYPES, type PracticeSessionType } from "@/app/learn/constants";
+import { Controller } from "react-hook-form";
 
 interface StartPracticeDialogProps {
   open: boolean;
@@ -173,79 +167,73 @@ function MultipleChoiceConfig({
         </DialogDescription>
       </DialogHeader>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="wordBoxId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Collection</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a collection" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {wordBoxes.map(box => (
-                      <SelectItem key={box._id} value={box._id}>
-                        <div className="flex items-center gap-2">
-                          <span>{box.name}</span>
-                          <Badge variant="secondary" className="ml-auto">
-                            {box.wordCount} {box.wordCount === 1 ? "word" : "words"}
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <Controller
+          name="wordBoxId"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel>Collection</FieldLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger className="w-full" aria-invalid={fieldState.invalid}>
+                  <SelectValue placeholder="Select a collection" />
+                </SelectTrigger>
+                <SelectContent position="item-aligned">
+                  {wordBoxes.map(box => (
+                    <SelectItem key={box._id} value={box._id}>
+                      <div className="flex items-center gap-2">
+                        <span>{box.name}</span>
+                        <Badge variant="secondary" className="ml-auto">
+                          {box.wordCount} {box.wordCount === 1 ? "word" : "words"}
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="questionCount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Number of questions</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select number of questions" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="5">5 questions</SelectItem>
-                    <SelectItem value="10">10 questions</SelectItem>
-                    <SelectItem value="20">20 questions</SelectItem>
-                    <SelectItem value="50">50 questions</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <Controller
+          name="questionCount"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel>Number of questions</FieldLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger className="w-full" aria-invalid={fieldState.invalid}>
+                  <SelectValue placeholder="Select number of questions" />
+                </SelectTrigger>
+                <SelectContent position="item-aligned">
+                  <SelectItem value="5">5 questions</SelectItem>
+                  <SelectItem value="10">10 questions</SelectItem>
+                  <SelectItem value="20">20 questions</SelectItem>
+                  <SelectItem value="50">50 questions</SelectItem>
+                </SelectContent>
+              </Select>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
 
-          <DialogFooter className="justify-between sm:justify-between">
-            <Button
-              variant="ghost"
-              onClick={onBack}
-              disabled={form.formState.isSubmitting}
-              type="button"
-            >
-              <ArrowLeft />
-              Back
-            </Button>
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? <Spinner className="size-4" /> : <Play />}
-              Start session
-            </Button>
-          </DialogFooter>
-        </form>
-      </Form>
+        <DialogFooter className="justify-between sm:justify-between">
+          <Button
+            variant="ghost"
+            onClick={onBack}
+            disabled={form.formState.isSubmitting}
+            type="button"
+          >
+            <ArrowLeft />
+            Back
+          </Button>
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? <Spinner /> : <Play />}
+            Start session
+          </Button>
+        </DialogFooter>
+      </form>
     </>
   );
 }
