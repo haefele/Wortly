@@ -62,13 +62,6 @@ export default function PracticeSessionPage() {
         title="Practice session"
         description="We couldn't load this practice session."
         icon={BookOpenCheck}
-        headerActions={
-          <Button variant="outline" asChild>
-            <Link href="/learn">
-              <ArrowLeft /> Back to practice
-            </Link>
-          </Button>
-        }
       >
         <Card variant="spotlight" className="max-w-2xl">
           <CardContent className="space-y-4 p-8 text-center">
