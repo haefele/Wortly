@@ -38,47 +38,29 @@ import { Spinner } from "@/components/ui/spinner";
 type MultipleChoiceStatus = FunctionReturnType<typeof api.practiceSessions.getMultipleChoiceStatus>;
 
 export default function PracticeSessionPage() {
+  const router = useRouter();
+
   const params = useParams<{ sessionId: string }>();
   const sessionId = params.sessionId as Id<"practiceSessions">;
 
   const sessionStatus = useQuery(api.practiceSessions.getMultipleChoiceStatus, {
     sessionId,
   });
-  const answerMultipleChoice = useMutation(api.practiceSessions.answerMultipleChoice);
-  const nextQuestion = useMutation(api.practiceSessions.nextQuestionMultipleChoice);
 
-  const [answeringIndex, setAnsweringIndex] = useState<number | null>(null);
-  const [advancing, setAdvancing] = useState(false);
-
-  const currentQuestionNumber =
-    sessionStatus.isSuccess && sessionStatus.data.completed === false
-      ? sessionStatus.data.multipleChoice.currentQuestionNumber
-      : null;
-
-  const currentQuestionState =
-    sessionStatus.isSuccess && sessionStatus.data.completed === false
-      ? sessionStatus.data.multipleChoice.currentQuestion
-      : null;
-
-  useEffect(() => {
-    setAnsweringIndex(null);
-  }, [currentQuestionNumber]);
-
-  const isLoading = sessionStatus.isPending;
-
-  if (isLoading) {
+  if (sessionStatus.isPending) {
     return (
       <PageContainer icon={BookOpenCheck} isLoading>
-        <LoadingState />
+        <div className="space-y-6">
+          <Skeleton className="h-36 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
+        </div>
       </PageContainer>
     );
-  }
-
-  if (sessionStatus.isError) {
+  } else if (sessionStatus.isError) {
     return (
       <PageContainer
         title="Practice session"
-        description="We couldn’t load this practice session."
+        description="We couldn't load this practice session."
         icon={BookOpenCheck}
         headerActions={
           <Button variant="outline" asChild>
@@ -88,22 +70,64 @@ export default function PracticeSessionPage() {
           </Button>
         }
       >
-        <ErrorState
-          message={getErrorMessage(
-            sessionStatus.isError ? sessionStatus.error : undefined,
-            "Practice session not found."
-          )}
-        />
+        <Card variant="spotlight" className="max-w-2xl">
+          <CardContent className="space-y-4 p-8 text-center">
+            <h2 className="text-xl font-semibold">Something went wrong</h2>
+            <p className="text-sm text-muted-foreground">
+              {getErrorMessage(sessionStatus.error, "Practice session not found.")}
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button onClick={() => router.refresh()}>
+                <RefreshCcw /> Retry
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/learn">
+                  <ArrowLeft /> Back to practice overview
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </PageContainer>
+    );
+  } else {
+    return (
+      <PageContainer
+        title={sessionStatus.data.multipleChoice.wordBoxName}
+        description="Multiple choice"
+        icon={BookOpenCheck}
+      >
+        {sessionStatus.data.completed ? (
+          <CompletedView session={sessionStatus.data} />
+        ) : (
+          <InProgressView session={sessionStatus.data} />
+        )}
       </PageContainer>
     );
   }
+}
 
-  const session = sessionStatus.data;
+function InProgressView({ session }: { session: MultipleChoiceStatus }) {
+  if (session.completed) {
+    throw new Error("Practice session already completed.");
+  }
+
+  const answerMultipleChoice = useMutation(api.practiceSessions.answerMultipleChoice);
+  const nextQuestion = useMutation(api.practiceSessions.nextQuestionMultipleChoice);
+
+  const [answeringIndex, setAnsweringIndex] = useState<number | null>(null);
+  const [advancing, setAdvancing] = useState(false);
+
+  const currentQuestionNumber = session.multipleChoice.currentQuestionNumber;
+
+  useEffect(() => {
+    setAnsweringIndex(null);
+  }, [currentQuestionNumber]);
 
   const handleSelectOption = async (answerIndex: number) => {
     if (
       session.completed ||
-      currentQuestionState?.selectedAnswerIndex !== undefined ||
+      session.multipleChoice.currentQuestion.selectedAnswerIndex !== undefined ||
       answeringIndex !== null
     ) {
       return;
@@ -111,10 +135,7 @@ export default function PracticeSessionPage() {
 
     setAnsweringIndex(answerIndex);
     try {
-      const result = await answerMultipleChoice({ sessionId, selectedAnswerIndex: answerIndex });
-      if (!result.isCorrect) {
-        toast.warning("Not quite right. Review the correct answer before continuing.");
-      }
+      await answerMultipleChoice({ sessionId: session._id, selectedAnswerIndex: answerIndex });
     } catch (error) {
       toast.error(getErrorMessage(error, "Failed to submit answer."));
     } finally {
@@ -123,16 +144,16 @@ export default function PracticeSessionPage() {
   };
 
   const handleNextQuestion = async () => {
-    if (session.completed || currentQuestionState?.selectedAnswerIndex === undefined) {
+    if (
+      session.completed ||
+      session.multipleChoice.currentQuestion.selectedAnswerIndex === undefined
+    ) {
       return;
     }
 
     setAdvancing(true);
     try {
-      const result = await nextQuestion({ sessionId });
-      if (result.completed) {
-        toast.success("Session completed! View your results below.");
-      }
+      await nextQuestion({ sessionId: session._id });
     } catch (error) {
       toast.error(getErrorMessage(error, "Unable to load the next question."));
     } finally {
@@ -140,61 +161,13 @@ export default function PracticeSessionPage() {
     }
   };
 
-  const headerActions = (
-    <Button variant="outline" asChild>
-      <Link href="/learn">
-        <ArrowLeft /> Back to practice
-      </Link>
-    </Button>
-  );
-
-  const sessionTitle = session.multipleChoice.wordBoxName;
-
-  return (
-    <PageContainer
-      title={sessionTitle}
-      description={`Multiple choice • ${session.multipleChoice.wordBoxName}`}
-      icon={BookOpenCheck}
-      headerActions={headerActions}
-    >
-      {session.completed ? (
-        <CompletedView session={session} />
-      ) : (
-        <InProgressView
-          session={session}
-          answeringIndex={answeringIndex}
-          advancing={advancing}
-          onSelectOption={handleSelectOption}
-          onNextQuestion={handleNextQuestion}
-        />
-      )}
-    </PageContainer>
-  );
-}
-
-function InProgressView({
-  session,
-  answeringIndex,
-  advancing,
-  onSelectOption,
-  onNextQuestion,
-}: {
-  session: MultipleChoiceStatus;
-  answeringIndex: number | null;
-  advancing: boolean;
-  onSelectOption: (answerIndex: number) => void;
-  onNextQuestion: () => void;
-}) {
-  if (session.completed) {
-    throw new Error("Practice session already completed.");
-  }
-
   const totalQuestions = session.multipleChoice.totalQuestions;
   const currentNumber = session.multipleChoice.currentQuestionNumber;
   const isLastQuestion = currentNumber >= totalQuestions;
   const progressValue =
     totalQuestions > 0 ? Math.round(((currentNumber - 1) / totalQuestions) * 100) : 0;
   const answered = session.multipleChoice.currentQuestion.selectedAnswerIndex !== undefined;
+  const disabled = answered || answeringIndex !== null;
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -223,9 +196,9 @@ function InProgressView({
           {/* Answer Options */}
           <div className="grid gap-4 sm:grid-cols-2">
             {session.multipleChoice.currentQuestion.options.map((option, index) => {
-              const isSelected = index === session.multipleChoice.currentQuestion.selectedAnswerIndex;
+              const isSelected =
+                index === session.multipleChoice.currentQuestion.selectedAnswerIndex;
               const isCorrect = index === session.multipleChoice.currentQuestion.correctAnswerIndex;
-              const disabled = answered || answeringIndex !== null;
 
               return (
                 <Button
@@ -246,7 +219,7 @@ function InProgressView({
                     answered && !isCorrect && !isSelected && "opacity-60"
                   )}
                   disabled={disabled}
-                  onClick={() => onSelectOption(index)}
+                  onClick={() => handleSelectOption(index)}
                 >
                   <span className="flex-shrink-0">
                     {answered ? (
@@ -306,7 +279,7 @@ function InProgressView({
           )}
         </CardContent>
         <CardFooter className="justify-end pt-6">
-          <Button size="lg" onClick={onNextQuestion} disabled={!answered || advancing}>
+          <Button size="lg" onClick={handleNextQuestion} disabled={!answered || advancing}>
             {advancing ? (
               <>
                 <Spinner className="size-4" />
@@ -351,7 +324,6 @@ function CompletedView({ session }: { session: MultipleChoiceStatus }) {
       const newSessionId = await startMultipleChoice({
         wordBoxId: session.multipleChoice.wordBoxId,
       });
-      toast.success("New practice session started.");
       router.push(`/learn/${newSessionId}`);
     } catch (error) {
       toast.error(getErrorMessage(error, "Failed to start a new practice session."));
@@ -498,40 +470,6 @@ function CompletedView({ session }: { session: MultipleChoiceStatus }) {
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-
-
-function LoadingState() {
-  return (
-    <div className="space-y-6">
-      <Skeleton className="h-36 rounded-xl" />
-      <Skeleton className="h-64 rounded-xl" />
-    </div>
-  );
-}
-
-function ErrorState({ message }: { message: string }) {
-  const router = useRouter();
-
-  return (
-    <Card variant="spotlight" className="max-w-2xl">
-      <CardContent className="space-y-4 p-8 text-center">
-        <h2 className="text-xl font-semibold">Something went wrong</h2>
-        <p className="text-sm text-muted-foreground">{message}</p>
-        <div className="flex flex-wrap justify-center gap-3">
-          <Button onClick={() => router.refresh()}>
-            <RefreshCcw /> Retry
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/learn">
-              <ArrowLeft /> Back to practice overview
-            </Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 
