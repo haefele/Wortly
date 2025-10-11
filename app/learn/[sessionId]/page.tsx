@@ -13,7 +13,6 @@ import {
   CheckCircle2,
   Circle,
   RefreshCcw,
-  Trophy,
   XCircle,
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
@@ -21,6 +20,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { PageContainer } from "@/components/page-container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { getScoreGradeMeta } from "../constants";
 import {
   Card,
   CardContent,
@@ -308,6 +308,7 @@ function CompletedView({ session }: { session: MultipleChoiceStatus }) {
     );
   }).length;
   const accuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+  const scoreMeta = getScoreGradeMeta(accuracy);
 
   const handleRestart = async () => {
     if (!session.multipleChoice.wordBoxId) return;
@@ -328,20 +329,36 @@ function CompletedView({ session }: { session: MultipleChoiceStatus }) {
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       {/* Hero Success Card */}
-      <Card className="border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-50 to-transparent dark:from-emerald-950/20">
+      <Card
+        className={cn(
+          "border-2",
+          scoreMeta.borderClass,
+          scoreMeta.backgroundClass
+        )}
+      >
         <CardHeader className="space-y-6 pb-8 text-center">
-          <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-emerald-500/20">
-            <Trophy className="size-10 text-emerald-600 dark:text-emerald-400" />
+          <div
+            className={cn(
+              "mx-auto flex size-20 items-center justify-center rounded-full",
+              scoreMeta.backgroundClass.replace("bg-", "bg-").replace("-50", "-500/20")
+            )}
+          >
+            <scoreMeta.icon className={cn("size-10", scoreMeta.textClass)} />
           </div>
           <div className="space-y-3">
-            <CardTitle className="text-4xl font-bold">Great work!</CardTitle>
+            <CardTitle className="text-4xl font-bold">{scoreMeta.label}</CardTitle>
             <CardDescription className="text-lg">
               You answered {totalCorrect} out of {totalQuestions} questions correctly
             </CardDescription>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <div className="rounded-full bg-emerald-500 px-6 py-3">
-              <span className="text-3xl font-bold text-white">{accuracy}%</span>
+            <div
+              className={cn(
+                "rounded-full px-6 py-3",
+                scoreMeta.backgroundClass.replace("bg-", "bg-").replace("-50", "-500")
+              )}
+            >
+              <span className="text-3xl font-bold">{accuracy}%</span>
             </div>
           </div>
         </CardHeader>
