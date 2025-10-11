@@ -3,21 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePaginatedQuery } from "convex-helpers/react";
-import {
-  GraduationCap,
-  Play,
-  ArrowRight,
-  Sparkles,
-  Crown,
-  Medal,
-  Lightbulb,
-  Frown,
-  Trophy,
-  Clock,
-  CheckCircle2,
-  Circle,
-  CircleDashed,
-} from "lucide-react";
+import { GraduationCap, Play, ArrowRight, Sparkles, Clock } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { api } from "@/convex/_generated/api";
 import type { FunctionReturnType } from "convex/server";
@@ -29,7 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { StartPracticeDialog } from "./start-practice-dialog";
 import { IconOrb } from "@/components/ui/icon-orb";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { LearnConstants } from "./constants";
+import { LearnConstants, getSessionStatusMeta, getScoreGradeMeta } from "./constants";
 import { InfiniteScrollSentinel } from "@/components/infinite-scroll-sentinel";
 import { SearchingIndicator } from "@/components/searching-indicator";
 import {
@@ -135,7 +121,11 @@ function PracticeEmptyState({ onStart }: { onStart: () => void }) {
   );
 }
 
-function SessionCard({ session }: { session: PracticeSessionSummary }) {
+function SessionCard({
+  session,
+}: {
+  session: PracticeSessionSummary
+}) {
   const status = getSessionStatusMeta(session);
   const isCompleted = status.kind === "completed";
   const scorePercent = session.multipleChoice.totalQuestions
@@ -236,81 +226,4 @@ function SessionCard({ session }: { session: PracticeSessionSummary }) {
       </Card>
     </Link>
   );
-}
-
-function getSessionStatusMeta(session: PracticeSessionSummary) {
-  const hasStarted = session.multipleChoice.answeredCount > 0;
-
-  if (session.completedAt) {
-    return {
-      kind: "completed" as const,
-      label: "Completed",
-      badgeVariant: "default" as const,
-      badgeClassName: "bg-emerald-500 text-white",
-      ctaLabel: "Review",
-      icon: CheckCircle2,
-    };
-  } else if (hasStarted) {
-    return {
-      kind: "in-progress" as const,
-      label: "In progress",
-      badgeVariant: "outline" as const,
-      badgeClassName: "border-primary text-primary",
-      ctaLabel: "Continue",
-      icon: CircleDashed,
-    };
-  } else {
-    return {
-      kind: "not-started" as const,
-      label: "Not started",
-      badgeVariant: "secondary" as const,
-      badgeClassName: "",
-      ctaLabel: "Start",
-      icon: Circle,
-    };
-  }
-}
-
-function getScoreGradeMeta(percent: number) {
-  if (percent === 100) {
-    return {
-      backgroundClass: "bg-sky-50",
-      borderClass: "border-sky-300",
-      textClass: "text-sky-700",
-      label: "Perfect recall!",
-      icon: Trophy,
-    } as const;
-  } else if (percent >= 90) {
-    return {
-      backgroundClass: "bg-emerald-50",
-      borderClass: "border-emerald-300",
-      textClass: "text-emerald-700",
-      label: "Excellent!",
-      icon: Crown,
-    } as const;
-  } else if (percent >= 75) {
-    return {
-      backgroundClass: "bg-green-50",
-      borderClass: "border-green-200",
-      textClass: "text-green-700",
-      label: "Good job!",
-      icon: Medal,
-    } as const;
-  } else if (percent >= 50) {
-    return {
-      backgroundClass: "bg-amber-50",
-      borderClass: "border-amber-100",
-      textClass: "text-amber-700",
-      label: "Keep going!",
-      icon: Lightbulb,
-    } as const;
-  } else {
-    return {
-      backgroundClass: "bg-rose-50",
-      borderClass: "border-rose-100",
-      textClass: "text-rose-700",
-      label: "Time to review!",
-      icon: Frown,
-    } as const;
-  }
 }
