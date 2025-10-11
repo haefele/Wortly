@@ -157,21 +157,17 @@ export default function PracticeSessionPage() {
       icon={BookOpenCheck}
       headerActions={headerActions}
     >
-      <div className="space-y-6">
-        <SessionMeta session={session} />
-
-        {session.completed ? (
-          <CompletedView session={session} />
-        ) : (
-          <InProgressView
-            session={session}
-            answeringIndex={answeringIndex}
-            advancing={advancing}
-            onSelectOption={handleSelectOption}
-            onNextQuestion={handleNextQuestion}
-          />
-        )}
-      </div>
+      {session.completed ? (
+        <CompletedView session={session} />
+      ) : (
+        <InProgressView
+          session={session}
+          answeringIndex={answeringIndex}
+          advancing={advancing}
+          onSelectOption={handleSelectOption}
+          onNextQuestion={handleNextQuestion}
+        />
+      )}
     </PageContainer>
   );
 }
@@ -201,107 +197,131 @@ function InProgressView({
   const answered = session.multipleChoice.currentQuestion.selectedAnswerIndex !== undefined;
 
   return (
-    <Card>
-      <CardHeader className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Badge variant="secondary" className="px-3 py-1">
+    <div className="mx-auto max-w-3xl space-y-8">
+      {/* Progress Section */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-muted-foreground">
             Question {currentNumber} of {totalQuestions}
-          </Badge>
-          <span className="text-xs text-muted-foreground">Progress</span>
+          </span>
+          <span className="text-sm font-medium text-muted-foreground">{progressValue}%</span>
         </div>
-        <Progress value={progressValue} />
-        <div className="space-y-2">
-          <CardTitle className="text-2xl">
+        <Progress value={progressValue} className="h-2" />
+      </div>
+
+      {/* Question Card */}
+      <Card className="border-2">
+        <CardHeader className="space-y-4 pb-6">
+          <CardTitle className="text-3xl font-bold leading-tight">
             {session.multipleChoice.currentQuestion.question ?? "Practice prompt"}
           </CardTitle>
-          <CardDescription>Choose the correct translation from the options below.</CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid gap-3 sm:grid-cols-2">
-          {session.multipleChoice.currentQuestion.options.map((option, index) => {
-            const isSelected = index === session.multipleChoice.currentQuestion.selectedAnswerIndex;
-            const isCorrect = index === session.multipleChoice.currentQuestion.correctAnswerIndex;
-            const disabled = answered || answeringIndex !== null;
+          <CardDescription className="text-base">
+            Choose the correct translation from the options below.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Answer Options */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {session.multipleChoice.currentQuestion.options.map((option, index) => {
+              const isSelected = index === session.multipleChoice.currentQuestion.selectedAnswerIndex;
+              const isCorrect = index === session.multipleChoice.currentQuestion.correctAnswerIndex;
+              const disabled = answered || answeringIndex !== null;
 
-            return (
-              <Button
-                key={index}
-                type="button"
-                variant="outline"
-                className={cn(
-                  "justify-start whitespace-normal text-left",
-                  isCorrect &&
-                    answered &&
-                    "border-emerald-500/70 bg-emerald-500/10 text-emerald-600",
-                  isSelected &&
-                    !isCorrect &&
-                    answered &&
-                    "border-destructive/70 bg-destructive/10 text-destructive",
-                  answered && !isCorrect && !isSelected && "opacity-75"
-                )}
-                disabled={disabled}
-                onClick={() => onSelectOption(index)}
-              >
-                {answered ? (
-                  isCorrect ? (
-                    <CheckCircle2 className="text-emerald-500" />
-                  ) : isSelected ? (
-                    <XCircle className="text-destructive" />
-                  ) : (
-                    <Circle />
-                  )
-                ) : answeringIndex === index ? (
-                  <Spinner className="size-4" />
-                ) : (
-                  <Circle className="text-muted-foreground" />
-                )}
-                <span className="text-sm font-medium">{option}</span>
-              </Button>
-            );
-          })}
-        </div>
+              return (
+                <Button
+                  key={index}
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  className={cn(
+                    "h-auto min-h-[60px] justify-start whitespace-normal px-5 py-4 text-left transition-all",
+                    !answered && !disabled && "hover:border-primary hover:bg-primary/5",
+                    isCorrect &&
+                      answered &&
+                      "border-2 border-emerald-500 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/10",
+                    isSelected &&
+                      !isCorrect &&
+                      answered &&
+                      "border-2 border-destructive bg-destructive/10 text-destructive hover:bg-destructive/10",
+                    answered && !isCorrect && !isSelected && "opacity-60"
+                  )}
+                  disabled={disabled}
+                  onClick={() => onSelectOption(index)}
+                >
+                  <span className="flex-shrink-0">
+                    {answered ? (
+                      isCorrect ? (
+                        <CheckCircle2 className="size-5 text-emerald-600" />
+                      ) : isSelected ? (
+                        <XCircle className="size-5 text-destructive" />
+                      ) : (
+                        <Circle className="size-5 opacity-40" />
+                      )
+                    ) : answeringIndex === index ? (
+                      <Spinner className="size-5" />
+                    ) : (
+                      <Circle className="size-5 text-muted-foreground" />
+                    )}
+                  </span>
+                  <span className="text-base font-medium">{option}</span>
+                </Button>
+              );
+            })}
+          </div>
 
-        <div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20 p-4 text-sm">
+          {/* Feedback Section */}
           {answered ? (
             session.multipleChoice.currentQuestion.selectedAnswerIndex ===
             session.multipleChoice.currentQuestion.correctAnswerIndex ? (
-              <div className="flex items-center gap-2 font-medium text-emerald-600">
-                <CheckCircle2 /> Correct! Keep it up.
+              <div className="rounded-xl border-2 border-emerald-500/30 bg-emerald-50 p-5 dark:bg-emerald-950/30">
+                <div className="flex items-center gap-3 text-emerald-700 dark:text-emerald-400">
+                  <CheckCircle2 className="size-6 flex-shrink-0" />
+                  <div>
+                    <p className="text-lg font-semibold">Correct!</p>
+                    <p className="text-sm text-emerald-600 dark:text-emerald-500">
+                      Great job, keep it up.
+                    </p>
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="flex flex-col gap-1 text-destructive">
-                <div className="flex items-center gap-2 font-medium">
-                  <XCircle /> Not quite right.
+              <div className="rounded-xl border-2 border-destructive/30 bg-destructive/5 p-5">
+                <div className="flex items-center gap-3 text-destructive">
+                  <XCircle className="size-6 flex-shrink-0" />
+                  <div>
+                    <p className="text-lg font-semibold">Not quite right</p>
+                    <p className="text-sm text-muted-foreground">
+                      Review the correct answer before moving on.
+                    </p>
+                  </div>
                 </div>
-                <span className="text-muted-foreground">
-                  Review the correct answer before moving on.
-                </span>
               </div>
             )
           ) : (
-            <span className="text-muted-foreground">
-              Tap an answer to check if you&apos;re correct.
-            </span>
+            <div className="rounded-xl border border-dashed border-muted-foreground/30 bg-muted/30 p-5 text-center">
+              <p className="text-sm text-muted-foreground">
+                Select an answer to check if you&apos;re correct
+              </p>
+            </div>
           )}
-        </div>
-      </CardContent>
-      <CardFooter className="flex flex-wrap items-center justify-between gap-3">
-        <Button onClick={onNextQuestion} disabled={!answered || advancing}>
-          {advancing ? (
-            <>
-              <Spinner className="size-4" />
-              {isLastQuestion ? "Finishing..." : "Loading..."}
-            </>
-          ) : (
-            <>
-              {isLastQuestion ? "Finish session" : "Next question"}
-              <ArrowRight />
-            </>
-          )}
-        </Button>
-      </CardFooter>
-    </Card>
+        </CardContent>
+        <CardFooter className="justify-end pt-6">
+          <Button size="lg" onClick={onNextQuestion} disabled={!answered || advancing}>
+            {advancing ? (
+              <>
+                <Spinner className="size-4" />
+                {isLastQuestion ? "Finishing..." : "Loading..."}
+              </>
+            ) : (
+              <>
+                {isLastQuestion ? "Finish session" : "Next question"}
+                <ArrowRight />
+              </>
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
 
@@ -341,62 +361,78 @@ function CompletedView({ session }: { session: MultipleChoiceStatus }) {
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="space-y-1">
-              <CardTitle className="text-2xl">Great work!</CardTitle>
-              <CardDescription>
-                You answered {totalCorrect} out of {totalQuestions} questions correctly.
-              </CardDescription>
+    <div className="mx-auto max-w-4xl space-y-8">
+      {/* Hero Success Card */}
+      <Card className="border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-50 to-transparent dark:from-emerald-950/20">
+        <CardHeader className="space-y-6 pb-8 text-center">
+          <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-emerald-500/20">
+            <Trophy className="size-10 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div className="space-y-3">
+            <CardTitle className="text-4xl font-bold">Great work!</CardTitle>
+            <CardDescription className="text-lg">
+              You answered {totalCorrect} out of {totalQuestions} questions correctly
+            </CardDescription>
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <div className="rounded-full bg-emerald-500 px-6 py-3">
+              <span className="text-3xl font-bold text-white">{accuracy}%</span>
             </div>
-            <Badge className="bg-emerald-500/90 text-white">
-              <Trophy /> {accuracy}% accuracy
-            </Badge>
           </div>
         </CardHeader>
-        <CardContent className="grid gap-4 text-sm text-muted-foreground sm:grid-cols-3">
-          <div>
-            <span className="block text-xs uppercase tracking-wide">Collection</span>
-            <span className="text-foreground font-medium">
-              {session.multipleChoice.wordBoxName}
-            </span>
+        <CardContent className="space-y-6 pb-6">
+          {/* Stats Grid */}
+          <div className="grid gap-4 rounded-xl border bg-background/60 p-6 sm:grid-cols-3">
+            <div className="space-y-1 text-center">
+              <p className="text-sm font-medium text-muted-foreground">Collection</p>
+              <p className="text-base font-semibold">{session.multipleChoice.wordBoxName}</p>
+            </div>
+            <div className="space-y-1 text-center">
+              <p className="text-sm font-medium text-muted-foreground">Questions</p>
+              <p className="text-base font-semibold">
+                {totalCorrect} / {totalQuestions}
+              </p>
+            </div>
+            <div className="space-y-1 text-center">
+              <p className="text-sm font-medium text-muted-foreground">Completed</p>
+              <p className="text-base font-semibold">
+                {session.completedAt ? formatDateTime(session.completedAt) : "—"}
+              </p>
+            </div>
           </div>
-          <div>
-            <span className="block text-xs uppercase tracking-wide">Started</span>
-            <span>{formatDateTime(session.createdAt)}</span>
-          </div>
-          <div>
-            <span className="block text-xs uppercase tracking-wide">Completed</span>
-            <span>{session.completedAt ? formatDateTime(session.completedAt) : "—"}</span>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button size="lg" onClick={handleRestart} disabled={isRestarting}>
+              {isRestarting ? (
+                <>
+                  <Spinner className="size-4" /> Starting…
+                </>
+              ) : (
+                <>
+                  <RefreshCcw /> Practice again
+                </>
+              )}
+            </Button>
+            <Button size="lg" variant="outline" asChild>
+              <Link href="/learn">
+                <ArrowLeft /> Back to practice
+              </Link>
+            </Button>
           </div>
         </CardContent>
-        <CardFooter className="justify-end">
-          <Button onClick={handleRestart} disabled={isRestarting}>
-            {isRestarting ? (
-              <>
-                <Spinner className="size-4" /> Starting…
-              </>
-            ) : (
-              <>
-                <ArrowRight /> Practice again
-              </>
-            )}
-          </Button>
-        </CardFooter>
       </Card>
 
+      {/* Question Breakdown */}
       <Card>
         <CardHeader>
-          <CardTitle>Question breakdown</CardTitle>
+          <CardTitle className="text-2xl">Question breakdown</CardTitle>
           <CardDescription>Review the correct answers and your selections.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           {questions.map((question, index) => {
             const correctWord = question.question;
             const isCorrect = question.selectedAnswerIndex === question.correctAnswerIndex;
-            const isSelectedAnswer = question.selectedAnswerIndex === index;
             const correctAnswer = question.answers[question.correctAnswerIndex]?.text ?? "Unknown";
             const selectedAnswer =
               question.selectedAnswerIndex !== undefined
@@ -407,34 +443,53 @@ function CompletedView({ session }: { session: MultipleChoiceStatus }) {
               <div
                 key={index}
                 className={cn(
-                  "rounded-lg border p-4",
+                  "rounded-xl border-2 p-5 transition-colors",
                   isCorrect
-                    ? "border-emerald-500/60 bg-emerald-500/5"
-                    : "border-destructive/40 bg-destructive/5"
+                    ? "border-emerald-500/40 bg-emerald-50/50 dark:bg-emerald-950/20"
+                    : "border-destructive/40 bg-destructive/5 dark:bg-destructive/10"
                 )}
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Question {index + 1}
-                    </p>
-                    <h3 className="text-lg font-semibold">{correctWord ?? "Word removed"}</h3>
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-8 items-center justify-center rounded-full bg-background text-sm font-semibold">
+                        {index + 1}
+                      </span>
+                      <h3 className="text-xl font-bold">{correctWord ?? "Word removed"}</h3>
+                    </div>
                   </div>
-                  <Badge variant={isCorrect ? "secondary" : "destructive"}>
+                  <Badge
+                    variant={isCorrect ? "secondary" : "destructive"}
+                    className={cn(
+                      "text-sm",
+                      isCorrect && "bg-emerald-500 text-white hover:bg-emerald-600"
+                    )}
+                  >
                     {isCorrect ? <CheckCircle2 /> : <XCircle />}
                     {isCorrect ? "Correct" : "Incorrect"}
                   </Badge>
                 </div>
-                <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
-                  <div>
-                    <span className="block text-xs uppercase tracking-wide">Your answer</span>
-                    <span className={cn(!isCorrect && isSelectedAnswer ? "text-destructive" : "")}>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-lg bg-background/60 p-3">
+                    <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Your answer
+                    </p>
+                    <p
+                      className={cn(
+                        "text-base font-medium",
+                        isCorrect ? "text-foreground" : "text-destructive"
+                      )}
+                    >
                       {selectedAnswer}
-                    </span>
+                    </p>
                   </div>
-                  <div>
-                    <span className="block text-xs uppercase tracking-wide">Correct answer</span>
-                    <span className="text-foreground font-medium">{correctAnswer}</span>
+                  <div className="rounded-lg bg-background/60 p-3">
+                    <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Correct answer
+                    </p>
+                    <p className="text-base font-semibold text-emerald-600 dark:text-emerald-500">
+                      {correctAnswer}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -446,40 +501,7 @@ function CompletedView({ session }: { session: MultipleChoiceStatus }) {
   );
 }
 
-function SessionMeta({ session }: { session: MultipleChoiceStatus }) {
-  const createdAt = formatDateTime(session.createdAt);
-  const completedAt = session.completedAt ? formatDateTime(session.completedAt) : null;
 
-  return (
-    <Card>
-      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-3">
-          <Badge variant="secondary" className="self-start">
-            {session.multipleChoice.wordBoxName}
-          </Badge>
-          <CardDescription>
-            {session.completed
-              ? completedAt
-                ? `Completed ${completedAt}`
-                : "Completed"
-              : `Started ${createdAt}`}
-          </CardDescription>
-        </div>
-        <Badge
-          variant={session.completed ? "secondary" : "outline"}
-          className={cn(
-            "self-start sm:self-auto",
-            session.completed
-              ? "bg-emerald-500/90 text-white border-emerald-500"
-              : "border-primary/50 text-primary"
-          )}
-        >
-          {session.completed ? "Completed" : "In progress"}
-        </Badge>
-      </CardHeader>
-    </Card>
-  );
-}
 
 function LoadingState() {
   return (
