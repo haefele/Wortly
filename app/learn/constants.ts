@@ -78,6 +78,9 @@ export function getScoreGradeMeta(percent: number) {
       backgroundClass: "bg-sky-50",
       borderClass: "border-sky-300",
       textClass: "text-sky-700",
+      gradientOverlay: "bg-gradient-to-br from-sky-200 via-transparent to-sky-100",
+      iconGradient: "bg-gradient-to-br from-sky-400 to-sky-600",
+      scoreGradient: "bg-gradient-to-br from-sky-500 to-sky-600",
       label: "Perfect recall!",
       icon: Trophy,
     } as const;
@@ -86,6 +89,9 @@ export function getScoreGradeMeta(percent: number) {
       backgroundClass: "bg-emerald-50",
       borderClass: "border-emerald-300",
       textClass: "text-emerald-700",
+      gradientOverlay: "bg-gradient-to-br from-emerald-200 via-transparent to-emerald-100",
+      iconGradient: "bg-gradient-to-br from-emerald-400 to-emerald-600",
+      scoreGradient: "bg-gradient-to-br from-emerald-500 to-emerald-600",
       label: "Excellent!",
       icon: Crown,
     } as const;
@@ -94,6 +100,9 @@ export function getScoreGradeMeta(percent: number) {
       backgroundClass: "bg-green-50",
       borderClass: "border-green-200",
       textClass: "text-green-700",
+      gradientOverlay: "bg-gradient-to-br from-green-200 via-transparent to-green-100",
+      iconGradient: "bg-gradient-to-br from-green-400 to-green-600",
+      scoreGradient: "bg-gradient-to-br from-green-500 to-green-600",
       label: "Good job!",
       icon: Medal,
     } as const;
@@ -102,6 +111,9 @@ export function getScoreGradeMeta(percent: number) {
       backgroundClass: "bg-amber-50",
       borderClass: "border-amber-100",
       textClass: "text-amber-700",
+      gradientOverlay: "bg-gradient-to-br from-amber-200 via-transparent to-amber-100",
+      iconGradient: "bg-gradient-to-br from-amber-400 to-amber-600",
+      scoreGradient: "bg-gradient-to-br from-amber-500 to-amber-600",
       label: "Keep going!",
       icon: Lightbulb,
     } as const;
@@ -110,6 +122,9 @@ export function getScoreGradeMeta(percent: number) {
       backgroundClass: "bg-rose-50",
       borderClass: "border-rose-100",
       textClass: "text-rose-700",
+      gradientOverlay: "bg-gradient-to-br from-rose-200 via-transparent to-rose-100",
+      iconGradient: "bg-gradient-to-br from-rose-400 to-rose-600",
+      scoreGradient: "bg-gradient-to-br from-rose-500 to-rose-600",
       label: "Time to review!",
       icon: Frown,
     } as const;
