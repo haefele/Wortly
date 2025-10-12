@@ -113,6 +113,17 @@ async function getMultipleChoiceInProgressStatus(
   const currentQuestion =
     session.multipleChoice.questions[session.multipleChoice.currentQuestionIndex ?? 0];
 
+  // Calculate status for each question
+  const questionStatuses = session.multipleChoice.questions.map(q => {
+    if (q.selectedAnswerIndex === undefined) {
+      return "unanswered" as const;
+    } else if (q.selectedAnswerIndex === q.correctAnswerIndex) {
+      return "correct" as const;
+    } else {
+      return "incorrect" as const;
+    }
+  });
+
   return {
     completed: false as const,
     _id: session._id,
@@ -123,6 +134,7 @@ async function getMultipleChoiceInProgressStatus(
       wordBoxName: session.multipleChoice.wordBoxName,
       totalQuestions: session.multipleChoice.questions.length,
       currentQuestionNumber: (session.multipleChoice.currentQuestionIndex ?? 0) + 1,
+      questionStatuses,
       currentQuestion: {
         question: currentQuestion.question,
         options: currentQuestion.answers.map(f => f.text),

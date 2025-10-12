@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "convex-helpers/react";
@@ -31,11 +31,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, getErrorMessage } from "@/lib/utils";
 import { FunctionReturnType } from "convex/server";
 import { Spinner } from "@/components/ui/spinner";
+import { Kbd } from "@/components/ui/kbd";
+import { IconOrb } from "@/components/ui/icon-orb";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 
 type MultipleChoiceStatus = FunctionReturnType<typeof api.practiceSessions.getMultipleChoiceStatus>;
 
@@ -104,26 +106,41 @@ function InProgressView({ session }: { session: MultipleChoiceStatus }) {
   const [answeringIndex, setAnsweringIndex] = useState<number | null>(null);
   const [advancing, setAdvancing] = useState(false);
 
-  const handleSelectOption = async (answerIndex: number) => {
-    if (
-      session.completed ||
-      session.multipleChoice.currentQuestion.selectedAnswerIndex !== undefined ||
-      answeringIndex !== null
-    ) {
-      return;
-    }
+  const totalQuestions = session.multipleChoice.totalQuestions;
+  const currentNumber = session.multipleChoice.currentQuestionNumber;
+  const isLastQuestion = currentNumber >= totalQuestions;
+  const progressValue =
+    totalQuestions > 0 ? Math.round(((currentNumber - 1) / totalQuestions) * 100) : 0;
+  const answered = session.multipleChoice.currentQuestion.selectedAnswerIndex !== undefined;
 
-    setAnsweringIndex(answerIndex);
-    try {
-      await answerMultipleChoice({ sessionId: session._id, selectedAnswerIndex: answerIndex });
-    } catch (error) {
-      toast.error(getErrorMessage(error, "Failed to submit answer."));
-    } finally {
-      setAnsweringIndex(null);
-    }
-  };
+  const questionStatuses = session.multipleChoice.questionStatuses;
+  const answeredCount = questionStatuses.filter(s => s !== "unanswered").length;
+  const correctCount = questionStatuses.filter(s => s === "correct").length;
+  const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
 
-  const handleNextQuestion = async () => {
+  const handleSelectOption = useCallback(
+    async (answerIndex: number) => {
+      if (
+        session.completed ||
+        session.multipleChoice.currentQuestion.selectedAnswerIndex !== undefined ||
+        answeringIndex !== null
+      ) {
+        return;
+      }
+
+      setAnsweringIndex(answerIndex);
+      try {
+        await answerMultipleChoice({ sessionId: session._id, selectedAnswerIndex: answerIndex });
+      } catch (error) {
+        toast.error(getErrorMessage(error, "Failed to submit answer."));
+      } finally {
+        setAnsweringIndex(null);
+      }
+    },
+    [session, answeringIndex, answerMultipleChoice]
+  );
+
+  const handleNextQuestion = useCallback(async () => {
     if (
       session.completed ||
       session.multipleChoice.currentQuestion.selectedAnswerIndex === undefined
@@ -139,15 +156,30 @@ function InProgressView({ session }: { session: MultipleChoiceStatus }) {
     } finally {
       setAdvancing(false);
     }
-  };
+  }, [session, nextQuestion]);
 
-  const totalQuestions = session.multipleChoice.totalQuestions;
-  const currentNumber = session.multipleChoice.currentQuestionNumber;
-  const isLastQuestion = currentNumber >= totalQuestions;
-  const progressValue =
-    totalQuestions > 0 ? Math.round(((currentNumber - 1) / totalQuestions) * 100) : 0;
-  const answered = session.multipleChoice.currentQuestion.selectedAnswerIndex !== undefined;
-  const disabled = answered || answeringIndex !== null;
+  useKeyboardShortcuts(e => {
+    // Number keys for selecting answers (1-9)
+    const numKey = parseInt(e.key);
+    if (!isNaN(numKey) && numKey >= 1 && numKey <= 9) {
+      const index = numKey - 1;
+      if (
+        index >= 0 &&
+        index < session.multipleChoice.currentQuestion.options.length &&
+        !answered &&
+        answeringIndex === null
+      ) {
+        e.preventDefault();
+        handleSelectOption(index);
+      }
+    }
+
+    // Enter key for next question
+    if (e.key === "Enter" && answered && !advancing) {
+      e.preventDefault();
+      handleNextQuestion();
+    }
+  });
 
   return (
     <PageContainer
@@ -155,113 +187,70 @@ function InProgressView({ session }: { session: MultipleChoiceStatus }) {
       description="Multiple choice"
       icon={LearnConstants.MultipleChoiceIcon}
     >
-      <div className="mx-auto max-w-3xl space-y-8">
+      <div className="mx-auto max-w-3xl space-y-6 sm:space-y-8">
         {/* Progress Section */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">
-              Question {currentNumber} of {totalQuestions}
-            </span>
-            <span className="text-sm font-medium text-muted-foreground">{progressValue}%</span>
+        <div className="relative flex items-center justify-between">
+          {/* Left: Question info */}
+          <div className="text-sm text-muted-foreground whitespace-nowrap">
+            Question {currentNumber} of {totalQuestions} ({progressValue}%)
           </div>
-          <Progress value={progressValue} className="h-2" />
+
+          {/* Center: Question Status Indicators */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex flex-wrap gap-2 justify-center">
+            {questionStatuses.map((status, index) => {
+              const isCurrent = index === currentNumber - 1;
+              return (
+                <div
+                  key={index}
+                  className={cn(
+                    "size-3 rounded-full transition-all duration-300",
+                    status === "correct" && "bg-emerald-500",
+                    status === "incorrect" && "bg-destructive",
+                    status === "unanswered" && "bg-muted-foreground/30",
+                    isCurrent &&
+                      "ring-2 ring-primary ring-offset-2 ring-offset-background scale-125"
+                  )}
+                />
+              );
+            })}
+          </div>
+
+          {/* Right: Score info */}
+          {answeredCount > 0 && (
+            <div className="text-sm text-muted-foreground whitespace-nowrap">
+              {correctCount} of {answeredCount} correct{" "}
+              <span className="text-muted-foreground">({accuracy}%)</span>
+            </div>
+          )}
         </div>
 
         {/* Question Card */}
-        <Card className="border-2">
-          <CardHeader className="space-y-4 pb-6">
-            <CardTitle className="text-3xl font-bold leading-tight">
+        <Card>
+          <CardHeader className="space-y-2.5">
+            <CardTitle className="text-2xl sm:text-3xl font-bold">
               {session.multipleChoice.currentQuestion.question ?? "Practice prompt"}
             </CardTitle>
-            <CardDescription className="text-base">
+            <CardDescription>
               Choose the correct translation from the options below.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Answer Options */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              {session.multipleChoice.currentQuestion.options.map((option, index) => {
-                const isSelected =
-                  index === session.multipleChoice.currentQuestion.selectedAnswerIndex;
-                const isCorrect =
-                  index === session.multipleChoice.currentQuestion.correctAnswerIndex;
-
-                return (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="lg"
-                    className={cn(
-                      "h-auto min-h-[60px] justify-start whitespace-normal px-5 py-4 text-left transition-all",
-                      !answered && !disabled && "hover:border-primary hover:bg-primary/5",
-                      isCorrect &&
-                        answered &&
-                        "border-2 border-emerald-500 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/10",
-                      isSelected &&
-                        !isCorrect &&
-                        answered &&
-                        "border-2 border-destructive bg-destructive/10 text-destructive hover:bg-destructive/10",
-                      answered && !isCorrect && !isSelected && "opacity-60"
-                    )}
-                    disabled={disabled}
-                    onClick={() => handleSelectOption(index)}
-                  >
-                    <span className="flex-shrink-0">
-                      {answered ? (
-                        isCorrect ? (
-                          <CheckCircle2 className="size-5 text-emerald-600" />
-                        ) : isSelected ? (
-                          <XCircle className="size-5 text-destructive" />
-                        ) : (
-                          <Circle className="size-5 opacity-40" />
-                        )
-                      ) : answeringIndex === index ? (
-                        <Spinner className="size-5" />
-                      ) : (
-                        <Circle className="size-5 text-muted-foreground" />
-                      )}
-                    </span>
-                    <span className="text-base font-medium">{option}</span>
-                  </Button>
-                );
-              })}
+            <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
+              {session.multipleChoice.currentQuestion.options.map((option, index) => (
+                <AnswerButton
+                  key={index}
+                  session={session}
+                  option={option}
+                  index={index}
+                  answeringIndex={answeringIndex}
+                  onClick={() => handleSelectOption(index)}
+                />
+              ))}
             </div>
 
             {/* Feedback Section */}
-            {answered ? (
-              session.multipleChoice.currentQuestion.selectedAnswerIndex ===
-              session.multipleChoice.currentQuestion.correctAnswerIndex ? (
-                <div className="rounded-xl border-2 border-emerald-500/30 bg-emerald-50 p-5 dark:bg-emerald-950/30">
-                  <div className="flex items-center gap-3 text-emerald-700 dark:text-emerald-400">
-                    <CheckCircle2 className="size-6 flex-shrink-0" />
-                    <div>
-                      <p className="text-lg font-semibold">Correct!</p>
-                      <p className="text-sm text-emerald-600 dark:text-emerald-500">
-                        Great job, keep it up.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-xl border-2 border-destructive/30 bg-destructive/5 p-5">
-                  <div className="flex items-center gap-3 text-destructive">
-                    <XCircle className="size-6 flex-shrink-0" />
-                    <div>
-                      <p className="text-lg font-semibold">Not quite right</p>
-                      <p className="text-sm text-muted-foreground">
-                        Review the correct answer before moving on.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )
-            ) : (
-              <div className="rounded-xl border border-dashed border-muted-foreground/30 bg-muted/30 p-5 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Select an answer to check if you&apos;re correct
-                </p>
-              </div>
-            )}
+            <AnswerFeedback session={session} />
           </CardContent>
           <CardFooter className="justify-end">
             <Button size="lg" onClick={handleNextQuestion} disabled={!answered || advancing}>
@@ -274,6 +263,7 @@ function InProgressView({ session }: { session: MultipleChoiceStatus }) {
                 <>
                   {isLastQuestion ? "Finish session" : "Next question"}
                   <ArrowRight />
+                  <Kbd>↵</Kbd>
                 </>
               )}
             </Button>
@@ -281,6 +271,136 @@ function InProgressView({ session }: { session: MultipleChoiceStatus }) {
         </Card>
       </div>
     </PageContainer>
+  );
+}
+
+function AnswerButton({
+  session,
+  option,
+  index,
+  answeringIndex,
+  onClick,
+}: {
+  session: MultipleChoiceStatus;
+  option: string;
+  index: number;
+  answeringIndex: number | null;
+  onClick: () => void;
+}) {
+  if (session.completed) {
+    throw new Error("Practice session already completed.");
+  }
+
+  // Derive state from props
+  const isSelected = index === session.multipleChoice.currentQuestion.selectedAnswerIndex;
+  const isCorrect = index === session.multipleChoice.currentQuestion.correctAnswerIndex;
+  const answered = session.multipleChoice.currentQuestion.selectedAnswerIndex !== undefined;
+  const disabled = answeringIndex !== null;
+  const isAnswering = answeringIndex === index;
+
+  // Determine button styling based on state
+  const getButtonClassName = () => {
+    const baseStyles =
+      "h-auto min-h-[56px] sm:min-h-[60px] justify-start px-4 py-3 sm:px-5 sm:py-4 text-left";
+
+    // After answering: correct answer
+    if (answered && isCorrect) {
+      return `${baseStyles} border-2 border-emerald-500 bg-emerald-500/10 pointer-events-none`;
+    }
+
+    // After answering: user's wrong answer
+    if (answered && isSelected && !isCorrect) {
+      return `${baseStyles} border-2 border-destructive bg-destructive/10 pointer-events-none`;
+    }
+
+    // After answering: other options (faded)
+    if (answered) {
+      return `${baseStyles} opacity-40 pointer-events-none`;
+    }
+
+    // Before answering: interactive state
+    return `${baseStyles} hover:border-primary`;
+  };
+
+  // Determine which icon to show
+  const renderIcon = () => {
+    if (answered && isCorrect) {
+      return <CheckCircle2 className="size-5 text-emerald-600" />;
+    } else if (answered && isSelected) {
+      return <XCircle className="size-5 text-destructive" />;
+    } else if (!answered && isAnswering) {
+      return <Spinner className="size-5" />;
+    } else if (!answered) {
+      return <Circle className="size-5 text-muted-foreground" />;
+    } else {
+      return <Circle className="size-5 opacity-40" />;
+    }
+  };
+
+  return (
+    <Button
+      variant="outline"
+      size="lg"
+      className={cn(getButtonClassName(), "relative")}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      <span className="flex-shrink-0">{renderIcon()}</span>
+      <span className="flex-1 text-base font-medium pr-8">{option}</span>
+      {!answered && index < 9 && (
+        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+          <Kbd>{index + 1}</Kbd>
+        </div>
+      )}
+    </Button>
+  );
+}
+
+function AnswerFeedback({ session }: { session: MultipleChoiceStatus }) {
+  if (session.completed) {
+    throw new Error("Practice session already completed.");
+  }
+
+  const answered = session.multipleChoice.currentQuestion.selectedAnswerIndex !== undefined;
+  const isCorrect =
+    session.multipleChoice.currentQuestion.selectedAnswerIndex ===
+    session.multipleChoice.currentQuestion.correctAnswerIndex;
+
+  // Don't show anything until answered
+  if (!answered) {
+    return null;
+  }
+
+  if (isCorrect) {
+    return (
+      <div className="rounded-xl bg-card border p-6 animate-in slide-in-from-bottom-2 duration-300">
+        <div className="flex items-center gap-5">
+          <IconOrb
+            icon={CheckCircle2}
+            size="lg"
+            className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-500"
+          />
+          <div>
+            <p className="text-xl font-bold text-foreground">Correct!</p>
+            <p className="text-sm text-muted-foreground">Great job, keep it up.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl bg-card border p-6 animate-in slide-in-from-bottom-2 duration-300">
+      <div className="flex items-center gap-5">
+        <IconOrb icon={XCircle} size="lg" className="bg-destructive/15 text-destructive" />
+        <div>
+          <p className="text-xl font-bold text-foreground">Not quite right</p>
+          <p className="text-sm text-muted-foreground">
+            Review the correct answer before moving on.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
 
