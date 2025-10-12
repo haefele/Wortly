@@ -121,11 +121,7 @@ function PracticeEmptyState({ onStart }: { onStart: () => void }) {
   );
 }
 
-function SessionCard({
-  session,
-}: {
-  session: PracticeSessionSummary
-}) {
+function SessionCard({ session }: { session: PracticeSessionSummary }) {
   const status = getSessionStatusMeta(session);
   const isCompleted = status.kind === "completed";
   const scorePercent = session.multipleChoice.totalQuestions
