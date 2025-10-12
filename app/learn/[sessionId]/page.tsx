@@ -104,12 +104,6 @@ function InProgressView({ session }: { session: MultipleChoiceStatus }) {
   const [answeringIndex, setAnsweringIndex] = useState<number | null>(null);
   const [advancing, setAdvancing] = useState(false);
 
-  const currentQuestionNumber = session.multipleChoice.currentQuestionNumber;
-
-  useEffect(() => {
-    setAnsweringIndex(null);
-  }, [currentQuestionNumber]);
-
   const handleSelectOption = async (answerIndex: number) => {
     if (
       session.completed ||
@@ -195,7 +189,6 @@ function InProgressView({ session }: { session: MultipleChoiceStatus }) {
                 return (
                   <Button
                     key={index}
-                    type="button"
                     variant="outline"
                     size="lg"
                     className={cn(
@@ -270,7 +263,7 @@ function InProgressView({ session }: { session: MultipleChoiceStatus }) {
               </div>
             )}
           </CardContent>
-          <CardFooter className="justify-end pt-6">
+          <CardFooter className="justify-end">
             <Button size="lg" onClick={handleNextQuestion} disabled={!answered || advancing}>
               {advancing ? (
                 <>
