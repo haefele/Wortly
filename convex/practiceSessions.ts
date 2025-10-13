@@ -1,19 +1,14 @@
 import { paginationOptsValidator } from "convex/server";
 import { query, mutation, DatabaseReader } from "./_generated/server";
-import { v, ConvexError, Infer } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { getCurrentUser } from "./users";
-import { Doc } from "./_generated/dataModel";
+import { Doc, Id } from "./_generated/dataModel";
 import { pickRandomElements, shuffle } from "./lib/shuffle";
-import schema from "./schema";
+import { MultipleChoiceQuestion, MultipleChoiceType, MultipleChoiceTypeValidator } from "./schema";
 import { internal } from "./_generated/api";
 
-const MAX_QUESTIONS = 10;
 const OPTIONS_PER_QUESTION = 4;
-const MULTIPLE_CHOICE_TYPES = [
-  "german_word_choose_translation",
-  "translation_choose_german_word",
-] as const;
-type MultipleChoiceType = (typeof MULTIPLE_CHOICE_TYPES)[number];
+const ARTICLE_OPTIONS = ["der", "die", "das"] as const;
 
 export const getPracticeSessions = query({
   args: {
@@ -84,10 +79,7 @@ async function getMultipleChoiceCompletedStatus(
   session: Doc<"practiceSessions">,
   db: DatabaseReader
 ) {
-  if (
-    session.type !== "multiple_choice" ||
-    !isSupportedMultipleChoiceType(session.multipleChoice.type)
-  ) {
+  if (session.type !== "multiple_choice") {
     throw new ConvexError("Unsupported practice session type.");
   }
 
@@ -109,10 +101,7 @@ async function getMultipleChoiceInProgressStatus(
   session: Doc<"practiceSessions">,
   db: DatabaseReader
 ) {
-  if (
-    session.type !== "multiple_choice" ||
-    !isSupportedMultipleChoiceType(session.multipleChoice.type)
-  ) {
+  if (session.type !== "multiple_choice") {
     throw new ConvexError("Unsupported practice session type.");
   }
 
@@ -152,19 +141,11 @@ async function getMultipleChoiceInProgressStatus(
   };
 }
 
-type MultipleChoice = Infer<typeof schema.tables.practiceSessions.validator>["multipleChoice"];
-type MultipleChoiceQuestion = MultipleChoice["questions"][0];
-
 export const startMultipleChoice = mutation({
   args: {
     wordBoxId: v.id("wordBoxes"),
-    questionCount: v.optional(v.number()),
-    type: v.optional(
-      v.union(
-        v.literal("german_word_choose_translation"),
-        v.literal("translation_choose_german_word")
-      )
-    ),
+    questionCount: v.number(),
+    type: MultipleChoiceTypeValidator,
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
@@ -185,54 +166,17 @@ export const startMultipleChoice = mutation({
 
     const wordIds = assignments.map(a => a.wordId);
 
-    const questionWordIds = pickRandomElements(wordIds, args.questionCount ?? MAX_QUESTIONS);
-
-    const sessionType = args.type ?? "german_word_choose_translation";
-    if (!isSupportedMultipleChoiceType(sessionType)) {
-      throw new ConvexError("Unsupported multiple choice type.");
-    }
-
-    const questions = await Promise.all(
-      questionWordIds.map(async wordId => {
-        const wrongAnswerPool = wordIds.filter(otherId => otherId !== wordId);
-        const wrongAnswerWordIds = pickRandomElements(wrongAnswerPool, OPTIONS_PER_QUESTION - 1);
-
-        const answerDocs = await Promise.all(
-          [wordId, ...wrongAnswerWordIds].map(async id => {
-            const word = await ctx.db.get(id);
-            return { id, word };
-          })
-        );
-
-        const shuffledAnswers = shuffle(
-          answerDocs.map(({ id, word }) => ({
-            text: getMultipleChoiceAnswerText(word, sessionType),
-            wordId: word?._id ?? id,
-          }))
-        );
-
-        const questionWord = answerDocs.find(({ id }) => id === wordId)?.word ?? null;
-
-        return {
-          question: getMultipleChoiceQuestionText(questionWord, sessionType),
-          wordId,
-
-          answers: shuffledAnswers,
-
-          correctAnswerIndex: shuffledAnswers.findIndex(a => a.wordId === wordId),
-
-          selectedAnswerIndex: undefined,
-          answeredAt: undefined,
-        } as MultipleChoiceQuestion;
-      })
-    );
+    const questions =
+      args.type === "german_substantive_choose_article"
+        ? await buildArticleQuestions(ctx.db, wordIds, args.questionCount)
+        : await buildTranslationQuestions(ctx.db, wordIds, args.questionCount, args.type);
 
     const sessionId = await ctx.db.insert("practiceSessions", {
       userId: user._id,
       createdAt: Date.now(),
       type: "multiple_choice",
       multipleChoice: {
-        type: sessionType,
+        type: args.type,
         wordBoxId: box._id,
         wordBoxName: box.name,
         questions,
@@ -360,6 +304,93 @@ function getPreferredTranslation(word: Doc<"words"> | null): string {
   return word.translations.en ?? word.translations.ru ?? word.word;
 }
 
+async function buildTranslationQuestions(
+  db: DatabaseReader,
+  wordIds: Id<"words">[],
+  questionCount: number,
+  sessionType: MultipleChoiceType
+) {
+  const questionWordIds = pickRandomElements(wordIds, questionCount);
+
+  return Promise.all(
+    questionWordIds.map(async wordId => {
+      const wrongAnswerPool = wordIds.filter(otherId => otherId !== wordId);
+      const wrongAnswerWordIds = pickRandomElements(wrongAnswerPool, OPTIONS_PER_QUESTION - 1);
+
+      const answerDocs = await Promise.all(
+        [wordId, ...wrongAnswerWordIds].map(async id => {
+          const word = await db.get(id);
+          return { id, word };
+        })
+      );
+
+      const shuffledAnswers = shuffle(
+        answerDocs.map(({ id, word }) => ({
+          text: getMultipleChoiceAnswerText(word, sessionType),
+          wordId: word?._id ?? id,
+        }))
+      );
+
+      const questionWord = answerDocs.find(({ id }) => id === wordId)?.word ?? null;
+
+      return {
+        question: getMultipleChoiceQuestionText(questionWord, sessionType),
+        wordId,
+
+        answers: shuffledAnswers,
+
+        correctAnswerIndex: shuffledAnswers.findIndex(a => a.wordId === wordId),
+      } as MultipleChoiceQuestion;
+    })
+  );
+}
+
+async function buildArticleQuestions(
+  db: DatabaseReader,
+  wordIds: Id<"words">[],
+  questionCount: number
+) {
+  const words = await Promise.all(
+    wordIds.map(async id => {
+      const word = await db.get(id);
+      return { id, word };
+    })
+  );
+
+  const nounsWithArticles = words.filter(
+    entry => entry.word?.wordType === "Substantiv" && entry.word.article !== undefined
+  );
+
+  if (nounsWithArticles.length === 0) {
+    throw new ConvexError(
+      "This collection needs nouns with defined articles for this session type."
+    );
+  }
+
+  const selected = pickRandomElements(nounsWithArticles, questionCount);
+
+  return selected.map(({ id, word }) => {
+    const answers = ARTICLE_OPTIONS.map(option => ({
+      text: option,
+      wordId: undefined,
+    }));
+
+    const correctAnswerIndex = ARTICLE_OPTIONS.findIndex(option => option === word?.article);
+    if (correctAnswerIndex === -1) {
+      throw new ConvexError("Word is missing a valid article.");
+    }
+
+    return {
+      question: getMultipleChoiceQuestionText(word, "german_substantive_choose_article"),
+      wordId: id,
+
+      answers,
+
+      correctAnswerIndex,
+    } as MultipleChoiceQuestion;
+  });
+}
+
 function getMultipleChoiceQuestionText(word: Doc<"words"> | null, type: MultipleChoiceType) {
   if (!word) {
     return "";
@@ -369,7 +400,11 @@ function getMultipleChoiceQuestionText(word: Doc<"words"> | null, type: Multiple
     return word.word;
   }
 
-  return getPreferredTranslation(word);
+  if (type === "translation_choose_german_word") {
+    return getPreferredTranslation(word);
+  }
+
+  return word.word;
 }
 
 function getMultipleChoiceAnswerText(word: Doc<"words"> | null, type: MultipleChoiceType) {
@@ -381,9 +416,9 @@ function getMultipleChoiceAnswerText(word: Doc<"words"> | null, type: MultipleCh
     return getPreferredTranslation(word);
   }
 
-  return word.word;
-}
+  if (type === "translation_choose_german_word") {
+    return word.word;
+  }
 
-function isSupportedMultipleChoiceType(type: string): type is MultipleChoiceType {
-  return MULTIPLE_CHOICE_TYPES.includes(type as MultipleChoiceType);
+  return word.translations.en ?? "";
 }
