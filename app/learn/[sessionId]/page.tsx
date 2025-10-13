@@ -37,6 +37,7 @@ import { FunctionReturnType } from "convex/server";
 import { Spinner } from "@/components/ui/spinner";
 import { Kbd } from "@/components/ui/kbd";
 import { IconOrb } from "@/components/ui/icon-orb";
+import { Progress } from "@/components/ui/progress";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 
 type MultipleChoiceStatus = FunctionReturnType<typeof api.practiceSessions.getMultipleChoiceStatus>;
@@ -189,42 +190,23 @@ function InProgressView({ session }: { session: MultipleChoiceStatus }) {
       description={variantMeta.label}
       icon={LearnConstants.MultipleChoiceIcon}
     >
-      <div className="mx-auto max-w-3xl space-y-6 sm:space-y-8">
-        {/* Progress Section */}
-        <div className="relative flex items-center justify-between">
-          {/* Left: Question info */}
-          <div className="text-sm text-muted-foreground whitespace-nowrap">
-            Question {currentNumber} of {totalQuestions} ({progressValue}%)
-          </div>
-
-          {/* Center: Question Status Indicators */}
-          <div className="absolute left-1/2 -translate-x-1/2 flex flex-wrap gap-2 justify-center">
-            {questionStatuses.map((status, index) => {
-              const isCurrent = index === currentNumber - 1;
-              return (
-                <div
-                  key={index}
-                  className={cn(
-                    "size-3 rounded-full transition-all duration-300",
-                    status === "correct" && "bg-emerald-500",
-                    status === "incorrect" && "bg-destructive",
-                    status === "unanswered" && "bg-muted-foreground/30",
-                    isCurrent &&
-                      "ring-2 ring-primary ring-offset-2 ring-offset-background scale-125"
-                  )}
-                />
-              );
-            })}
-          </div>
-
-          {/* Right: Score info */}
-          {answeredCount > 0 && (
-            <div className="text-sm text-muted-foreground whitespace-nowrap">
-              {correctCount} of {answeredCount} correct{" "}
-              <span className="text-muted-foreground">({accuracy}%)</span>
+      <div className="mx-auto max-w-3xl space-y-6">
+        {/* Progress Summary */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-x-3 text-sm">
+              <span className="font-medium text-foreground">
+                Question {currentNumber} of {totalQuestions}
+              </span>
+              {answeredCount > 0 && (
+                <span className="text-muted-foreground">
+                  {correctCount} correct · {accuracy}%
+                </span>
+              )}
             </div>
-          )}
-        </div>
+            <Progress value={progressValue} />
+          </CardHeader>
+        </Card>
 
         {/* Question Card */}
         <Card>
