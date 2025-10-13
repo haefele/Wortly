@@ -103,7 +103,10 @@ export default defineSchema({
     type: v.literal("multiple_choice"),
 
     multipleChoice: v.object({
-      type: v.literal("german_word_choose_translation"),
+      type: v.union(
+        v.literal("german_word_choose_translation"),
+        v.literal("translation_choose_german_word")
+      ),
       wordBoxId: v.optional(v.id("wordBoxes")),
       wordBoxName: v.string(),
       questions: v.array(
