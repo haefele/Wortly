@@ -130,7 +130,11 @@ function MultipleChoiceConfig({
     .object({
       wordBoxId: z.string().min(1, "Please select a collection"),
       questionCount: z.string().min(1, "Please select number of questions"),
-      type: z.enum(["german_word_choose_translation", "translation_choose_german_word"]),
+      type: z.enum([
+        "german_word_choose_translation",
+        "translation_choose_german_word",
+        "german_substantive_choose_article",
+      ]),
     })
     .refine(
       data => {
@@ -183,7 +187,7 @@ function MultipleChoiceConfig({
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel>Question direction</FieldLabel>
               <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="w-full" aria-invalid={fieldState.invalid}>
+                <SelectTrigger className="w-full min-h-[60px]" aria-invalid={fieldState.invalid}>
                   <SelectValue placeholder="Select question direction" />
                 </SelectTrigger>
                 <SelectContent position="item-aligned">

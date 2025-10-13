@@ -1,5 +1,30 @@
 import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { Infer, v } from "convex/values";
+
+export const MultipleChoiceTypeValidator = v.union(
+  v.literal("german_word_choose_translation"),
+  v.literal("translation_choose_german_word"),
+  v.literal("german_substantive_choose_article")
+);
+export type MultipleChoiceType = Infer<typeof MultipleChoiceTypeValidator>;
+
+export const MultipleChoiceQuestionValidator = v.object({
+  question: v.string(),
+  wordId: v.optional(v.id("words")),
+
+  answers: v.array(
+    v.object({
+      text: v.string(),
+      wordId: v.optional(v.id("words")),
+    })
+  ),
+
+  correctAnswerIndex: v.number(),
+
+  selectedAnswerIndex: v.optional(v.number()),
+  answeredAt: v.optional(v.number()),
+});
+export type MultipleChoiceQuestion = Infer<typeof MultipleChoiceQuestionValidator>;
 
 export default defineSchema({
   users: defineTable({
@@ -103,30 +128,10 @@ export default defineSchema({
     type: v.literal("multiple_choice"),
 
     multipleChoice: v.object({
-      type: v.union(
-        v.literal("german_word_choose_translation"),
-        v.literal("translation_choose_german_word")
-      ),
+      type: MultipleChoiceTypeValidator,
       wordBoxId: v.optional(v.id("wordBoxes")),
       wordBoxName: v.string(),
-      questions: v.array(
-        v.object({
-          question: v.string(),
-          wordId: v.optional(v.id("words")),
-
-          answers: v.array(
-            v.object({
-              text: v.string(),
-              wordId: v.optional(v.id("words")),
-            })
-          ),
-
-          correctAnswerIndex: v.number(),
-
-          selectedAnswerIndex: v.optional(v.number()),
-          answeredAt: v.optional(v.number()),
-        })
-      ),
+      questions: v.array(MultipleChoiceQuestionValidator),
       currentQuestionIndex: v.optional(v.number()),
     }),
   }).index("by_userId_and_createdAt", ["userId", "createdAt"]),

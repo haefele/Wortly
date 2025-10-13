@@ -37,7 +37,8 @@ export const LearnConstants = {
 
 export type MultipleChoiceVariant =
   | "german_word_choose_translation"
-  | "translation_choose_german_word";
+  | "translation_choose_german_word"
+  | "german_substantive_choose_article";
 
 export interface MultipleChoiceVariantMeta {
   id: MultipleChoiceVariant;
@@ -58,6 +59,12 @@ export const MULTIPLE_CHOICE_VARIANTS: MultipleChoiceVariantMeta[] = [
     label: "Translation → German",
     description: "See the translation and pick the matching German word.",
     instruction: "Choose the correct German word from the options below.",
+  },
+  {
+    id: "german_substantive_choose_article",
+    label: "Noun → Article",
+    description: "See the noun and choose the correct article (der, die, das).",
+    instruction: "Pick the correct article. Answers are always in the order der · die · das.",
   },
 ];
 
