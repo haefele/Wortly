@@ -432,6 +432,7 @@ function CompletedView({ session }: { session: MultipleChoiceStatus }) {
       setIsRestarting(true);
       const newSessionId = await startMultipleChoice({
         wordBoxId: session.multipleChoice.wordBoxId,
+        questionCount: totalQuestions,
         type: session.multipleChoice.type,
       });
       router.push(`/learn/${newSessionId}`);
