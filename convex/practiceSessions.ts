@@ -9,6 +9,11 @@ import { internal } from "./_generated/api";
 
 const MAX_QUESTIONS = 10;
 const OPTIONS_PER_QUESTION = 4;
+const MULTIPLE_CHOICE_TYPES = [
+  "german_word_choose_translation",
+  "translation_choose_german_word",
+] as const;
+type MultipleChoiceType = (typeof MULTIPLE_CHOICE_TYPES)[number];
 
 export const getPracticeSessions = query({
   args: {
@@ -80,8 +85,8 @@ async function getMultipleChoiceCompletedStatus(
   db: DatabaseReader
 ) {
   if (
-    session.type !== "multiple_choice" &&
-    session.multipleChoice.type !== "german_word_choose_translation"
+    session.type !== "multiple_choice" ||
+    !isSupportedMultipleChoiceType(session.multipleChoice.type)
   ) {
     throw new ConvexError("Unsupported practice session type.");
   }
@@ -92,6 +97,7 @@ async function getMultipleChoiceCompletedStatus(
     createdAt: session.createdAt,
     completedAt: session.completedAt,
     multipleChoice: {
+      type: session.multipleChoice.type,
       wordBoxId: session.multipleChoice.wordBoxId,
       wordBoxName: session.multipleChoice.wordBoxName,
       questions: session.multipleChoice.questions,
@@ -104,8 +110,8 @@ async function getMultipleChoiceInProgressStatus(
   db: DatabaseReader
 ) {
   if (
-    session.type !== "multiple_choice" &&
-    session.multipleChoice.type !== "german_word_choose_translation"
+    session.type !== "multiple_choice" ||
+    !isSupportedMultipleChoiceType(session.multipleChoice.type)
   ) {
     throw new ConvexError("Unsupported practice session type.");
   }
@@ -130,6 +136,7 @@ async function getMultipleChoiceInProgressStatus(
     createdAt: session.createdAt,
     completedAt: session.completedAt,
     multipleChoice: {
+      type: session.multipleChoice.type,
       wordBoxId: session.multipleChoice.wordBoxId,
       wordBoxName: session.multipleChoice.wordBoxName,
       totalQuestions: session.multipleChoice.questions.length,
@@ -152,6 +159,12 @@ export const startMultipleChoice = mutation({
   args: {
     wordBoxId: v.id("wordBoxes"),
     questionCount: v.optional(v.number()),
+    type: v.optional(
+      v.union(
+        v.literal("german_word_choose_translation"),
+        v.literal("translation_choose_german_word")
+      )
+    ),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
@@ -174,27 +187,34 @@ export const startMultipleChoice = mutation({
 
     const questionWordIds = pickRandomElements(wordIds, args.questionCount ?? MAX_QUESTIONS);
 
+    const sessionType = args.type ?? "german_word_choose_translation";
+    if (!isSupportedMultipleChoiceType(sessionType)) {
+      throw new ConvexError("Unsupported multiple choice type.");
+    }
+
     const questions = await Promise.all(
       questionWordIds.map(async wordId => {
         const wrongAnswerPool = wordIds.filter(otherId => otherId !== wordId);
         const wrongAnswerWordIds = pickRandomElements(wrongAnswerPool, OPTIONS_PER_QUESTION - 1);
 
-        const shuffledAnswers = shuffle(
-          await Promise.all(
-            [wordId, ...wrongAnswerWordIds].map(async id => {
-              const w = await ctx.db.get(id);
-              return {
-                text: getPreferredTranslation(w),
-                wordId: w?._id,
-              };
-            })
-          )
+        const answerDocs = await Promise.all(
+          [wordId, ...wrongAnswerWordIds].map(async id => {
+            const word = await ctx.db.get(id);
+            return { id, word };
+          })
         );
 
-        const word = await ctx.db.get(wordId);
+        const shuffledAnswers = shuffle(
+          answerDocs.map(({ id, word }) => ({
+            text: getMultipleChoiceAnswerText(word, sessionType),
+            wordId: word?._id ?? id,
+          }))
+        );
+
+        const questionWord = answerDocs.find(({ id }) => id === wordId)?.word ?? null;
 
         return {
-          question: word?.word,
+          question: getMultipleChoiceQuestionText(questionWord, sessionType),
           wordId,
 
           answers: shuffledAnswers,
@@ -212,7 +232,7 @@ export const startMultipleChoice = mutation({
       createdAt: Date.now(),
       type: "multiple_choice",
       multipleChoice: {
-        type: "german_word_choose_translation",
+        type: sessionType,
         wordBoxId: box._id,
         wordBoxName: box.name,
         questions,
@@ -338,4 +358,32 @@ function getPreferredTranslation(word: Doc<"words"> | null): string {
   }
 
   return word.translations.en ?? word.translations.ru ?? word.word;
+}
+
+function getMultipleChoiceQuestionText(word: Doc<"words"> | null, type: MultipleChoiceType) {
+  if (!word) {
+    return "";
+  }
+
+  if (type === "german_word_choose_translation") {
+    return word.word;
+  }
+
+  return getPreferredTranslation(word);
+}
+
+function getMultipleChoiceAnswerText(word: Doc<"words"> | null, type: MultipleChoiceType) {
+  if (!word) {
+    return "";
+  }
+
+  if (type === "german_word_choose_translation") {
+    return getPreferredTranslation(word);
+  }
+
+  return word.word;
+}
+
+function isSupportedMultipleChoiceType(type: string): type is MultipleChoiceType {
+  return MULTIPLE_CHOICE_TYPES.includes(type as MultipleChoiceType);
 }

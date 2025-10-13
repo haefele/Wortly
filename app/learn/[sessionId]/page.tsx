@@ -22,7 +22,7 @@ import { PageContainer } from "@/components/page-container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getScoreGradeMeta, LearnConstants } from "../constants";
+import { getScoreGradeMeta, getMultipleChoiceVariantMeta, LearnConstants } from "../constants";
 import {
   Card,
   CardContent,
@@ -99,6 +99,8 @@ function InProgressView({ session }: { session: MultipleChoiceStatus }) {
   if (session.completed) {
     throw new Error("Practice session already completed.");
   }
+
+  const variantMeta = getMultipleChoiceVariantMeta(session.multipleChoice.type);
 
   const answerMultipleChoice = useMutation(api.practiceSessions.answerMultipleChoice);
   const nextQuestion = useMutation(api.practiceSessions.nextQuestionMultipleChoice);
@@ -184,7 +186,7 @@ function InProgressView({ session }: { session: MultipleChoiceStatus }) {
   return (
     <PageContainer
       title={session.multipleChoice.wordBoxName}
-      description="Multiple choice"
+      description={variantMeta.label}
       icon={LearnConstants.MultipleChoiceIcon}
     >
       <div className="mx-auto max-w-3xl space-y-6 sm:space-y-8">
@@ -230,9 +232,7 @@ function InProgressView({ session }: { session: MultipleChoiceStatus }) {
             <CardTitle className="text-2xl sm:text-3xl font-bold">
               {session.multipleChoice.currentQuestion.question ?? "Practice prompt"}
             </CardTitle>
-            <CardDescription>
-              Choose the correct translation from the options below.
-            </CardDescription>
+            <CardDescription>{variantMeta.instruction}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Answer Options */}
@@ -423,6 +423,7 @@ function CompletedView({ session }: { session: MultipleChoiceStatus }) {
   }).length;
   const accuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
   const scoreMeta = getScoreGradeMeta(accuracy);
+  const variantMeta = getMultipleChoiceVariantMeta(session.multipleChoice.type);
 
   const handleRestart = async () => {
     if (!session.multipleChoice.wordBoxId) return;
@@ -431,6 +432,7 @@ function CompletedView({ session }: { session: MultipleChoiceStatus }) {
       setIsRestarting(true);
       const newSessionId = await startMultipleChoice({
         wordBoxId: session.multipleChoice.wordBoxId,
+        type: session.multipleChoice.type,
       });
       router.push(`/learn/${newSessionId}`);
     } catch (error) {
@@ -443,7 +445,7 @@ function CompletedView({ session }: { session: MultipleChoiceStatus }) {
   return (
     <PageContainer
       title={session.multipleChoice.wordBoxName}
-      description="Multiple choice"
+      description={variantMeta.label}
       icon={LearnConstants.MultipleChoiceIcon}
       headerActions={
         <Button onClick={handleRestart} disabled={isRestarting}>
@@ -563,7 +565,7 @@ function CompletedView({ session }: { session: MultipleChoiceStatus }) {
           </CardHeader>
           <CardContent className="space-y-6">
             {questions.map((question, index) => {
-              const correctWord = question.question;
+              const promptText = question.question;
               const isCorrect = question.selectedAnswerIndex === question.correctAnswerIndex;
               const correctAnswer =
                 question.answers[question.correctAnswerIndex]?.text ?? "Unknown";
@@ -595,7 +597,7 @@ function CompletedView({ session }: { session: MultipleChoiceStatus }) {
                         >
                           {index + 1}
                         </span>
-                        <h3 className="text-xl font-bold">{correctWord ?? "Word removed"}</h3>
+                        <h3 className="text-xl font-bold">{promptText ?? "Prompt removed"}</h3>
                       </div>
                     </div>
                     <Badge

@@ -32,7 +32,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { PRACTICE_SESSION_TYPES, type PracticeSessionType } from "@/app/learn/constants";
+import {
+  MULTIPLE_CHOICE_VARIANTS,
+  PRACTICE_SESSION_TYPES,
+  type MultipleChoiceVariant,
+  type PracticeSessionType,
+} from "@/app/learn/constants";
 import { Controller } from "react-hook-form";
 
 interface StartPracticeDialogProps {
@@ -125,6 +130,7 @@ function MultipleChoiceConfig({
     .object({
       wordBoxId: z.string().min(1, "Please select a collection"),
       questionCount: z.string().min(1, "Please select number of questions"),
+      type: z.enum(["german_word_choose_translation", "translation_choose_german_word"]),
     })
     .refine(
       data => {
@@ -142,6 +148,7 @@ function MultipleChoiceConfig({
     defaultValues: {
       wordBoxId: "",
       questionCount: "10",
+      type: "german_word_choose_translation",
     },
   });
 
@@ -150,6 +157,7 @@ function MultipleChoiceConfig({
       const sessionId = await startMultipleChoice({
         wordBoxId: data.wordBoxId as Id<"wordBoxes">,
         questionCount: parseInt(data.questionCount, 10),
+        type: data.type as MultipleChoiceVariant,
       });
       onOpenChange(false);
       router.push(`/learn/${sessionId}`);
@@ -168,6 +176,32 @@ function MultipleChoiceConfig({
       </DialogHeader>
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <Controller
+          name="type"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel>Question direction</FieldLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger className="w-full" aria-invalid={fieldState.invalid}>
+                  <SelectValue placeholder="Select question direction" />
+                </SelectTrigger>
+                <SelectContent position="item-aligned">
+                  {MULTIPLE_CHOICE_VARIANTS.map(variant => (
+                    <SelectItem key={variant.id} value={variant.id}>
+                      <div className="flex flex-col gap-1 text-left">
+                        <span className="font-medium">{variant.label}</span>
+                        <span className="text-xs text-muted-foreground">{variant.description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+
         <Controller
           name="wordBoxId"
           control={form.control}

@@ -26,7 +26,7 @@ export const PRACTICE_SESSION_TYPES: PracticeSessionTypeMeta[] = [
   {
     id: "multiple_choice",
     label: "Multiple choice",
-    description: "Test your vocabulary by choosing the correct translation from multiple options.",
+    description: "Match German words and translations in both directions to build recall speed.",
     icon: SquareStack,
   },
 ];
@@ -34,6 +34,38 @@ export const PRACTICE_SESSION_TYPES: PracticeSessionTypeMeta[] = [
 export const LearnConstants = {
   MultipleChoiceIcon: SquareStack,
 } as const;
+
+export type MultipleChoiceVariant =
+  | "german_word_choose_translation"
+  | "translation_choose_german_word";
+
+export interface MultipleChoiceVariantMeta {
+  id: MultipleChoiceVariant;
+  label: string;
+  description: string;
+  instruction: string;
+}
+
+export const MULTIPLE_CHOICE_VARIANTS: MultipleChoiceVariantMeta[] = [
+  {
+    id: "german_word_choose_translation",
+    label: "German → Translation",
+    description: "See the German word and pick the correct translation.",
+    instruction: "Choose the correct translation from the options below.",
+  },
+  {
+    id: "translation_choose_german_word",
+    label: "Translation → German",
+    description: "See the translation and pick the matching German word.",
+    instruction: "Choose the correct German word from the options below.",
+  },
+];
+
+export function getMultipleChoiceVariantMeta(type: MultipleChoiceVariant) {
+  return (
+    MULTIPLE_CHOICE_VARIANTS.find(variant => variant.id === type) ?? MULTIPLE_CHOICE_VARIANTS[0]
+  );
+}
 
 type PracticeSessionSummary = FunctionReturnType<
   typeof api.practiceSessions.getPracticeSessions
