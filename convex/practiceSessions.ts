@@ -164,12 +164,10 @@ export const startMultipleChoice = mutation({
       throw new ConvexError("At least 1 word is required to start a practice session.");
     }
 
-    const wordIds = assignments.map(a => a.wordId);
-
     const questions =
       args.type === "german_substantive_choose_article"
-        ? await buildArticleQuestions(ctx.db, wordIds, args.questionCount)
-        : await buildTranslationQuestions(ctx.db, wordIds, args.questionCount, args.type);
+        ? await buildArticleQuestions(ctx.db, assignments, args.questionCount)
+        : await buildTranslationQuestions(ctx.db, assignments.map(a => a.wordId), args.questionCount, args.type);
 
     const sessionId = await ctx.db.insert("practiceSessions", {
       userId: user._id,
@@ -347,29 +345,32 @@ async function buildTranslationQuestions(
 
 async function buildArticleQuestions(
   db: DatabaseReader,
-  wordIds: Id<"words">[],
+  assignments: Doc<"wordBoxAssignments">[],
   questionCount: number
 ) {
-  const words = await Promise.all(
-    wordIds.map(async id => {
-      const word = await db.get(id);
-      return { id, word };
+  const nounAssignments = assignments.filter(a => a.wordType === "Substantiv");
+  if (nounAssignments.length === 0) {
+    throw new ConvexError("This collection needs nouns.");
+  }
+
+  const selectedWords = await Promise.all(
+    pickRandomElements(nounAssignments, questionCount).map(async assignment => {
+      const word = await db.get(assignment.wordId);
+      return word;
     })
   );
 
-  const nounsWithArticles = words.filter(
-    entry => entry.word?.wordType === "Substantiv" && entry.word.article !== undefined
-  );
-
-  if (nounsWithArticles.length === 0) {
+  if (selectedWords.length === 0) {
     throw new ConvexError(
-      "This collection needs nouns with defined articles for this session type."
+      "This collection needs nouns."
     );
   }
 
-  const selected = pickRandomElements(nounsWithArticles, questionCount);
+  return selectedWords.map(word => {
+    if (!word) {
+      throw new ConvexError("Word not found.");
+    }
 
-  return selected.map(({ id, word }) => {
     const answers = ARTICLE_OPTIONS.map(option => ({
       text: option,
       wordId: undefined,
@@ -382,7 +383,7 @@ async function buildArticleQuestions(
 
     return {
       question: getMultipleChoiceQuestionText(word, "german_substantive_choose_article"),
-      wordId: id,
+      wordId: word._id,
 
       answers,
 
