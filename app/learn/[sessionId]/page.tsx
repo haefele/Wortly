@@ -377,9 +377,7 @@ function AnswerFeedback({ session }: { session: MultipleChoiceStatus }) {
         <IconOrb icon={XCircle} size="lg" className="bg-destructive/15 text-destructive" />
         <div>
           <p className="text-xl font-bold text-foreground">Not quite right</p>
-          <p className="text-sm text-muted-foreground">
-            Review the correct answer before moving on.
-          </p>
+          <p className="text-sm text-muted-foreground">Review the correct answer.</p>
         </div>
       </div>
     </div>
