@@ -167,7 +167,12 @@ export const startMultipleChoice = mutation({
     const questions =
       args.type === "german_substantive_choose_article"
         ? await buildArticleQuestions(ctx.db, assignments, args.questionCount)
-        : await buildTranslationQuestions(ctx.db, assignments.map(a => a.wordId), args.questionCount, args.type);
+        : await buildTranslationQuestions(
+            ctx.db,
+            assignments.map(a => a.wordId),
+            args.questionCount,
+            args.type
+          );
 
     const sessionId = await ctx.db.insert("practiceSessions", {
       userId: user._id,
@@ -361,9 +366,7 @@ async function buildArticleQuestions(
   );
 
   if (selectedWords.length === 0) {
-    throw new ConvexError(
-      "This collection needs nouns."
-    );
+    throw new ConvexError("This collection needs nouns.");
   }
 
   return selectedWords.map(word => {
