@@ -8,75 +8,74 @@ import {
   Medal,
   SquareStack,
   Trophy,
-  type LucideIcon,
 } from "lucide-react";
 import type { FunctionReturnType } from "convex/server";
 import type { api } from "@/convex/_generated/api";
 
-export type PracticeSessionType = "multiple_choice";
-
-export interface PracticeSessionTypeMeta {
-  id: PracticeSessionType;
-  label: string;
-  description: string;
-  icon: LucideIcon;
-}
-
-export const PRACTICE_SESSION_TYPES: PracticeSessionTypeMeta[] = [
-  {
-    id: "multiple_choice",
-    label: "Multiple choice",
-    description: "Match German words and translations in both directions to build recall speed.",
-    icon: SquareStack,
-  },
-];
+type PracticeSessionSummary = FunctionReturnType<
+  typeof api.practiceSessions.getPracticeSessions
+>["page"][number];
+export type PracticeSessionType = PracticeSessionSummary["type"];
+export type MultipleChoiceType = PracticeSessionSummary["multipleChoice"]["type"];
 
 export const LearnConstants = {
   MultipleChoiceIcon: SquareStack,
 } as const;
 
-export type MultipleChoiceVariant =
-  | "german_word_choose_translation"
-  | "translation_choose_german_word"
-  | "german_substantive_choose_article";
+export function getPracticeOptions() {
+  const meta1 = getMultipleChoiceTypeMeta("german_word_choose_translation");
+  const meta2 = getMultipleChoiceTypeMeta("translation_choose_german_word");
+  const meta3 = getMultipleChoiceTypeMeta("german_substantive_choose_article");
 
-export interface MultipleChoiceVariantMeta {
-  id: MultipleChoiceVariant;
-  label: string;
-  description: string;
-  instruction: string;
+  return [
+    {
+      sessionType: "multiple_choice" as PracticeSessionType,
+      variant: "german_word_choose_translation" as MultipleChoiceType,
+      label: meta1.label,
+      description: meta1.description,
+      icon: LearnConstants.MultipleChoiceIcon,
+    },
+    {
+      sessionType: "multiple_choice" as PracticeSessionType,
+      variant: "translation_choose_german_word" as MultipleChoiceType,
+      label: meta2.label,
+      description: meta2.description,
+      icon: LearnConstants.MultipleChoiceIcon,
+    },
+    {
+      sessionType: "multiple_choice" as PracticeSessionType,
+      variant: "german_substantive_choose_article" as MultipleChoiceType,
+      label: meta3.label,
+      description: meta3.description,
+      icon: LearnConstants.MultipleChoiceIcon,
+    },
+  ] as const;
 }
 
-export const MULTIPLE_CHOICE_VARIANTS: MultipleChoiceVariantMeta[] = [
-  {
-    id: "german_word_choose_translation",
-    label: "German → Translation",
-    description: "See the German word and pick the correct translation.",
-    instruction: "Choose the correct translation from the options below.",
-  },
-  {
-    id: "translation_choose_german_word",
-    label: "Translation → German",
-    description: "See the translation and pick the matching German word.",
-    instruction: "Choose the correct German word from the options below.",
-  },
-  {
-    id: "german_substantive_choose_article",
-    label: "Noun → Article",
-    description: "See the noun and choose the correct article (der, die, das).",
-    instruction: "Pick the correct article. Answers are always in the order der · die · das.",
-  },
-];
-
-export function getMultipleChoiceVariantMeta(type: MultipleChoiceVariant) {
-  return (
-    MULTIPLE_CHOICE_VARIANTS.find(variant => variant.id === type) ?? MULTIPLE_CHOICE_VARIANTS[0]
-  );
+export function getMultipleChoiceTypeMeta(type: MultipleChoiceType) {
+  if (type === "german_word_choose_translation") {
+    return {
+      id: "german_word_choose_translation",
+      label: "Multiple choice (German → Translation)",
+      description: "See the German word and pick the correct translation.",
+      instruction: "Choose the correct translation from the options below.",
+    } as const;
+  } else if (type === "translation_choose_german_word") {
+    return {
+      id: "translation_choose_german_word",
+      label: "Multiple choice (Translation → German)",
+      description: "See the translation and pick the matching German word.",
+      instruction: "Choose the correct German word from the options below.",
+    } as const;
+  } else {
+    return {
+      id: "german_substantive_choose_article",
+      label: "Multiple choice (Noun → Article)",
+      description: "See the noun and choose the correct article (der, die, das).",
+      instruction: "Pick the correct article.",
+    } as const;
+  }
 }
-
-type PracticeSessionSummary = FunctionReturnType<
-  typeof api.practiceSessions.getPracticeSessions
->["page"][number];
 
 export function getSessionStatusMeta(session: PracticeSessionSummary) {
   const hasStarted = session.multipleChoice.answeredCount > 0;

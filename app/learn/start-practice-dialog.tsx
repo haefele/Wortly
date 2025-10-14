@@ -32,13 +32,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  MULTIPLE_CHOICE_VARIANTS,
-  PRACTICE_SESSION_TYPES,
-  type MultipleChoiceVariant,
-  type PracticeSessionType,
-} from "@/app/learn/constants";
 import { Controller } from "react-hook-form";
+import { getPracticeOptions } from "@/app/learn/constants";
+
+type PracticeOption = ReturnType<typeof getPracticeOptions>[number];
 
 interface StartPracticeDialogProps {
   open: boolean;
@@ -49,7 +46,7 @@ type DialogStep = "select-type" | "configure";
 
 export function StartPracticeDialog({ open, onOpenChange }: StartPracticeDialogProps) {
   const [step, setStep] = useState<DialogStep>("select-type");
-  const [selectedType, setSelectedType] = useState<PracticeSessionType | null>(null);
+  const [selectedOption, setSelectedOption] = useState<PracticeOption | null>(null);
 
   const wordBoxesResult = useQuery(api.wordBoxes.getMyWordBoxes, {});
 
@@ -57,18 +54,18 @@ export function StartPracticeDialog({ open, onOpenChange }: StartPracticeDialogP
   useEffect(() => {
     if (!open) {
       setStep("select-type");
-      setSelectedType(null);
+      setSelectedOption(null);
     }
   }, [open]);
 
-  const handleTypeSelect = (type: PracticeSessionType) => {
-    setSelectedType(type);
+  const handleTypeSelect = (option: PracticeOption) => {
+    setSelectedOption(option);
     setStep("configure");
   };
 
   const handleBack = () => {
     setStep("select-type");
-    setSelectedType(null);
+    setSelectedOption(null);
   };
 
   return (
@@ -84,14 +81,18 @@ export function StartPracticeDialog({ open, onOpenChange }: StartPracticeDialogP
             </DialogHeader>
 
             <div className="grid grid-cols-1 gap-3">
-              {PRACTICE_SESSION_TYPES.map(type => (
-                <Card key={type.id} variant="clickable" onClick={() => handleTypeSelect(type.id)}>
+              {getPracticeOptions().map(option => (
+                <Card
+                  key={`${option.sessionType}-${option.variant ?? "default"}`}
+                  variant="clickable"
+                  onClick={() => handleTypeSelect(option)}
+                >
                   <CardHeader className="flex items-center gap-3">
-                    <type.icon className="h-5 w-5 text-primary" />
-                    <CardTitle>{type.label}</CardTitle>
+                    <option.icon className="h-5 w-5 text-primary" />
+                    <CardTitle>{option.label}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <CardDescription>{type.description}</CardDescription>
+                    <CardDescription>{option.description}</CardDescription>
                   </CardContent>
                 </Card>
               ))}
@@ -99,9 +100,10 @@ export function StartPracticeDialog({ open, onOpenChange }: StartPracticeDialogP
           </>
         )}
 
-        {step === "configure" && selectedType === "multiple_choice" && (
+        {step === "configure" && selectedOption?.sessionType === "multiple_choice" && (
           <MultipleChoiceConfig
             wordBoxesResult={wordBoxesResult}
+            selectedOption={selectedOption}
             onBack={handleBack}
             onOpenChange={onOpenChange}
           />
@@ -113,12 +115,14 @@ export function StartPracticeDialog({ open, onOpenChange }: StartPracticeDialogP
 
 interface MultipleChoiceConfigProps {
   wordBoxesResult: ReturnType<typeof useQuery<typeof api.wordBoxes.getMyWordBoxes>>;
+  selectedOption: PracticeOption;
   onBack: () => void;
   onOpenChange: (open: boolean) => void;
 }
 
 function MultipleChoiceConfig({
   wordBoxesResult,
+  selectedOption,
   onBack,
   onOpenChange,
 }: MultipleChoiceConfigProps) {
@@ -130,11 +134,6 @@ function MultipleChoiceConfig({
     .object({
       wordBoxId: z.string().min(1, "Please select a collection"),
       questionCount: z.string().min(1, "Please select number of questions"),
-      type: z.enum([
-        "german_word_choose_translation",
-        "translation_choose_german_word",
-        "german_substantive_choose_article",
-      ]),
     })
     .refine(
       data => {
@@ -152,7 +151,6 @@ function MultipleChoiceConfig({
     defaultValues: {
       wordBoxId: "",
       questionCount: "10",
-      type: "german_word_choose_translation",
     },
   });
 
@@ -161,7 +159,7 @@ function MultipleChoiceConfig({
       const sessionId = await startMultipleChoice({
         wordBoxId: data.wordBoxId as Id<"wordBoxes">,
         questionCount: parseInt(data.questionCount, 10),
-        type: data.type as MultipleChoiceVariant,
+        type: selectedOption.variant!,
       });
       onOpenChange(false);
       router.push(`/learn/${sessionId}`);
@@ -173,39 +171,11 @@ function MultipleChoiceConfig({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Configure multiple choice</DialogTitle>
-        <DialogDescription>
-          Choose a collection to practice. You&apos;ll be tested on the words in that collection.
-        </DialogDescription>
+        <DialogTitle>{selectedOption.label}</DialogTitle>
+        <DialogDescription>{selectedOption.description}</DialogDescription>
       </DialogHeader>
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <Controller
-          name="type"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel>Question direction</FieldLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="w-full min-h-[60px]" aria-invalid={fieldState.invalid}>
-                  <SelectValue placeholder="Select question direction" />
-                </SelectTrigger>
-                <SelectContent position="item-aligned">
-                  {MULTIPLE_CHOICE_VARIANTS.map(variant => (
-                    <SelectItem key={variant.id} value={variant.id}>
-                      <div className="flex flex-col gap-1 text-left">
-                        <span className="font-medium">{variant.label}</span>
-                        <span className="text-xs text-muted-foreground">{variant.description}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-
         <Controller
           name="wordBoxId"
           control={form.control}

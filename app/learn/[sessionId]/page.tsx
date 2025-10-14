@@ -22,7 +22,7 @@ import { PageContainer } from "@/components/page-container";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getScoreGradeMeta, getMultipleChoiceVariantMeta, LearnConstants } from "../constants";
+import { getScoreGradeMeta, getMultipleChoiceTypeMeta, LearnConstants } from "../constants";
 import {
   Card,
   CardContent,
@@ -101,7 +101,7 @@ function InProgressView({ session }: { session: MultipleChoiceStatus }) {
     throw new Error("Practice session already completed.");
   }
 
-  const variantMeta = getMultipleChoiceVariantMeta(session.multipleChoice.type);
+  const variantMeta = getMultipleChoiceTypeMeta(session.multipleChoice.type);
 
   const answerMultipleChoice = useMutation(api.practiceSessions.answerMultipleChoice);
   const nextQuestion = useMutation(api.practiceSessions.nextQuestionMultipleChoice);
@@ -405,7 +405,7 @@ function CompletedView({ session }: { session: MultipleChoiceStatus }) {
   }).length;
   const accuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
   const scoreMeta = getScoreGradeMeta(accuracy);
-  const variantMeta = getMultipleChoiceVariantMeta(session.multipleChoice.type);
+  const variantMeta = getMultipleChoiceTypeMeta(session.multipleChoice.type);
 
   const handleRestart = async () => {
     if (!session.multipleChoice.wordBoxId) return;
