@@ -14,6 +14,7 @@ import type * as lib_dates from "../lib/dates.js";
 import type * as lib_shuffle from "../lib/shuffle.js";
 import type * as migrations from "../migrations.js";
 import type * as practiceSessions from "../practiceSessions.js";
+import type * as progressStats from "../progressStats.js";
 import type * as users from "../users.js";
 import type * as wordBoxes from "../wordBoxes.js";
 import type * as words from "../words.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   "lib/shuffle": typeof lib_shuffle;
   migrations: typeof migrations;
   practiceSessions: typeof practiceSessions;
+  progressStats: typeof progressStats;
   users: typeof users;
   wordBoxes: typeof wordBoxes;
   words: typeof words;
