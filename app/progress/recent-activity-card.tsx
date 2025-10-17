@@ -10,6 +10,7 @@ import {
   PlusCircle,
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -91,12 +92,17 @@ export function RecentActivityCard({ className }: RecentActivityCardProps) {
   if (result.isError || !result.data) {
     return (
       <Card className={className}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <MessageCircle className="h-5 w-5 text-primary" />
-            Recent activity
-          </CardTitle>
-          <CardDescription>Your latest learning moments.</CardDescription>
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <MessageCircle className="h-5 w-5 text-primary" />
+              Recent activity
+            </CardTitle>
+            <CardDescription>Your latest learning moments.</CardDescription>
+          </div>
+          <Badge variant="secondary" className="font-medium">
+            Live feed
+          </Badge>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">
@@ -111,12 +117,17 @@ export function RecentActivityCard({ className }: RecentActivityCardProps) {
 
   return (
     <Card className={cn("h-full", className)}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <MessageCircle className="h-5 w-5 text-primary" />
-          Recent activity
-        </CardTitle>
-        <CardDescription>The latest 10 things you&apos;ve done across Wortly.</CardDescription>
+      <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <MessageCircle className="h-5 w-5 text-primary" />
+            Recent activity
+          </CardTitle>
+          <CardDescription>The latest 10 things you&apos;ve done across Wortly.</CardDescription>
+        </div>
+        <Badge variant="secondary" className="font-medium">
+          Live feed
+        </Badge>
       </CardHeader>
       <CardContent>
         {data.activities.length === 0 ? (

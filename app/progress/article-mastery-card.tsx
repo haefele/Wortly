@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "convex-helpers/react";
+import { SpellCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,9 +50,14 @@ export function ArticleMasteryCard({ className }: ArticleMasteryCardProps) {
   if (result.isError || !data) {
     return (
       <Card className={className}>
-        <CardHeader>
-          <CardTitle>Article mastery</CardTitle>
-          <CardDescription>Track how well you know der, die, das.</CardDescription>
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <SpellCheck className="h-5 w-5 text-primary" />
+              Article mastery
+            </CardTitle>
+            <CardDescription>Track how well you know der, die, das.</CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">
@@ -66,7 +72,10 @@ export function ArticleMasteryCard({ className }: ArticleMasteryCardProps) {
     <Card className={className}>
       <CardHeader className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <CardTitle>Article mastery</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <SpellCheck className="h-5 w-5 text-primary" />
+            Article mastery
+          </CardTitle>
           <CardDescription>Accuracy for der, die, das in the last 30 days.</CardDescription>
         </div>
         <Badge variant={data.overallAccuracy >= 90 ? "default" : "secondary"}>

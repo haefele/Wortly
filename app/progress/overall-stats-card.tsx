@@ -4,6 +4,7 @@ import { Boxes, BookOpen, CalendarDays, CheckCircle2, Layers, Notebook, Sparkles
 import { useQuery } from "convex-helpers/react";
 import type { FunctionReturnType } from "convex/server";
 import { api } from "@/convex/_generated/api";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -41,12 +42,17 @@ export function OverallStatsCard({ className }: OverallStatsCardProps) {
   if (result.isError || !result.data) {
     return (
       <Card className={cn("h-full", className)}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Sparkles className="h-5 w-5 text-primary" />
-            Learning milestones
-          </CardTitle>
-          <CardDescription>Overview of everything you&apos;ve achieved so far.</CardDescription>
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Learning milestones
+            </CardTitle>
+            <CardDescription>Overview of everything you&apos;ve achieved so far.</CardDescription>
+          </div>
+          <Badge variant="secondary" className="font-medium">
+            All time
+          </Badge>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">
@@ -94,12 +100,17 @@ export function OverallStatsCard({ className }: OverallStatsCardProps) {
 
   return (
     <Card className={cn("h-full", className)}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Sparkles className="h-5 w-5 text-primary" />
-          Learning milestones
-        </CardTitle>
-        <CardDescription>Your all-time stats across Wortly.</CardDescription>
+      <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Sparkles className="h-5 w-5 text-primary" />
+            Learning milestones
+          </CardTitle>
+          <CardDescription>Your all-time stats across Wortly.</CardDescription>
+        </div>
+        <Badge variant="secondary" className="font-medium">
+          All time
+        </Badge>
       </CardHeader>
       <CardContent>
         <dl className="grid gap-4 sm:grid-cols-2">

@@ -4,6 +4,7 @@ import { ArrowRight, ArrowUpRight, ArrowDownRight, Minus, Target } from "lucide-
 import { useQuery } from "convex-helpers/react";
 import type { FunctionReturnType } from "convex/server";
 import { api } from "@/convex/_generated/api";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -37,9 +38,17 @@ export function AverageScoreCard({ className }: AverageScoreCardProps) {
   if (result.isError || !result.data) {
     return (
       <Card className={cn("h-full", className)}>
-        <CardHeader>
-          <CardTitle>Average accuracy</CardTitle>
-          <CardDescription>Check how you&apos;re performing across sessions.</CardDescription>
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Target className="h-5 w-5 text-primary" />
+              Average accuracy
+            </CardTitle>
+            <CardDescription>Check how you&apos;re performing across sessions.</CardDescription>
+          </div>
+          <Badge variant="secondary" className="font-medium">
+            Last 30 days
+          </Badge>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">
@@ -80,12 +89,17 @@ export function AverageScoreCard({ className }: AverageScoreCardProps) {
 
   return (
     <Card className={cn("h-full overflow-hidden", className)}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Target className="h-5 w-5 text-primary" />
-          Average accuracy
-        </CardTitle>
-        <CardDescription>Based on your last 30 days of practice.</CardDescription>
+      <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Target className="h-5 w-5 text-primary" />
+            Average accuracy
+          </CardTitle>
+          <CardDescription>Based on your last 30 days of practice.</CardDescription>
+        </div>
+        <Badge variant="secondary" className="font-medium">
+          Last 30 days
+        </Badge>
       </CardHeader>
       <CardContent className="space-y-4">
         <div

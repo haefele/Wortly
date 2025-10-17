@@ -3,6 +3,7 @@
 import { useQuery } from "convex-helpers/react";
 import { BarChart3, FolderSearch, Sparkles } from "lucide-react";
 import { api } from "@/convex/_generated/api";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
@@ -36,12 +37,17 @@ export function MostPracticedCollectionsCard({ className }: MostPracticedCollect
   if (result.isError || !data) {
     return (
       <Card className={className}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <BarChart3 className="h-5 w-5 text-primary" />
-            Most practiced collections
-          </CardTitle>
-          <CardDescription>See which collections you focus on most.</CardDescription>
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Most practiced collections
+            </CardTitle>
+            <CardDescription>See which collections you focus on most.</CardDescription>
+          </div>
+          <Badge variant="secondary" className="font-medium">
+            30-day view
+          </Badge>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">
@@ -54,12 +60,17 @@ export function MostPracticedCollectionsCard({ className }: MostPracticedCollect
 
   return (
     <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <BarChart3 className="h-5 w-5 text-primary" />
-          Most practiced collections
-        </CardTitle>
-        <CardDescription>Top focus areas from the last 30 days.</CardDescription>
+      <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            Most practiced collections
+          </CardTitle>
+          <CardDescription>Top focus areas from the last 30 days.</CardDescription>
+        </div>
+        <Badge variant="secondary" className="font-medium">
+          30-day view
+        </Badge>
       </CardHeader>
       <CardContent className="space-y-4">
         {data.wordBoxes.length === 0 ? (

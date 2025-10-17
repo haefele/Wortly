@@ -4,6 +4,7 @@ import { useQuery } from "convex-helpers/react";
 import type { FunctionReturnType } from "convex/server";
 import { Layers } from "lucide-react";
 import { api } from "@/convex/_generated/api";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -36,12 +37,17 @@ export function SessionBreakdownCard({ className }: SessionBreakdownCardProps) {
   if (result.isError || !result.data) {
     return (
       <Card className={className}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Layers className="h-5 w-5 text-primary" />
-            Practice breakdown
-          </CardTitle>
-          <CardDescription>See where you spend the most time practicing.</CardDescription>
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Layers className="h-5 w-5 text-primary" />
+              Practice breakdown
+            </CardTitle>
+            <CardDescription>See where you spend the most time practicing.</CardDescription>
+          </div>
+          <Badge variant="secondary" className="font-medium">
+            Last 30 days
+          </Badge>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">
@@ -56,12 +62,17 @@ export function SessionBreakdownCard({ className }: SessionBreakdownCardProps) {
 
   return (
     <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Layers className="h-5 w-5 text-primary" />
-          Practice breakdown
-        </CardTitle>
-        <CardDescription>Grouped by the practice modes you used in the last 30 days.</CardDescription>
+      <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Layers className="h-5 w-5 text-primary" />
+            Practice breakdown
+          </CardTitle>
+          <CardDescription>Grouped by the practice modes you used in the last 30 days.</CardDescription>
+        </div>
+        <Badge variant="secondary" className="font-medium">
+          Last 30 days
+        </Badge>
       </CardHeader>
       <CardContent>
         {data.byType.length === 0 ? (

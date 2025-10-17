@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Flame, CalendarCheck, CalendarClock } from "lucide-react";
 import { useQuery } from "convex-helpers/react";
 import { api } from "@/convex/_generated/api";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -34,12 +35,17 @@ export function StreakCard({ className }: StreakCardProps) {
   if (result.isError || !result.data) {
     return (
       <Card className={cn("h-full", className)}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Flame className="h-5 w-5 text-primary" />
-            Learning streak
-          </CardTitle>
-          <CardDescription>Track your daily practice momentum.</CardDescription>
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Flame className="h-5 w-5 text-primary" />
+              Learning streak
+            </CardTitle>
+            <CardDescription>Track your daily practice momentum.</CardDescription>
+          </div>
+          <Badge variant="secondary" className="font-medium">
+            Daily
+          </Badge>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">
@@ -75,12 +81,17 @@ export function StreakCard({ className }: StreakCardProps) {
 
   return (
     <Card className={cn("h-full", className)}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Flame className="h-5 w-5 text-primary" />
-          Current streak
-        </CardTitle>
-        <CardDescription>{subtitle}</CardDescription>
+      <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Flame className="h-5 w-5 text-primary" />
+            Current streak
+          </CardTitle>
+          <CardDescription>{subtitle}</CardDescription>
+        </div>
+        <Badge variant="secondary" className="font-medium">
+          Daily
+        </Badge>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         <div className="flex items-end gap-4">

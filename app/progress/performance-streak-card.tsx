@@ -4,6 +4,7 @@ import { useQuery } from "convex-helpers/react";
 import type { FunctionReturnType } from "convex/server";
 import { Flame, Trophy, Zap } from "lucide-react";
 import { api } from "@/convex/_generated/api";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatNumber } from "./utils";
@@ -37,12 +38,17 @@ export function PerformanceStreakCard({ className }: PerformanceStreakCardProps)
   if (result.isError || !result.data) {
     return (
       <Card className={className}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Zap className="h-5 w-5 text-primary" />
-            Performance streaks
-          </CardTitle>
-          <CardDescription>Monitor how consistently you hit your targets.</CardDescription>
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Zap className="h-5 w-5 text-primary" />
+              Performance streaks
+            </CardTitle>
+            <CardDescription>Monitor how consistently you hit your targets.</CardDescription>
+          </div>
+          <Badge variant="secondary" className="font-medium">
+            Last 30 days
+          </Badge>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">
@@ -78,12 +84,17 @@ export function PerformanceStreakCard({ className }: PerformanceStreakCardProps)
 
   return (
     <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Zap className="h-5 w-5 text-primary" />
-          Performance streaks
-        </CardTitle>
-        <CardDescription>Celebrate your high-scoring runs.</CardDescription>
+      <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Zap className="h-5 w-5 text-primary" />
+            Performance streaks
+          </CardTitle>
+          <CardDescription>Celebrate your high-scoring runs.</CardDescription>
+        </div>
+        <Badge variant="secondary" className="font-medium">
+          Last 30 days
+        </Badge>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-3">

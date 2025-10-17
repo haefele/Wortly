@@ -6,6 +6,7 @@ import { useMemo, useId } from "react";
 import { useQuery } from "convex-helpers/react";
 import { Rocket } from "lucide-react";
 import { api } from "@/convex/_generated/api";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -61,12 +62,17 @@ export function LearningVelocityCard({ className }: LearningVelocityCardProps) {
   if (result.isError || !data) {
     return (
       <Card className={className}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Rocket className="h-5 w-5 text-primary" />
-            Learning velocity
-          </CardTitle>
-          <CardDescription>Track how fast your vocabulary is growing.</CardDescription>
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Rocket className="h-5 w-5 text-primary" />
+              Learning velocity
+            </CardTitle>
+            <CardDescription>Track how fast your vocabulary is growing.</CardDescription>
+          </div>
+          <Badge variant="secondary" className="font-medium">
+            All time
+          </Badge>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">
@@ -79,12 +85,17 @@ export function LearningVelocityCard({ className }: LearningVelocityCardProps) {
 
   return (
     <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Rocket className="h-5 w-5 text-primary" />
-          Learning velocity
-        </CardTitle>
-        <CardDescription>How your vocabulary has expanded over time.</CardDescription>
+      <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Rocket className="h-5 w-5 text-primary" />
+            Learning velocity
+          </CardTitle>
+          <CardDescription>How your vocabulary has expanded over time.</CardDescription>
+        </div>
+        <Badge variant="secondary" className="font-medium">
+          All time
+        </Badge>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-muted-foreground text-sm">

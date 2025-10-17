@@ -4,10 +4,11 @@ import { useQuery } from "convex-helpers/react";
 import type { FunctionReturnType } from "convex/server";
 import { Archive, Clock, Library } from "lucide-react";
 import { api } from "@/convex/_generated/api";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatNumber, formatRelativeTime } from "./utils";
-import { Item, ItemContent, ItemTitle, ItemDescription, ItemMedia } from "@/components/ui/item";
+import { Item, ItemContent, ItemTitle, ItemDescription } from "@/components/ui/item";
 
 type CollectionStats = FunctionReturnType<typeof api.progressStats.getCollectionStats>;
 
@@ -37,12 +38,17 @@ export function CollectionStatsCard({ className }: CollectionStatsCardProps) {
   if (result.isError || !result.data) {
     return (
       <Card className={className}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Library className="h-5 w-5 text-primary" />
-            Collection overview
-          </CardTitle>
-          <CardDescription>Statistics about your word boxes.</CardDescription>
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Library className="h-5 w-5 text-primary" />
+              Collection overview
+            </CardTitle>
+            <CardDescription>Statistics about your word boxes.</CardDescription>
+          </div>
+          <Badge variant="secondary" className="font-medium">
+            Snapshot
+          </Badge>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">
@@ -57,12 +63,17 @@ export function CollectionStatsCard({ className }: CollectionStatsCardProps) {
 
   return (
     <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Library className="h-5 w-5 text-primary" />
-          Collection overview
-        </CardTitle>
-        <CardDescription>How your collections are growing.</CardDescription>
+      <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Library className="h-5 w-5 text-primary" />
+            Collection overview
+          </CardTitle>
+          <CardDescription>How your collections are growing.</CardDescription>
+        </div>
+        <Badge variant="secondary" className="font-medium">
+          Snapshot
+        </Badge>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">

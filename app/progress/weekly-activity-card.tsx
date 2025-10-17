@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { useQuery } from "convex-helpers/react";
 import { CalendarRange } from "lucide-react";
 import { api } from "@/convex/_generated/api";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -67,12 +68,17 @@ export function WeeklyActivityCard({ className }: WeeklyActivityCardProps) {
   if (result.isError || !data) {
     return (
       <Card className={className}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <CalendarRange className="h-5 w-5 text-primary" />
-            Weekly activity
-          </CardTitle>
-          <CardDescription>See when you practiced in the last month.</CardDescription>
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <CalendarRange className="h-5 w-5 text-primary" />
+              Weekly activity
+            </CardTitle>
+            <CardDescription>See when you practiced in the last month.</CardDescription>
+          </div>
+          <Badge variant="secondary" className="font-medium">
+            30-day view
+          </Badge>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">
@@ -85,12 +91,17 @@ export function WeeklyActivityCard({ className }: WeeklyActivityCardProps) {
 
   return (
     <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <CalendarRange className="h-5 w-5 text-primary" />
-          Weekly activity
-        </CardTitle>
-        <CardDescription>Sessions per day across the last 30 days.</CardDescription>
+      <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <CalendarRange className="h-5 w-5 text-primary" />
+            Weekly activity
+          </CardTitle>
+          <CardDescription>Sessions per day across the last 30 days.</CardDescription>
+        </div>
+        <Badge variant="secondary" className="font-medium">
+          30-day view
+        </Badge>
       </CardHeader>
       <CardContent>
         {chartData.every(entry => entry.sessionCount === 0) ? (

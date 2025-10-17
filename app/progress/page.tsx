@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { PageContainer } from "@/components/page-container";
 import { TrendingUp } from "lucide-react";
 import { StreakCard } from "./streak-card";
@@ -22,35 +24,79 @@ export default function ProgressPage() {
       description="Track your learning achievements"
       icon={TrendingUp}
     >
-      <div className="grid gap-6">
-        <div className="grid gap-6 lg:grid-cols-3">
-          <StreakCard />
-          <OverallStatsCard className="lg:col-span-2" />
-        </div>
+      <div className="space-y-10">
+        <Section
+          title="Highlights"
+          description="Your at-a-glance wins from the last month and all-time."
+        >
+          <div className="grid gap-4 lg:grid-cols-12">
+            <StreakCard className="lg:col-span-4" />
+            <AverageScoreCard className="lg:col-span-4" />
+            <OverallStatsCard className="lg:col-span-4" />
+          </div>
+        </Section>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <AverageScoreCard />
-          <PerformanceStreakCard />
-          <CollectionStatsCard />
-        </div>
+        <Section
+          title="Performance trends"
+          description="Understand how consistency and accuracy have evolved recently."
+        >
+          <div className="grid gap-4 lg:grid-cols-12">
+            <PerformanceChartCard className="lg:col-span-8" />
+            <PerformanceStreakCard className="lg:col-span-4" />
+          </div>
+        </Section>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <PerformanceChartCard className="lg:col-span-2" />
-          <WeeklyActivityCard />
-        </div>
+        <Section
+          title="Practice activity"
+          description="See when you practiced and where you spend your learning time."
+        >
+          <div className="grid gap-4 lg:grid-cols-12">
+            <WeeklyActivityCard className="lg:col-span-7" />
+            <SessionBreakdownCard className="lg:col-span-5" />
+          </div>
+        </Section>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <SessionBreakdownCard className="lg:col-span-2" />
-          <LearningVelocityCard />
-        </div>
+        <Section
+          title="Collection growth"
+          description="Track how your vocabulary is growing and which collections lead the charge."
+        >
+          <div className="grid gap-4 lg:grid-cols-12">
+            <CollectionStatsCard className="lg:col-span-5" />
+            <LearningVelocityCard className="lg:col-span-7" />
+          </div>
+          <div className="grid gap-4 lg:grid-cols-12 lg:pt-2">
+            <ArticleMasteryCard className="lg:col-span-6" />
+            <MostPracticedCollectionsCard className="lg:col-span-6" />
+          </div>
+        </Section>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <ArticleMasteryCard />
-          <MostPracticedCollectionsCard />
-        </div>
-
-        <RecentActivityCard />
+        <Section
+          title="Latest activity"
+          description="Everything you’ve done recently across Wortly."
+        >
+          <RecentActivityCard />
+        </Section>
       </div>
     </PageContainer>
+  );
+}
+
+type SectionProps = {
+  title: string;
+  description?: string;
+  children: ReactNode;
+};
+
+function Section({ title, description, children }: SectionProps) {
+  return (
+    <section className="space-y-4">
+      <div className="space-y-1.5">
+        <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+        {description ? (
+          <p className="text-muted-foreground text-sm">{description}</p>
+        ) : null}
+      </div>
+      {children}
+    </section>
   );
 }
