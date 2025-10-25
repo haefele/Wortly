@@ -46,7 +46,7 @@ const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
 
 export const processBulkAddOperations = internalMutation({
   args: {},
-  handler: async (ctx, args) => {
+  handler: async ctx => {
     const operations = await ctx.db
       .query("bulkAddOperations")
       .withIndex("by_status", q => q.eq("status", "pending"))
@@ -98,7 +98,7 @@ export const processWord = internalAction({
     let result: AddNewWordResponse;
     try {
       result = await addNewWordInternal(ctx, args.word);
-    } catch (error) {
+    } catch {
       result = { success: false, suggestions: [] };
     }
 

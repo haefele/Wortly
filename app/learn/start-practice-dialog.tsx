@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, Play } from "lucide-react";
@@ -50,13 +50,14 @@ export function StartPracticeDialog({ open, onOpenChange }: StartPracticeDialogP
 
   const wordBoxesResult = useQuery(api.wordBoxes.getMyWordBoxes, {});
 
-  // Reset state when dialog closes
-  useEffect(() => {
-    if (!open) {
+  const handleOpenChange = (newOpen: boolean) => {
+    onOpenChange(newOpen);
+    // Reset state when dialog closes
+    if (!newOpen) {
       setStep("select-type");
       setSelectedOption(null);
     }
-  }, [open]);
+  };
 
   const handleTypeSelect = (option: PracticeOption) => {
     setSelectedOption(option);
@@ -69,7 +70,7 @@ export function StartPracticeDialog({ open, onOpenChange }: StartPracticeDialogP
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         {step === "select-type" && (
           <>

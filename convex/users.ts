@@ -8,7 +8,7 @@ export const store = mutation({
   handler: async ctx => {
     const identity = await throwIfUnauthenticated(ctx);
 
-    let user = await ctx.db
+    const user = await ctx.db
       .query("users")
       .withIndex("by_token", q => q.eq("tokenIdentifier", identity.tokenIdentifier))
       .unique();

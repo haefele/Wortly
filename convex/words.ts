@@ -183,7 +183,7 @@ export async function addNewWordInternal(
       }),
     });
     object = result.object;
-  } catch (error) {
+  } catch {
     throw new ConvexError("Failed to analyze word. Please try again.");
   }
 
