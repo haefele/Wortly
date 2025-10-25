@@ -68,17 +68,14 @@ export const getMultipleChoiceStatus = query({
     }
 
     if (session.completedAt) {
-      return getMultipleChoiceCompletedStatus(session, ctx.db);
+      return getMultipleChoiceCompletedStatus(session);
     } else {
-      return getMultipleChoiceInProgressStatus(session, ctx.db);
+      return getMultipleChoiceInProgressStatus(session);
     }
   },
 });
 
-async function getMultipleChoiceCompletedStatus(
-  session: Doc<"practiceSessions">,
-  db: DatabaseReader
-) {
+async function getMultipleChoiceCompletedStatus(session: Doc<"practiceSessions">) {
   if (session.type !== "multiple_choice") {
     throw new ConvexError("Unsupported practice session type.");
   }
@@ -97,10 +94,7 @@ async function getMultipleChoiceCompletedStatus(
   };
 }
 
-async function getMultipleChoiceInProgressStatus(
-  session: Doc<"practiceSessions">,
-  db: DatabaseReader
-) {
+async function getMultipleChoiceInProgressStatus(session: Doc<"practiceSessions">) {
   if (session.type !== "multiple_choice") {
     throw new ConvexError("Unsupported practice session type.");
   }
@@ -262,13 +256,12 @@ export const nextQuestionMultipleChoice = mutation({
 
     const nextIndex = currentIndex + 1;
     if (nextIndex >= session.multipleChoice.questions.length) {
-      const { currentQuestionIndex: _omit, ...rest } = session.multipleChoice;
-
       const completedAt = session.completedAt ?? Date.now();
 
       await ctx.db.patch(session._id, {
         multipleChoice: {
-          ...rest,
+          ...session.multipleChoice,
+          currentQuestionIndex: undefined,
         },
         completedAt,
       });

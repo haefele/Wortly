@@ -14,7 +14,7 @@ export function useAdminAccess() {
     if (!isLoading && user && !isAdmin) {
       router.push("/");
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, isAdmin]);
 
   return {
     user,

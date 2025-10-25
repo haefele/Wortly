@@ -30,7 +30,6 @@ export function UserProvider({ children }: UserProviderProps) {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      setUserId(null);
       return;
     }
 
@@ -41,10 +40,13 @@ export function UserProvider({ children }: UserProviderProps) {
     createUser();
   }, [isAuthenticated, storeUser, clerkUser?.id]);
 
+  // Derive the effective userId based on authentication state
+  const effectiveUserId = isAuthenticated ? userId : null;
+
   const contextValue: UserContextType = {
     isLoading:
       convexLoading ||
-      (isAuthenticated && userId === null) ||
+      (isAuthenticated && effectiveUserId === null) ||
       (isAuthenticated && meResult.data === undefined),
     isAuthenticated: isAuthenticated,
     user: meResult.data || undefined,

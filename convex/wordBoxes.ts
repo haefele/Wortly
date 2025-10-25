@@ -6,7 +6,7 @@ import { Doc } from "./_generated/dataModel";
 
 export const getMyWordBoxes = query({
   args: {},
-  handler: async (ctx, args) => {
+  handler: async ctx => {
     const currentUser = await getCurrentUser(ctx);
 
     const boxes = await ctx.db
